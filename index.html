@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>EJ TOBACCO STORE • Menu Masuk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root{
+      --bg:#07090d;
+      --bg-soft:#0d1118;
+      --card:rgba(17,22,32,.82);
+      --card-2:rgba(255,255,255,.04);
+      --stroke:rgba(255,255,255,.08);
+      --text:#f5f7fb;
+      --muted:#98a2b3;
+      --gold:#d4af37;
+      --gold-2:#f6dd82;
+      --green:#22c55e;
+      --blue:#3b82f6;
+      --purple:#8b5cf6;
+      --shadow:0 20px 60px rgba(0,0,0,.38);
+      --gradient-gold:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+    body{
+      font-family:'Inter',sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 28%),
+        radial-gradient(circle at bottom center, rgba(139,92,246,.08), transparent 24%),
+        var(--bg);
+      padding:20px;
+    }
+    .shell{
+      max-width:980px;
+      margin:0 auto;
+      min-height:calc(100vh - 40px);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:32px;
+      padding:28px;
+      background:
+        radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 36%),
+        linear-gradient(180deg,#111827 0%,#090b10 100%);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:var(--shadow);
+    }
+    .hero:before{
+      content:"";
+      position:absolute; inset:0;
+      background:linear-gradient(135deg, rgba(255,255,255,.08), transparent 40%);
+      pointer-events:none;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      min-height:34px; padding:7px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.08);
+      color:var(--gold-2);
+      font-size:12px; font-weight:800;
+      margin-bottom:14px;
+    }
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    .brand-row{
+      display:flex; align-items:center; gap:14px; margin-bottom:14px;
+    }
+    .logo{
+      width:60px; height:60px; border-radius:20px;
+      background:var(--gradient-gold);
+      color:#171717;
+      display:grid; place-items:center;
+      font-size:24px;
+      box-shadow:0 16px 34px rgba(212,175,55,.28);
+      flex:0 0 auto;
+    }
+    h1{
+      font-size:32px; line-height:1.08; font-weight:800; letter-spacing:-.8px;
+    }
+    .subtitle{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:14px; line-height:1.65;
+      max-width:560px;
+    }
+    .mini-stats{
+      display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px;
+    }
+    .mini{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:14px;
+    }
+    .mini label{
+      display:block; color:var(--muted); font-size:11px; margin-bottom:8px; font-weight:700;
+    }
+    .mini strong{
+      font-size:18px; font-weight:800;
+    }
+    .info-card{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:24px;
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .info-card h2{
+      font-size:16px; font-weight:800; margin-bottom:6px;
+    }
+    .info-card p{
+      color:var(--muted); font-size:13px; line-height:1.6;
+    }
+    .folder{
+      margin-top:4px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      font-size:12px; line-height:1.6;
+      color:#dbe2f1;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:16px;
+      padding:14px;
+      white-space:pre-line;
+    }
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+    }
+    .card{
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(17,22,32,.88), rgba(12,16,24,.82));
+      border:1px solid var(--stroke);
+      box-shadow:var(--shadow);
+      border-radius:28px;
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:0;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), transparent 34%);
+      pointer-events:none;
+    }
+    .card-icon{
+      width:54px; height:54px; border-radius:18px;
+      display:grid; place-items:center;
+      color:#111;
+      font-size:21px;
+      flex:0 0 auto;
+    }
+    .customer .card-icon{ background:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%); }
+    .admin .card-icon{ background:linear-gradient(135deg,#93c5fd 0%,#3b82f6 100%); }
+    .courier .card-icon{ background:linear-gradient(135deg,#c4b5fd 0%,#8b5cf6 100%); }
+    .card h3{ font-size:20px; font-weight:800; }
+    .card p{
+      color:var(--muted);
+      font-size:13px; line-height:1.65;
+      min-height:66px;
+    }
+    .card ul{
+      list-style:none;
+      display:flex; flex-direction:column; gap:8px;
+      color:#dbe2f1;
+      font-size:12px;
+    }
+    .card ul li{
+      display:flex; align-items:flex-start; gap:8px;
+    }
+    .card ul i{
+      color:var(--gold-2);
+      margin-top:2px;
+      width:14px; text-align:center;
+      flex:0 0 auto;
+    }
+    .actions{
+      margin-top:auto;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .btn{
+      min-height:50px;
+      border-radius:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      text-decoration:none;
+      font-size:14px;
+      font-weight:800;
+      border:none;
+      padding:0 16px;
+      transition:transform .18s ease, opacity .18s ease;
+    }
+    .btn:hover{ transform:translateY(-1px); }
+    .btn-primary{
+      background:var(--gradient-gold);
+      color:#171717;
+      box-shadow:0 14px 28px rgba(212,175,55,.22);
+    }
+    .btn-secondary{
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .footer{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+    .footer-card{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:18px;
+    }
+    .footer-card h4{
+      font-size:14px; font-weight:800; margin-bottom:8px;
+    }
+    .footer-card p{
+      color:var(--muted); font-size:12px; line-height:1.65;
+    }
+    code{
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.06);
+      padding:2px 6px;
+      border-radius:8px;
+      color:#f8fafc;
+    }
+    @media (max-width:900px){
+      .hero-grid{ grid-template-columns:1fr; }
+      .cards{ grid-template-columns:1fr; }
+      .footer{ grid-template-columns:1fr; }
+    }
+    @media (max-width:540px){
+      body{ padding:14px; }
+      .shell{ min-height:calc(100vh - 28px); }
+      .hero{ padding:20px; border-radius:26px; }
+      h1{ font-size:26px; }
+      .mini-stats{ grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="badge"><i class="fa-solid fa-sparkles"></i> GitHub Pages entry point</div>
+      <div class="hero-grid">
+        <div>
+          <div class="brand-row">
+            <div class="logo"><i class="fa-solid fa-store"></i></div>
+            <div>
+              <h1>EJ TOBACCO STORE</h1>
+              <div class="subtitle">
+                Satu halaman masuk untuk membuka aplikasi <b>Customer</b>, <b>Admin Pusat</b>, dan <b>Kurir</b>.
+                Tinggal upload ke repo GitHub lalu aktifkan GitHub Pages.
+              </div>
+            </div>
+          </div>
+          <div class="mini-stats">
+            <div class="mini">
+              <label>Online</label>
+              <strong>Guest checkout</strong>
+            </div>
+            <div class="mini">
+              <label>Pusat</label>
+              <strong>Admin + Kurir</strong>
+            </div>
+            <div class="mini">
+              <label>Cabang</label>
+              <strong>POS offline</strong>
+            </div>
+            <div class="mini">
+              <label>Deploy</label>
+              <strong>GitHub Pages</strong>
+            </div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div>
+            <h2>Struktur folder repo</h2>
+            <p>Supaya link di bawah langsung jalan, pakai struktur seperti ini:</p>
+            <div class="folder">index.html
+customer/index.html
+admin/index.html
+kurir/index.html</div>
+          </div>
+          <p>
+            Kalau nama folder Anda berbeda, cukup ganti atribut <code>href</code> di tombol menu ini.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards">
+      <article class="card customer">
+        <div class="card-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+        <h3>Customer</h3>
+        <p>
+          Halaman belanja online untuk customer. Cocok untuk guest checkout, hitung jarak otomatis,
+          dan pemilihan kurir toko atau ekspedisi luar.
+        </p>
+        <ul>
+          <li><i class="fa-solid fa-check"></i><span>Katalog & keranjang</span></li>
+          <li><i class="fa-solid fa-check"></i><span>Checkout tanpa login ribet</span></li>
+          <li><i class="fa-solid fa-check"></i><span>Ambil lokasi GPS / pilih titik di peta</span></li>
+        </ul>
+        <div class="actions">
+          <a class="btn btn-primary" href="customer/index.html"><i class="fa-solid fa-arrow-right"></i> Masuk Customer</a>
+          <a class="btn btn-secondary" href="customer/index.html">Buka folder customer</a>
+        </div>
+      </article>
+
+      <article class="card admin">
+        <div class="card-icon"><i class="fa-solid fa-user-shield"></i></div>
+        <h3>Admin Pusat</h3>
+        <p>
+          Panel pusat untuk menerima order online, verifikasi pembayaran, assign kurir,
+          input resi ekspedisi, dan memantau operasional pusat.
+        </p>
+        <ul>
+          <li><i class="fa-solid fa-check"></i><span>Filter internal / external</span></li>
+          <li><i class="fa-solid fa-check"></i><span>Verifikasi transfer</span></li>
+          <li><i class="fa-solid fa-check"></i><span>Tambah kurir & update status</span></li>
+        </ul>
+        <div class="actions">
+          <a class="btn btn-primary" href="admin/index.html"><i class="fa-solid fa-arrow-right"></i> Masuk Admin</a>
+          <a class="btn btn-secondary" href="admin/index.html">Buka folder admin</a>
+        </div>
+      </article>
+
+      <article class="card courier">
+        <div class="card-icon"><i class="fa-solid fa-motorcycle"></i></div>
+        <h3>Kurir</h3>
+        <p>
+          Aplikasi kurir internal pusat untuk menerima order dekat toko, update status,
+          simpan bukti kirim, dan mencatat COD serta pengeluaran harian.
+        </p>
+        <ul>
+          <li><i class="fa-solid fa-check"></i><span>Rute & status pengiriman</span></li>
+          <li><i class="fa-solid fa-check"></i><span>Bukti kirim & COD</span></li>
+          <li><i class="fa-solid fa-check"></i><span>Dompet kurir & closing kas</span></li>
+        </ul>
+        <div class="actions">
+          <a class="btn btn-primary" href="kurir/index.html"><i class="fa-solid fa-arrow-right"></i> Masuk Kurir</a>
+          <a class="btn btn-secondary" href="kurir/index.html">Buka folder kurir</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="footer">
+      <div class="footer-card">
+        <h4>Catatan upload</h4>
+        <p>
+          Upload file ini sebagai <code>index.html</code> di root repo. Lalu taruh file customer,
+          admin, dan kurir di folder masing-masing seperti contoh di atas.
+        </p>
+      </div>
+      <div class="footer-card">
+        <h4>Catatan GitHub Pages</h4>
+        <p>
+          Setelah file masuk repo, aktifkan GitHub Pages dari branch <code>main</code>.
+          Nanti halaman ini jadi pintu masuk utama untuk tes semua modul.
+        </p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

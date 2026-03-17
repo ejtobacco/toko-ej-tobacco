@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>EJ Admin Pusat MVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root{
+      --bg:#07090d;--card:rgba(17,22,32,.86);--card2:rgba(255,255,255,.04);--stroke:rgba(255,255,255,.08);
+      --text:#f5f7fb;--muted:#98a2b3;--gold:#d4af37;--gold2:#f6dd82;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--amber:#f59e0b;
+      --shadow:0 20px 60px rgba(0,0,0,.38);--radius:22px;--radius2:16px;--grad:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%);
+    }
+    *{box-sizing:border-box;margin:0;padding:0} html,body{min-height:100%}
+    body{font-family:'Inter',sans-serif;background:
+      radial-gradient(circle at top left, rgba(59,130,246,.12), transparent 24%),
+      radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 28%), var(--bg);color:var(--text);padding:18px}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}
+    .app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:105px}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:12px 0;background:linear-gradient(180deg,rgba(7,9,13,.92),rgba(7,9,13,.58),transparent);backdrop-filter:blur(18px)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .icon{width:48px;height:48px;border-radius:16px;background:var(--grad);display:grid;place-items:center;color:#141414;font-size:18px;box-shadow:0 10px 22px rgba(212,175,55,.35)}
+    .brand h1{font-size:17px;font-weight:800}.brand p{margin-top:3px;color:var(--muted);font-size:11px}
+    .icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text)}
+    .card{background:var(--card);border:1px solid var(--stroke);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;position:relative;overflow:hidden}
+    .card:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 35%);pointer-events:none}
+    .hero{padding:20px;border-radius:28px;background:radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 36%), linear-gradient(180deg,#111827 0%,#090b10 100%)}
+    .hero .badge{display:inline-flex;gap:8px;align-items:center;min-height:32px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:var(--gold2);margin-bottom:14px}
+    .hero .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+    .stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px}
+    .stat label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}.stat strong{font-size:18px;font-weight:800}
+    .hero h2{font-size:13px;color:rgba(255,255,255,.72);letter-spacing:.8px;text-transform:uppercase}
+    .hero .value{font-size:32px;font-weight:800;margin-top:8px}
+    .hero .sub{margin-top:6px;font-size:12px;color:var(--muted)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .field,.select,.textarea{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.04);color:var(--text);outline:none}
+    .field,.select{height:52px;padding:0 16px}
+    .textarea{min-height:96px;padding:14px 16px;resize:vertical}
+    .label{display:block;font-size:12px;font-weight:700;margin-bottom:8px;color:#dbe2f1}
+    .search-wrap{position:relative}.search-wrap i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold)}
+    .search-wrap .field{padding-left:46px}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px}
+    .tab{min-height:74px;border-radius:18px;background:rgba(255,255,255,.02);border:1px solid transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:10px;font-weight:800}
+    .tab b{font-size:15px;color:var(--text)} .tab.active{background:linear-gradient(180deg,rgba(212,175,55,.17),rgba(212,175,55,.06));border-color:rgba(212,175,55,.30);color:var(--gold2)}
+    .section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.section-head h3{font-size:15px;font-weight:800}.section-head p{margin-top:4px;color:var(--muted);font-size:11px}
+    .pill{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text);font-size:12px;font-weight:800}
+    .list{display:flex;flex-direction:column;gap:14px}
+    .order{border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.028));border:1px solid rgba(255,255,255,.08);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+    .order-topbar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(212,175,55,.08);border-bottom:1px solid rgba(212,175,55,.14);color:var(--gold2);font-size:11px;font-weight:800}
+    .num{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;background:var(--grad);color:#111;font-size:12px;font-weight:800;flex:0 0 auto}
+    .order-main{padding:16px}.order-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .meta{display:flex;gap:12px;min-width:0}.meta .box{width:44px;height:44px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;color:var(--gold)}
+    .meta h4{font-size:15px;font-weight:800;margin-bottom:5px}.meta p{font-size:11px;color:var(--muted);line-height:1.45}
+    .badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+    .badge2{min-height:28px;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;white-space:nowrap}
+    .waiting{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.24)}
+    .processing{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.24)}
+    .assigned{background:rgba(139,92,246,.12);color:#c4b5fd;border-color:rgba(139,92,246,.24)}
+    .delivered{background:rgba(34,197,94,.14);color:#86efac;border-color:rgba(34,197,94,.24)}
+    .failed{background:rgba(239,68,68,.14);color:#fca5a5;border-color:rgba(239,68,68,.24)}
+    .cod{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.24)}
+    .transfer{background:rgba(139,92,246,.12);color:#c4b5fd;border-color:rgba(139,92,246,.24)}
+    .internal{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.24)}
+    .external{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.24)}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .chip{min-height:30px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+    .box2{margin-top:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:16px;padding:14px}
+    .box2 label{display:block;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+    .box2 p{font-size:13px;line-height:1.55;color:#e7ebf2}
+    .actions{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{min-height:48px;border-radius:16px;font-size:13px;font-weight:800;border:none;color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:9px}
+    .btn-blue{background:linear-gradient(180deg,#3b82f6,#2563eb)} .btn-green{background:linear-gradient(180deg,#22c55e,#16a34a)}
+    .btn-gold{background:var(--grad);color:#1a1a1a}.btn-ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text)}
+    .btn-danger{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.28);color:#fca5a5}
+    .empty{padding:24px 16px;text-align:center;color:var(--muted);font-size:13px;border-radius:18px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.02)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:70}
+    .overlay.show{opacity:1;pointer-events:auto}
+    .sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(460px,calc(100% - 18px));background:#0e131c;border:1px solid rgba(255,255,255,.08);border-bottom:none;border-top-left-radius:28px;border-top-right-radius:28px;padding:18px 18px 28px;box-shadow:0 -20px 60px rgba(0,0,0,.45);transition:transform .28s ease;z-index:80;max-height:85vh;overflow-y:auto}
+    .sheet.show{transform:translate(-50%,0)} .handle{width:64px;height:6px;border-radius:999px;background:rgba(255,255,255,.14);margin:0 auto 16px}
+    .sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}.sheet-head h3{font-size:18px;font-weight:800;margin-bottom:4px}.sheet-head p{font-size:12px;color:var(--muted);line-height:1.5}
+    .close{width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text)}
+    .stack{display:flex;flex-direction:column;gap:12px}
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px}
+    .mini label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px}.mini strong{font-size:18px;font-weight:800}
+    .helper{font-size:11px;color:var(--muted);line-height:1.5}
+    .toast{position:fixed;top:24px;left:50%;transform:translate(-50%,-18px);width:min(380px,calc(100% - 28px));padding:14px 16px;border-radius:18px;background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s ease;z-index:95}
+    .toast.show{transform:translate(-50%,0);opacity:1}
+    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 28px);max-width:430px;padding:10px;border-radius:28px;background:rgba(10,12,18,.86);border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(22px);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;z-index:35}
+    .nav{min-height:60px;border-radius:18px;border:none;background:transparent;color:var(--muted);font-size:10px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+    .nav.active{background:rgba(212,175,55,.12);color:var(--gold2)}
+    .hidden{display:none!important}
+    @media (max-width:390px){body{padding:14px}.grid2,.mini-grid,.actions{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.order-row{flex-direction:column}.badges{justify-content:flex-start}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon"><i class="fa-solid fa-user-shield"></i></div>
+        <div>
+          <h1>EJ Admin Pusat</h1>
+          <p id="brandSub">Realtime order center • pusat online + offline</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="refreshBtn" title="Refresh"><i class="fa-solid fa-rotate"></i></button>
+    </header>
+
+    <section class="card hero">
+      <div class="badge"><i class="fa-solid fa-sparkles"></i> Central order control</div>
+      <h2>Pesanan aktif pusat</h2>
+      <div class="value" id="heroValue">0 order</div>
+      <div class="sub" id="heroSub">Pantau order online internal, external, dan pembayaran.</div>
+      <div class="row">
+        <div class="stat"><label>Internal</label><strong id="internalCount">0 order</strong></div>
+        <div class="stat"><label>External</label><strong id="externalCount">0 order</strong></div>
+        <div class="stat"><label>Transfer pending</label><strong id="transferPending">0 order</strong></div>
+        <div class="stat"><label>COD order</label><strong id="codCount">0 order</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="grid2">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input class="field" id="searchInput" placeholder="Cari order, customer, WA..." />
+        </div>
+        <select class="select" id="shippingFilter">
+          <option value="all">Semua pengiriman</option>
+          <option value="internal">Kurir Toko</option>
+          <option value="external">Ekspedisi Luar</option>
+        </select>
+      </div>
+      <div class="grid2" style="margin-top:12px">
+        <select class="select" id="paymentFilter">
+          <option value="all">Semua pembayaran</option>
+          <option value="cod">COD</option>
+          <option value="transfer">Transfer</option>
+        </select>
+        <select class="select" id="statusFilter">
+          <option value="all">Semua status</option>
+          <option value="waiting_confirmation">Menunggu diproses</option>
+          <option value="processing">Diproses admin</option>
+          <option value="assigned_to_courier">Ditugaskan ke kurir</option>
+          <option value="ready_for_external_shipping">Siap kirim ekspedisi</option>
+          <option value="shipped_external">Dikirim via ekspedisi</option>
+          <option value="on_the_way">Kurir menuju lokasi</option>
+          <option value="delivered">Terkirim</option>
+          <option value="cancelled">Batal</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="card tabs" id="statusTabs"></section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h3>Daftar order pusat</h3>
+          <p>Customer online masuk ke sini untuk diproses admin pusat.</p>
+        </div>
+        <button class="pill" id="openConfigBtn">Config</button>
+      </div>
+      <div class="list" id="orderList"></div>
+    </section>
+
+    <section class="hidden" data-page="payments">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Pembayaran transfer</h3>
+            <p>Verifikasi pembayaran transfer yang menunggu approval.</p>
+          </div>
+        </div>
+        <div class="list" id="paymentList"></div>
+      </section>
+    </section>
+
+    <section class="hidden" data-page="couriers">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Kurir pusat</h3>
+            <p>Kelola kurir internal untuk order dekat toko.</p>
+          </div>
+          <button class="pill" id="openCourierBtn">Tambah kurir</button>
+        </div>
+        <div class="list" id="courierList"></div>
+      </section>
+    </section>
+
+    <section class="hidden" data-page="logs">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Audit log admin</h3>
+            <p>Semua aksi pusat tercatat agar mudah ditelusuri.</p>
+          </div>
+        </div>
+        <div class="list" id="logList"></div>
+      </section>
+    </section>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav active" data-page="orders"><i class="fa-solid fa-box-open"></i><span>Order</span></button>
+    <button class="nav" data-page="payments"><i class="fa-solid fa-money-check-dollar"></i><span>Transfer</span></button>
+    <button class="nav" data-page="couriers"><i class="fa-solid fa-motorcycle"></i><span>Kurir</span></button>
+    <button class="nav" data-page="logs"><i class="fa-solid fa-list-check"></i><span>Log</span></button>
+  </nav>
+
+  <div class="overlay" id="overlay"></div>
+
+  <section class="sheet" id="assignSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Assign ke kurir</h3>
+        <p id="assignHead">Pilih kurir pusat untuk order internal.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div>
+        <label class="label">Kurir tujuan</label>
+        <select class="select" id="assignCourierSelect"></select>
+      </div>
+      <div>
+        <label class="label">Catatan admin</label>
+        <textarea class="textarea" id="assignNote" placeholder="Contoh: Prioritaskan sebelum jam 7 malam."></textarea>
+      </div>
+      <button class="btn btn-gold" id="saveAssignBtn"><i class="fa-solid fa-check"></i> Simpan assign</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="externalSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Kirim via ekspedisi</h3>
+        <p id="externalHead">Isi provider dan nomor resi untuk order external.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div>
+        <label class="label">Ekspedisi</label>
+        <select class="select" id="providerSelect">
+          <option value="JNE">JNE</option>
+          <option value="J&T">J&T</option>
+          <option value="SiCepat">SiCepat</option>
+          <option value="AnterAja">AnterAja</option>
+          <option value="POS">POS</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Service</label>
+        <input class="field" id="serviceInput" placeholder="Contoh: REG" />
+      </div>
+      <div>
+        <label class="label">Nomor resi</label>
+        <input class="field" id="resiInput" placeholder="Masukkan nomor resi" />
+      </div>
+      <div>
+        <label class="label">Ongkir final</label>
+        <input class="field" id="externalCostInput" type="number" placeholder="18000" />
+      </div>
+      <button class="btn btn-gold" id="saveExternalBtn"><i class="fa-solid fa-truck-fast"></i> Simpan ekspedisi</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="paymentSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Verifikasi transfer</h3>
+        <p id="paymentHead">Tandai pembayaran transfer sudah diverifikasi.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div class="mini-grid">
+        <div class="mini"><label>Total tagihan</label><strong id="paymentDue">Rp 0</strong></div>
+        <div class="mini"><label>Status</label><strong id="paymentStatusText">waiting_verification</strong></div>
+      </div>
+      <div>
+        <label class="label">Jumlah diterima</label>
+        <input class="field" id="paymentAmountInput" type="number" placeholder="Masukkan jumlah diterima" />
+      </div>
+      <div>
+        <label class="label">Catatan verifikasi</label>
+        <textarea class="textarea" id="paymentNote" placeholder="Contoh: Bukti transfer valid, pembayaran lengkap."></textarea>
+      </div>
+      <button class="btn btn-gold" id="savePaymentBtn"><i class="fa-solid fa-badge-check"></i> Verifikasi pembayaran</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="statusSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Update status order</h3>
+        <p id="statusHead">Ubah status order secara manual bila dibutuhkan.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div>
+        <label class="label">Status baru</label>
+        <select class="select" id="statusSelect">
+          <option value="waiting_confirmation">Menunggu diproses</option>
+          <option value="processing">Diproses admin</option>
+          <option value="assigned_to_courier">Ditugaskan ke kurir</option>
+          <option value="ready_for_external_shipping">Siap kirim ekspedisi</option>
+          <option value="shipped_external">Dikirim via ekspedisi</option>
+          <option value="on_the_way">Kurir menuju lokasi</option>
+          <option value="delivered">Terkirim</option>
+          <option value="cancelled">Dibatalkan</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Catatan status</label>
+        <textarea class="textarea" id="statusNote" placeholder="Tulis alasan singkat update status ini."></textarea>
+      </div>
+      <button class="btn btn-gold" id="saveStatusBtn"><i class="fa-solid fa-check"></i> Simpan status</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="courierSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Tambah kurir pusat</h3>
+        <p>Simpan kurir baru untuk assignment order internal.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div><label class="label">Nama kurir</label><input class="field" id="courierNameInput" placeholder="Contoh: Kurir A"></div>
+      <div><label class="label">Nomor HP</label><input class="field" id="courierPhoneInput" placeholder="0812xxxx"></div>
+      <div><label class="label">Kendaraan</label><input class="field" id="courierVehicleInput" placeholder="Motor"></div>
+      <button class="btn btn-gold" id="saveCourierBtn"><i class="fa-solid fa-plus"></i> Simpan kurir</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="configSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Config Firebase</h3>
+        <p>Tempel config project yang sama dengan customer app Anda.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div class="helper">Isi <code>firebaseConfig</code> langsung di file HTML ini. Setelah itu refresh localhost.</div>
+      <div class="mini-grid">
+        <div class="mini"><label>Project</label><strong id="cfgProject">-</strong></div>
+        <div class="mini"><label>Database</label><strong id="cfgDb">-</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, get, onValue, push, update, set, child } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+  authDomain: "ej-tobacco-store.firebaseapp.com",
+  databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ej-tobacco-store",
+  storageBucket: "ej-tobacco-store.firebasestorage.app",
+  messagingSenderId: "70458372662",
+  appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+  measurementId: "G-VCRFQSRB9H"
+};
+
+    const STATUS_LABELS = {
+      waiting_confirmation: 'Menunggu diproses',
+      processing: 'Diproses admin',
+      assigned_to_courier: 'Ditugaskan ke kurir',
+      ready_for_external_shipping: 'Siap kirim ekspedisi',
+      shipped_external: 'Dikirim via ekspedisi',
+      on_the_way: 'Kurir menuju lokasi',
+      delivered: 'Terkirim',
+      cancelled: 'Dibatalkan'
+    };
+
+    const state = {
+      currentPage: 'orders',
+      tab: 'all',
+      search: '',
+      shippingFilter: 'all',
+      paymentFilter: 'all',
+      statusFilter: 'all',
+      orders: [],
+      payments: {},
+      shipmentsInternal: {},
+      shipmentsExternal: {},
+      couriers: {},
+      logs: [],
+      activeOrderId: null
+    };
+
+    let app = null;
+    let db = null;
+
+    const els = {
+      heroValue: document.getElementById('heroValue'),
+      heroSub: document.getElementById('heroSub'),
+      internalCount: document.getElementById('internalCount'),
+      externalCount: document.getElementById('externalCount'),
+      transferPending: document.getElementById('transferPending'),
+      codCount: document.getElementById('codCount'),
+      searchInput: document.getElementById('searchInput'),
+      shippingFilter: document.getElementById('shippingFilter'),
+      paymentFilter: document.getElementById('paymentFilter'),
+      statusFilter: document.getElementById('statusFilter'),
+      statusTabs: document.getElementById('statusTabs'),
+      orderList: document.getElementById('orderList'),
+      paymentList: document.getElementById('paymentList'),
+      courierList: document.getElementById('courierList'),
+      logList: document.getElementById('logList'),
+      overlay: document.getElementById('overlay'),
+      assignSheet: document.getElementById('assignSheet'),
+      externalSheet: document.getElementById('externalSheet'),
+      paymentSheet: document.getElementById('paymentSheet'),
+      statusSheet: document.getElementById('statusSheet'),
+      courierSheet: document.getElementById('courierSheet'),
+      configSheet: document.getElementById('configSheet'),
+      assignCourierSelect: document.getElementById('assignCourierSelect'),
+      assignNote: document.getElementById('assignNote'),
+      assignHead: document.getElementById('assignHead'),
+      providerSelect: document.getElementById('providerSelect'),
+      serviceInput: document.getElementById('serviceInput'),
+      resiInput: document.getElementById('resiInput'),
+      externalCostInput: document.getElementById('externalCostInput'),
+      externalHead: document.getElementById('externalHead'),
+      paymentHead: document.getElementById('paymentHead'),
+      paymentDue: document.getElementById('paymentDue'),
+      paymentStatusText: document.getElementById('paymentStatusText'),
+      paymentAmountInput: document.getElementById('paymentAmountInput'),
+      paymentNote: document.getElementById('paymentNote'),
+      statusHead: document.getElementById('statusHead'),
+      statusSelect: document.getElementById('statusSelect'),
+      statusNote: document.getElementById('statusNote'),
+      courierNameInput: document.getElementById('courierNameInput'),
+      courierPhoneInput: document.getElementById('courierPhoneInput'),
+      courierVehicleInput: document.getElementById('courierVehicleInput'),
+      cfgProject: document.getElementById('cfgProject'),
+      cfgDb: document.getElementById('cfgDb'),
+      toast: document.getElementById('toast')
+    };
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add('show');
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(() => els.toast.classList.remove('show'), 2400);
+    }
+
+    function formatCurrency(v) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
+    }
+
+    function openSheet(id) {
+      els.overlay.classList.add('show');
+      document.querySelectorAll('.sheet').forEach(s => s.classList.remove('show'));
+      document.getElementById(id).classList.add('show');
+    }
+    function closeSheets() {
+      els.overlay.classList.remove('show');
+      document.querySelectorAll('.sheet').forEach(s => s.classList.remove('show'));
+    }
+    function addLog(title, note) {
+      state.logs.unshift({ title, note, time: new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) + ' WIB' });
+      renderLogs();
+    }
+    function slugify(text='') {
+      return text.toString().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    }
+    function statusClass(status='') {
+      if (['waiting_confirmation','ready_for_external_shipping'].includes(status)) return 'waiting';
+      if (['processing','on_the_way'].includes(status)) return 'processing';
+      if (['assigned_to_courier'].includes(status)) return 'assigned';
+      if (['delivered','shipped_external'].includes(status)) return 'delivered';
+      return 'failed';
+    }
+
+    function initFirebase() {
+      if (firebaseConfig.apiKey.startsWith('ISI_')) {
+        els.cfgProject.textContent = 'Belum diisi';
+        els.cfgDb.textContent = 'Belum diisi';
+        showToast('Isi firebaseConfig dulu di file admin pusat.');
+        return false;
+      }
+      app = initializeApp(firebaseConfig);
+      db = getDatabase(app);
+      els.cfgProject.textContent = firebaseConfig.projectId || '-';
+      els.cfgDb.textContent = firebaseConfig.databaseURL ? 'Terhubung' : 'Belum';
+      return true;
+    }
+
+    function normalizeOrders(rawOrders = {}) {
+      return Object.entries(rawOrders).map(([orderId, order]) => {
+        const payment = state.payments[orderId] || {};
+        const si = state.shipmentsInternal[orderId] || {};
+        const se = state.shipmentsExternal[orderId] || {};
+        return {
+          orderId,
+          ...order,
+          paymentStatus: payment.paymentStatus || order.paymentStatus || 'unpaid',
+          amountDue: payment.amountDue || order.grandTotal || 0,
+          internalShipment: si,
+          externalShipment: se,
+          statusLabel: STATUS_LABELS[order.status] || order.statusLabel || order.status || '-'
+        };
+      }).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+
+    function getFilteredOrders() {
+      return state.orders.filter(order => {
+        const matchesTab = state.tab === 'all' ? true : order.status === state.tab;
+        const matchesShipping = state.shippingFilter === 'all' ? true : order.shippingType === state.shippingFilter;
+        const matchesPayment = state.paymentFilter === 'all' ? true : order.paymentMethod === state.paymentFilter;
+        const matchesStatus = state.statusFilter === 'all' ? true : order.status === state.statusFilter;
+        const q = state.search.trim().toLowerCase();
+        const blob = [order.orderNo, order.customerName, order.customerPhone, order.fullAddress].join(' ').toLowerCase();
+        const matchesSearch = !q || blob.includes(q);
+        return matchesTab && matchesShipping && matchesPayment && matchesStatus && matchesSearch;
+      });
+    }
+
+    function renderSummary() {
+      const orders = state.orders;
+      const internal = orders.filter(o => o.shippingType === 'internal').length;
+      const external = orders.filter(o => o.shippingType === 'external').length;
+      const transferPending = orders.filter(o => o.paymentMethod === 'transfer' && o.paymentStatus === 'waiting_verification').length;
+      const cod = orders.filter(o => o.paymentMethod === 'cod').length;
+      els.heroValue.textContent = `${orders.length} order`;
+      els.heroSub.textContent = orders.length ? 'Order customer online masuk realtime ke admin pusat.' : 'Belum ada order online masuk.';
+      els.internalCount.textContent = `${internal} order`;
+      els.externalCount.textContent = `${external} order`;
+      els.transferPending.textContent = `${transferPending} order`;
+      els.codCount.textContent = `${cod} order`;
+    }
+
+    function renderTabs() {
+      const all = state.orders.length;
+      const waiting = state.orders.filter(o => o.status === 'waiting_confirmation').length;
+      const processing = state.orders.filter(o => o.status === 'processing').length;
+      const delivered = state.orders.filter(o => o.status === 'delivered' || o.status === 'shipped_external').length;
+      const tabs = [
+        { key: 'all', label: 'SEMUA', value: all, icon: 'fa-layer-group' },
+        { key: 'waiting_confirmation', label: 'BARU', value: waiting, icon: 'fa-bell' },
+        { key: 'processing', label: 'PROSES', value: processing, icon: 'fa-gears' },
+        { key: 'delivered', label: 'SELESAI', value: delivered, icon: 'fa-check-double' }
+      ];
+      els.statusTabs.innerHTML = tabs.map(tab => `
+        <button class="tab ${state.tab === tab.key ? 'active' : ''}" data-tab="${tab.key}">
+          <i class="fa-solid ${tab.icon}"></i>
+          <span>${tab.label}</span>
+          <b>${tab.value}</b>
+        </button>
+      `).join('');
+    }
+
+    function renderOrders() {
+      const orders = getFilteredOrders();
+      if (!orders.length) {
+        els.orderList.innerHTML = '<div class="empty">Belum ada order yang cocok dengan filter saat ini.</div>';
+        return;
+      }
+      els.orderList.innerHTML = orders.map((order, index) => {
+        const shipmentName = order.shippingType === 'internal' ? 'Kurir Toko' : (order.externalShipment.providerName || 'Ekspedisi Luar');
+        const transferInfo = order.paymentMethod === 'transfer' ? `<span class="badge2 transfer"><i class="fa-solid fa-money-check-dollar"></i> ${order.paymentStatus}</span>` : '';
+        const resiInfo = order.shippingType === 'external' && order.externalShipment.trackingNumber
+          ? `<div class="box2"><label>Nomor resi</label><p>${order.externalShipment.providerName} • ${order.externalShipment.service || '-'} • ${order.externalShipment.trackingNumber}</p></div>` : '';
+        const courierInfo = order.shippingType === 'internal' && order.courierName
+          ? `<div class="box2"><label>Kurir ditugaskan</label><p>${order.courierName} • ${order.courierPhone || '-'}</p></div>` : '';
+        return `
+          <article class="order">
+            <div class="order-topbar">
+              <div class="num">${index + 1}</div>
+              <span><i class="fa-solid fa-box-open"></i> ${order.orderNo} • ${new Date(order.createdAt || Date.now()).toLocaleString('id-ID')}</span>
+            </div>
+            <div class="order-main">
+              <div class="order-row">
+                <div class="meta">
+                  <div class="box"><i class="fa-solid fa-user"></i></div>
+                  <div>
+                    <h4>${order.customerName || 'Customer guest'}</h4>
+                    <p>${order.customerPhone || '-'} • ${shipmentName} • ${formatCurrency(order.grandTotal)}</p>
+                  </div>
+                </div>
+                <div class="badges">
+                  <span class="badge2 ${statusClass(order.status)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusLabel}</span>
+                  <span class="badge2 ${order.paymentMethod === 'cod' ? 'cod' : 'transfer'}"><i class="fa-solid fa-wallet"></i> ${order.paymentMethod?.toUpperCase() || '-'}</span>
+                  <span class="badge2 ${order.shippingType === 'internal' ? 'internal' : 'external'}"><i class="fa-solid fa-truck"></i> ${order.shippingType === 'internal' ? 'Internal' : 'External'}</span>
+                  ${transferInfo}
+                </div>
+              </div>
+
+              <div class="chips">
+                <span class="chip"><i class="fa-solid fa-location-dot"></i> ${order.distanceKm || 0} km</span>
+                <span class="chip"><i class="fa-solid fa-money-bill-wave"></i> ${formatCurrency(order.grandTotal)}</span>
+                <span class="chip"><i class="fa-solid fa-boxes-stacked"></i> ${order.itemCount || 0} item</span>
+              </div>
+
+              <div class="box2">
+                <label>Alamat customer</label>
+                <p>${order.fullAddress || '-'}</p>
+              </div>
+
+              ${order.customerNote ? `<div class="box2"><label>Catatan customer</label><p>${order.customerNote}</p></div>` : ''}
+              ${courierInfo}
+              ${resiInfo}
+
+              <div class="actions">
+                ${order.shippingType === 'internal'
+                  ? `<button class="btn btn-blue" data-assign="${order.orderId}"><i class="fa-solid fa-user-plus"></i> Assign kurir</button>`
+                  : `<button class="btn btn-blue" data-external="${order.orderId}"><i class="fa-solid fa-truck-fast"></i> Input resi</button>`
+                }
+                ${order.paymentMethod === 'transfer'
+                  ? `<button class="btn btn-green" data-payment="${order.orderId}"><i class="fa-solid fa-badge-check"></i> Verifikasi</button>`
+                  : `<button class="btn btn-ghost" data-status="${order.orderId}"><i class="fa-solid fa-pen-to-square"></i> Update status</button>`
+                }
+              </div>
+              <div class="actions" style="margin-top:10px">
+                <button class="btn btn-ghost" data-status="${order.orderId}"><i class="fa-solid fa-arrows-rotate"></i> Status</button>
+                <button class="btn btn-danger" data-cancel="${order.orderId}"><i class="fa-solid fa-ban"></i> Batalkan</button>
+              </div>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    function renderPayments() {
+      const orders = state.orders.filter(o => o.paymentMethod === 'transfer' && o.paymentStatus === 'waiting_verification');
+      if (!orders.length) {
+        els.paymentList.innerHTML = '<div class="empty">Tidak ada pembayaran transfer yang menunggu verifikasi.</div>';
+        return;
+      }
+      els.paymentList.innerHTML = orders.map(o => `
+        <article class="order">
+          <div class="order-main">
+            <div class="order-row">
+              <div class="meta">
+                <div class="box"><i class="fa-solid fa-building-columns"></i></div>
+                <div>
+                  <h4>${o.orderNo}</h4>
+                  <p>${o.customerName} • ${o.customerPhone}</p>
+                </div>
+              </div>
+              <span class="badge2 transfer"><i class="fa-solid fa-hourglass-half"></i> waiting_verification</span>
+            </div>
+            <div class="chips">
+              <span class="chip"><i class="fa-solid fa-money-bill-wave"></i> ${formatCurrency(o.grandTotal)}</span>
+              <span class="chip"><i class="fa-solid fa-truck"></i> ${o.shippingType === 'internal' ? 'Kurir Toko' : 'Ekspedisi Luar'}</span>
+            </div>
+            <div class="actions"><button class="btn btn-green" data-payment="${o.orderId}"><i class="fa-solid fa-badge-check"></i> Verifikasi pembayaran</button></div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderCouriers() {
+      const entries = Object.entries(state.couriers || {});
+      if (!entries.length) {
+        els.courierList.innerHTML = '<div class="empty">Belum ada kurir pusat. Tambahkan satu kurir dulu.</div>';
+        fillCourierSelect();
+        return;
+      }
+      els.courierList.innerHTML = entries.map(([id, courier]) => `
+        <article class="order">
+          <div class="order-main">
+            <div class="order-row">
+              <div class="meta">
+                <div class="box"><i class="fa-solid fa-motorcycle"></i></div>
+                <div>
+                  <h4>${courier.name || 'Kurir'}</h4>
+                  <p>${courier.phone || '-'} • ${courier.vehicle || 'Motor'} • ${courier.isActive === false ? 'Nonaktif' : 'Aktif'}</p>
+                </div>
+              </div>
+              <span class="badge2 ${courier.isActive === false ? 'failed' : 'delivered'}"><i class="fa-solid fa-circle-dot"></i> ${courier.isActive === false ? 'Nonaktif' : 'Aktif'}</span>
+            </div>
+          </div>
+        </article>
+      `).join('');
+      fillCourierSelect();
+    }
+
+    function renderLogs() {
+      if (!state.logs.length) {
+        els.logList.innerHTML = '<div class="empty">Belum ada audit log admin.</div>';
+        return;
+      }
+      els.logList.innerHTML = state.logs.map(log => `
+        <article class="order">
+          <div class="order-main">
+            <div class="meta">
+              <div class="box"><i class="fa-solid fa-list-check"></i></div>
+              <div>
+                <h4>${log.title}</h4>
+                <p>${log.note} • ${log.time}</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function fillCourierSelect() {
+      const entries = Object.entries(state.couriers || {}).filter(([,c]) => c.isActive !== false);
+      els.assignCourierSelect.innerHTML = entries.length
+        ? entries.map(([id, c]) => `<option value="${id}">${c.name} • ${c.phone || '-'}</option>`).join('')
+        : '<option value="">Belum ada kurir aktif</option>';
+    }
+
+    function switchPage(name) {
+      state.currentPage = name;
+      document.querySelectorAll('[data-page]').forEach(el => el.classList.toggle('hidden', el.dataset.page !== name));
+      document.querySelectorAll('.nav').forEach(btn => btn.classList.toggle('active', btn.dataset.page === name));
+      if (name === 'orders') {
+        document.querySelector('.app > section.card:last-of-type')?.classList.remove('hidden');
+      }
+      renderOrders();
+      renderPayments();
+      renderCouriers();
+      renderLogs();
+    }
+
+    function bindRealtime() {
+      onValue(ref(db, 'payments'), snap => {
+        state.payments = snap.val() || {};
+        renderAll();
+      });
+      onValue(ref(db, 'shipments_internal'), snap => {
+        state.shipmentsInternal = snap.val() || {};
+        renderAll();
+      });
+      onValue(ref(db, 'shipments_external'), snap => {
+        state.shipmentsExternal = snap.val() || {};
+        renderAll();
+      });
+      onValue(ref(db, 'courier_profiles'), snap => {
+        state.couriers = snap.val() || {};
+        renderCouriers();
+      });
+      onValue(ref(db, 'orders'), snap => {
+        state.orders = normalizeOrders(snap.val() || {});
+        renderAll();
+      });
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderTabs();
+      renderOrders();
+      renderPayments();
+      renderCouriers();
+      renderLogs();
+    }
+
+    async function saveAssign() {
+      const orderId = state.activeOrderId;
+      if (!orderId) return;
+      const courierId = els.assignCourierSelect.value;
+      if (!courierId) return showToast('Pilih kurir dulu.');
+      const courier = state.couriers[courierId];
+      const order = state.orders.find(o => o.orderId === orderId);
+      const now = Date.now();
+      const timelineId = push(child(ref(db), `order_timeline/${orderId}`)).key;
+      const updates = {};
+      updates[`orders/${orderId}/status`] = 'assigned_to_courier';
+      updates[`orders/${orderId}/statusLabel`] = STATUS_LABELS.assigned_to_courier;
+      updates[`orders/${orderId}/courierId`] = courierId;
+      updates[`orders/${orderId}/courierName`] = courier?.name || 'Kurir';
+      updates[`orders/${orderId}/courierPhone`] = courier?.phone || '';
+      updates[`orders/${orderId}/updatedAt`] = now;
+      updates[`shipments_internal/${orderId}/assignmentStatus`] = 'assigned';
+      updates[`shipments_internal/${orderId}/courierId`] = courierId;
+      updates[`shipments_internal/${orderId}/courierName`] = courier?.name || 'Kurir';
+      updates[`shipments_internal/${orderId}/courierPhone`] = courier?.phone || '';
+      updates[`shipments_internal/${orderId}/assignedAt`] = now;
+      updates[`courier_assignments/${courierId}/${orderId}`] = {
+        orderId, orderNo: order?.orderNo || '-', customerName: order?.customerName || '-', status: 'assigned', assignedAt: now
+      };
+      updates[`order_timeline/${orderId}/${timelineId}`] = {
+        title: 'Order diassign ke kurir',
+        description: els.assignNote.value.trim() || `Admin pusat assign ke ${courier?.name || 'kurir'}.`,
+        status: 'assigned_to_courier',
+        actorType: 'admin_pusat',
+        actorId: 'admin_pusat',
+        createdAt: now
+      };
+      try:
+        pass
+      except:
+        pass
+      try {
+        await update(ref(db), updates);
+        addLog(`Assign ${order?.orderNo}`, `Order diassign ke ${courier?.name || 'kurir'}.`);
+        closeSheets();
+        els.assignNote.value = '';
+        showToast('Order berhasil diassign ke kurir.');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal assign ke kurir.');
+      }
+    }
+
+    async function saveExternal() {
+      const orderId = state.activeOrderId;
+      if (!orderId) return;
+      const providerName = els.providerSelect.value;
+      const service = els.serviceInput.value.trim() || 'REG';
+      const trackingNumber = els.resiInput.value.trim();
+      const shippingCost = Number(els.externalCostInput.value || 0);
+      if (!trackingNumber) return showToast('Nomor resi wajib diisi.');
+      const now = Date.now();
+      const timelineId = push(child(ref(db), `order_timeline/${orderId}`)).key;
+      const updates = {};
+      updates[`orders/${orderId}/status`] = 'shipped_external';
+      updates[`orders/${orderId}/statusLabel`] = STATUS_LABELS.shipped_external;
+      updates[`orders/${orderId}/shippingName`] = providerName;
+      updates[`orders/${orderId}/shippingCost`] = shippingCost;
+      updates[`orders/${orderId}/updatedAt`] = now;
+      updates[`shipments_external/${orderId}`] = {
+        providerName,
+        service,
+        trackingNumber,
+        shippingCost,
+        status: 'shipped_external',
+        bookedAt: now
+      };
+      updates[`order_timeline/${orderId}/${timelineId}`] = {
+        title: 'Order dikirim via ekspedisi',
+        description: `${providerName} • ${service} • Resi ${trackingNumber}`,
+        status: 'shipped_external',
+        actorType: 'admin_pusat',
+        actorId: 'admin_pusat',
+        createdAt: now
+      };
+      try {
+        await update(ref(db), updates);
+        addLog(`Resi ${providerName}`, `Resi ${trackingNumber} disimpan untuk order ${orderId}.`);
+        closeSheets();
+        els.serviceInput.value = '';
+        els.resiInput.value = '';
+        els.externalCostInput.value = '';
+        showToast('Data ekspedisi berhasil disimpan.');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal menyimpan resi ekspedisi.');
+      }
+    }
+
+    async function verifyPayment() {
+      const orderId = state.activeOrderId;
+      if (!orderId) return;
+      const amountPaid = Number(els.paymentAmountInput.value || 0);
+      const note = els.paymentNote.value.trim() || 'Pembayaran transfer diverifikasi admin pusat.';
+      const order = state.orders.find(o => o.orderId === orderId);
+      if (!amountPaid) return showToast('Masukkan jumlah diterima dulu.');
+      const now = Date.now();
+      const timelineId = push(child(ref(db), `order_timeline/${orderId}`)).key;
+      const updates = {};
+      updates[`payments/${orderId}/paymentStatus`] = 'paid';
+      updates[`payments/${orderId}/amountPaid`] = amountPaid;
+      updates[`payments/${orderId}/amountDue`] = Math.max((order?.grandTotal || 0) - amountPaid, 0);
+      updates[`payments/${orderId}/paidAt`] = now;
+      updates[`orders/${orderId}/paymentStatus`] = 'paid';
+      updates[`orders/${orderId}/updatedAt`] = now;
+      updates[`order_timeline/${orderId}/${timelineId}`] = {
+        title: 'Pembayaran transfer diverifikasi',
+        description: note,
+        status: order?.status || 'processing',
+        actorType: 'admin_pusat',
+        actorId: 'admin_pusat',
+        createdAt: now
+      };
+      try {
+        await update(ref(db), updates);
+        addLog(`Transfer ${order?.orderNo}`, `Pembayaran transfer diverifikasi sejumlah ${formatCurrency(amountPaid)}.`);
+        closeSheets();
+        els.paymentAmountInput.value = '';
+        els.paymentNote.value = '';
+        showToast('Pembayaran transfer berhasil diverifikasi.');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal verifikasi pembayaran.');
+      }
+    }
+
+    async function saveStatus() {
+      const orderId = state.activeOrderId;
+      if (!orderId) return;
+      const newStatus = els.statusSelect.value;
+      const note = els.statusNote.value.trim() || 'Status order diperbarui admin pusat.';
+      const now = Date.now();
+      const timelineId = push(child(ref(db), `order_timeline/${orderId}`)).key;
+      const updates = {};
+      updates[`orders/${orderId}/status`] = newStatus;
+      updates[`orders/${orderId}/statusLabel`] = STATUS_LABELS[newStatus] || newStatus;
+      updates[`orders/${orderId}/updatedAt`] = now;
+      updates[`public_order_lookup/${slugify((state.orders.find(o=>o.orderId===orderId)?.customerPhone || '') + '-' + (state.orders.find(o=>o.orderId===orderId)?.orderNo || ''))}/status`] = newStatus;
+      updates[`public_order_lookup/${slugify((state.orders.find(o=>o.orderId===orderId)?.customerPhone || '') + '-' + (state.orders.find(o=>o.orderId===orderId)?.orderNo || ''))}/statusLabel`] = STATUS_LABELS[newStatus] || newStatus;
+      updates[`order_timeline/${orderId}/${timelineId}`] = {
+        title: 'Status order diperbarui',
+        description: note,
+        status: newStatus,
+        actorType: 'admin_pusat',
+        actorId: 'admin_pusat',
+        createdAt: now
+      };
+      try {
+        await update(ref(db), updates);
+        addLog(`Status ${orderId}`, `${STATUS_LABELS[newStatus] || newStatus}.`);
+        closeSheets();
+        els.statusNote.value = '';
+        showToast('Status order berhasil diperbarui.');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal update status.');
+      }
+    }
+
+    async function saveCourier() {
+      const name = els.courierNameInput.value.trim();
+      const phone = els.courierPhoneInput.value.trim();
+      const vehicle = els.courierVehicleInput.value.trim() || 'Motor';
+      if (!name) return showToast('Nama kurir wajib diisi.');
+      const courierId = 'courier_' + slugify(name + '-' + Date.now());
+      try {
+        await set(ref(db, `courier_profiles/${courierId}`), {
+          name, phone, vehicle, isActive: true, createdAt: Date.now(), zone: 'pusat'
+        });
+        addLog(`Kurir ${name} ditambahkan`, `${phone || '-'} • ${vehicle}`);
+        closeSheets();
+        els.courierNameInput.value = '';
+        els.courierPhoneInput.value = '';
+        els.courierVehicleInput.value = '';
+        showToast('Kurir baru berhasil disimpan.');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal menyimpan kurir.');
+      }
+    }
+
+    function openAssign(orderId) {
+      state.activeOrderId = orderId;
+      const order = state.orders.find(o => o.orderId === orderId);
+      els.assignHead.textContent = `${order?.customerName || '-'} • ${order?.orderNo || '-'}`;
+      fillCourierSelect();
+      openSheet('assignSheet');
+    }
+    function openExternal(orderId) {
+      state.activeOrderId = orderId;
+      const order = state.orders.find(o => o.orderId === orderId);
+      els.externalHead.textContent = `${order?.customerName || '-'} • ${order?.orderNo || '-'}`;
+      openSheet('externalSheet');
+    }
+    function openPayment(orderId) {
+      state.activeOrderId = orderId;
+      const order = state.orders.find(o => o.orderId === orderId);
+      els.paymentHead.textContent = `${order?.customerName || '-'} • ${order?.orderNo || '-'}`;
+      els.paymentDue.textContent = formatCurrency(order?.grandTotal || 0);
+      els.paymentStatusText.textContent = order?.paymentStatus || 'waiting_verification';
+      els.paymentAmountInput.value = order?.grandTotal || '';
+      openSheet('paymentSheet');
+    }
+    function openStatus(orderId) {
+      state.activeOrderId = orderId;
+      const order = state.orders.find(o => o.orderId === orderId);
+      els.statusHead.textContent = `${order?.customerName || '-'} • ${order?.orderNo || '-'}`;
+      els.statusSelect.value = order?.status || 'processing';
+      openSheet('statusSheet');
+    }
+
+    async function cancelOrder(orderId) {
+      state.activeOrderId = orderId;
+      els.statusSelect.value = 'cancelled';
+      els.statusNote.value = 'Order dibatalkan oleh admin pusat.';
+      await saveStatus();
+    }
+
+    function setupEvents() {
+      els.searchInput.addEventListener('input', e => { state.search = e.target.value; renderOrders(); });
+      els.shippingFilter.addEventListener('change', e => { state.shippingFilter = e.target.value; renderOrders(); });
+      els.paymentFilter.addEventListener('change', e => { state.paymentFilter = e.target.value; renderOrders(); });
+      els.statusFilter.addEventListener('change', e => { state.statusFilter = e.target.value; renderOrders(); });
+      document.querySelectorAll('.nav').forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.page)));
+      document.querySelectorAll('[data-close-sheet]').forEach(btn => btn.addEventListener('click', closeSheets));
+      els.overlay.addEventListener('click', closeSheets);
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        renderAll();
+        showToast('Data admin pusat direfresh.');
+      });
+      document.getElementById('openCourierBtn').addEventListener('click', () => openSheet('courierSheet'));
+      document.getElementById('openConfigBtn').addEventListener('click', () => openSheet('configSheet'));
+      document.getElementById('saveAssignBtn').addEventListener('click', saveAssign);
+      document.getElementById('saveExternalBtn').addEventListener('click', saveExternal);
+      document.getElementById('savePaymentBtn').addEventListener('click', verifyPayment);
+      document.getElementById('saveStatusBtn').addEventListener('click', saveStatus);
+      document.getElementById('saveCourierBtn').addEventListener('click', saveCourier);
+
+      document.body.addEventListener('click', e => {
+        const tab = e.target.closest('[data-tab]');
+        if (tab) {
+          state.tab = tab.dataset.tab;
+          renderTabs();
+          renderOrders();
+          return;
+        }
+        const assignBtn = e.target.closest('[data-assign]');
+        if (assignBtn) return openAssign(assignBtn.dataset.assign);
+        const externalBtn = e.target.closest('[data-external]');
+        if (externalBtn) return openExternal(externalBtn.dataset.external);
+        const paymentBtn = e.target.closest('[data-payment]');
+        if (paymentBtn) return openPayment(paymentBtn.dataset.payment);
+        const statusBtn = e.target.closest('[data-status]');
+        if (statusBtn) return openStatus(statusBtn.dataset.status);
+        const cancelBtn = e.target.closest('[data-cancel]');
+        if (cancelBtn) return cancelOrder(cancelBtn.dataset.cancel);
+      });
+    }
+
+    function start() {
+      setupEvents();
+      if (!initFirebase()) return;
+      bindRealtime();
+      addLog('Admin pusat aktif', 'Panel admin pusat siap menerima order online realtime.');
+      renderAll();
+    }
+
+    start();
+  </script>
+</body>
+</html>

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>EJ Customer Guest Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <style>
+    :root {
+      --bg:#07090d; --panel:rgba(15,20,30,.88); --stroke:rgba(255,255,255,.08); --text:#f5f7fb; --muted:#97a1b3;
+      --gold:#d4af37; --gold2:#f6dd82; --green:#22c55e; --red:#ef4444; --blue:#3b82f6; --amber:#f59e0b;
+      --radius-xl:28px; --radius-lg:22px; --radius-md:16px; --shadow:0 20px 60px rgba(0,0,0,.35);
+      --gradient-gold:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%);
+      --gradient-card:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,sans-serif;background:radial-gradient(circle at top left,rgba(59,130,246,.1),transparent 24%),radial-gradient(circle at top right,rgba(212,175,55,.08),transparent 28%),var(--bg);color:var(--text);padding:18px;overflow-x:hidden}
+    button,input,select,textarea{font:inherit}
+    .app{max-width:460px;margin:0 auto;padding-bottom:110px;display:flex;flex-direction:column;gap:16px}
+    .topbar,.card,.sheet{background:var(--gradient-card);border:1px solid var(--stroke);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:14px 0 10px;background:linear-gradient(180deg,rgba(7,9,13,.9),rgba(7,9,13,.55),transparent)}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand-icon{width:46px;height:46px;border-radius:16px;background:var(--gradient-gold);display:grid;place-items:center;color:#111;font-size:18px;box-shadow:0 10px 24px rgba(212,175,55,.35)}
+    .brand h1{font-size:17px;font-weight:800}
+    .brand p{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.05);color:var(--text)}
+    .hero{padding:22px;border-radius:var(--radius-xl);position:relative;overflow:hidden}
+    .hero::after{content:"";position:absolute;right:-50px;top:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(247,224,140,.2),transparent 68%)}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);color:var(--gold2);font-size:11px;font-weight:800;margin-bottom:14px}
+    .hero h2{font-size:31px;line-height:1.05;font-weight:800;max-width:320px}
+    .hero p{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.55}
+    .quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn-primary,.btn-secondary,.pill,.nav-btn,.action-btn{border:none;border-radius:18px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-weight:800;cursor:pointer;text-decoration:none}
+    .btn-primary,.btn-secondary{min-height:54px;padding:0 16px;font-size:14px}
+    .btn-primary{background:var(--gradient-gold);color:#151515;box-shadow:0 14px 28px rgba(212,175,55,.26)}
+    .btn-secondary{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--stroke)}
+    .card{padding:14px;border-radius:var(--radius-lg);position:relative;overflow:hidden}
+    .section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+    .section-head h3{font-size:15px;font-weight:800}
+    .section-head p{font-size:11px;color:var(--muted);margin-top:4px}
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .metric{padding:14px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+    .metric label{display:block;font-size:11px;color:var(--muted);margin-bottom:8px}
+    .metric strong{display:block;font-size:18px;font-weight:800}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px}
+    .tab{min-height:74px;border-radius:18px;border:1px solid transparent;background:rgba(255,255,255,.02);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--muted);cursor:pointer}
+    .tab i{font-size:16px}.tab span{font-size:10px;font-weight:800}.tab b{font-size:15px;color:var(--text)}
+    .tab.active{background:linear-gradient(180deg,rgba(212,175,55,.17),rgba(212,175,55,.06));border-color:rgba(212,175,55,.3);color:var(--gold2)}
+    .hidden{display:none!important}
+    .search{position:relative}.search i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold)}
+    .input,.select,.textarea{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text);outline:none}
+    .input,.select{height:52px;padding:0 16px;font-size:14px}.search .input{padding-left:46px}.textarea{min-height:104px;padding:14px 16px;resize:vertical}
+    .product-list,.cart-list,.order-list{display:flex;flex-direction:column;gap:14px}
+    .product{padding:14px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08)}
+    .product-top{display:flex;gap:12px}
+    .thumb{width:78px;height:78px;border-radius:18px;object-fit:cover;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+    .product-main{flex:1;min-width:0}
+    .product-main h4{font-size:15px;font-weight:800;margin-bottom:5px}
+    .product-main p{font-size:11px;color:var(--muted);line-height:1.45}
+    .price-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .price-chip,.pkg-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800}
+    .price-chip{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.22)}
+    .pkg-chip{background:rgba(212,175,55,.12);color:var(--gold2);border:1px solid rgba(212,175,55,.22)}
+    .product-actions{display:grid;grid-template-columns:1fr 92px;gap:10px;margin-top:14px}
+    .qty-wrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:0 8px}
+    .qty-btn{width:36px;height:36px;border:none;background:transparent;color:var(--text);font-size:17px}.qty-value{flex:1;text-align:center;font-weight:800}
+    .action-btn{min-height:48px;border-radius:16px;font-size:13px}.action-blue{background:linear-gradient(180deg,#3b82f6,#2563eb);color:#fff}
+    .action-green{background:linear-gradient(180deg,#22c55e,#16a34a);color:#fff}
+    .order{padding:16px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08)}
+    .order-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+    .order-head h4{font-size:15px;font-weight:800}.order-head p{font-size:11px;color:var(--muted);margin-top:4px}
+    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800}
+    .status-waiting{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.24)}
+    .status-processing{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.24)}
+    .status-delivered{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.24)}
+    .order-meta,.breakdown,.lookup-box{padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
+    .order-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .meta-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}.meta-item strong{display:block;font-size:13px;margin-top:6px}
+    .breakdown{margin-top:12px}.breakdown h5{font-size:12px;font-weight:800;margin-bottom:10px;color:var(--gold2)}
+    .row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:6px 0;color:var(--muted)}
+    .row strong{color:var(--text)}
+    .sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(460px,calc(100% - 18px));z-index:60;border-top-left-radius:28px;border-top-right-radius:28px;padding:18px 18px 28px;transition:transform .28s ease;max-height:88vh;overflow-y:auto;background:#0e131c}
+    .sheet.show{transform:translate(-50%,0)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.58);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:50}.overlay.show{opacity:1;pointer-events:auto}
+    .handle{width:64px;height:6px;border-radius:999px;background:rgba(255,255,255,.14);margin:0 auto 16px}
+    .sheet-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px}.sheet-head h3{font-size:18px;font-weight:800}.sheet-head p{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px}
+    .close{width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text)}
+    .stack{display:flex;flex-direction:column;gap:12px}.label{display:block;font-size:12px;font-weight:700;color:#dbe2f1;margin-bottom:8px}
+    .helper{font-size:11px;color:var(--muted);line-height:1.5}.checkout-summary{padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+    .location-box{padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+    .location-status{font-size:12px;color:var(--text);line-height:1.55}
+    .location-status .muted{color:var(--muted)}
+    .location-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .btn-ghost{min-height:48px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text);display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:800}
+    .map-wrap{height:360px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#0d1118}
+    .map-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
+
+    .notice{padding:12px 14px;border-radius:16px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.18);font-size:12px;color:#ead38d;line-height:1.5}
+    .toast{position:fixed;top:24px;left:50%;transform:translate(-50%,-18px);width:min(390px,calc(100% - 28px));padding:14px 16px;border-radius:18px;background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s ease;z-index:80}
+    .toast.show{transform:translate(-50%,0);opacity:1}
+    .fab{position:fixed;right:max(18px,calc(50% - 212px));bottom:104px;width:58px;height:58px;border-radius:20px;border:none;background:var(--gradient-gold);color:#151515;font-size:20px;box-shadow:0 22px 40px rgba(212,175,55,.24);z-index:34}
+    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 28px);max-width:424px;padding:10px;border-radius:28px;background:rgba(10,12,18,.86);border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(22px);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;z-index:35}
+    .nav-btn{min-height:60px;border:none;background:transparent;border-radius:18px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;color:var(--muted);font-size:10px}.nav-btn.active{background:rgba(212,175,55,.12);color:var(--gold2)}
+    .empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:13px;border-radius:18px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.02)}
+    @media (max-width:390px){body{padding:14px}.hero h2{font-size:27px}.quick,.mini-grid,.product-actions,.order-meta{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-store"></i></div>
+        <div>
+          <h1 id="storeNameText">EJ Store Online</h1>
+          <p id="storeSubText">Guest checkout • Kurir toko & ekspedisi luar</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="openLookupBtn" title="Cek pesanan"><i class="fa-solid fa-magnifying-glass-location"></i></button>
+    </header>
+
+    <section class="page" data-page="home">
+      <section class="card hero">
+        <div class="badge"><i class="fa-solid fa-sparkles"></i> Guest checkout tanpa ribet</div>
+        <h2>Belanja cepat, kirim otomatis sesuai jarak.</h2>
+        <p>Customer cukup pilih produk, isi nomor WhatsApp, alamat, dan titik lokasi. Sistem otomatis menentukan pakai kurir toko atau ekspedisi luar.</p>
+      </section>
+
+      <section class="quick">
+        <button class="btn-primary" id="goCatalogBtn"><i class="fa-solid fa-bag-shopping"></i> Mulai Belanja</button>
+        <button class="btn-secondary" id="goCheckoutBtn"><i class="fa-solid fa-cart-shopping"></i> Checkout</button>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Ringkasan toko</h3>
+            <p>Harga paket, pengiriman otomatis, dan pembayaran fleksibel.</p>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <div class="metric"><label>Produk aktif</label><strong id="activeProductCount">0</strong></div>
+          <div class="metric"><label>Item di keranjang</label><strong id="cartCountText">0</strong></div>
+          <div class="metric"><label>Total keranjang</label><strong id="cartTotalText">Rp 0</strong></div>
+          <div class="metric"><label>Batas kurir toko</label><strong id="distanceLimitText">0 km</strong></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Cara kerja</h3>
+            <p>Semua dihitung otomatis saat checkout.</p>
+          </div>
+        </div>
+        <div class="order-list" id="homeInfoList"></div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="catalog">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Katalog produk</h3>
+            <p>Harga paket otomatis dihitung paling hemat.</p>
+          </div>
+        </div>
+        <div class="stack" style="margin-bottom:12px">
+          <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" class="input" placeholder="Cari produk..." /></div>
+          <select id="categoryFilter" class="select"><option value="all">Semua kategori</option></select>
+        </div>
+        <div id="productList" class="product-list"></div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="cart">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Keranjang</h3>
+            <p>Total otomatis mengikuti harga paket terbaik.</p>
+          </div>
+        </div>
+        <div id="cartList" class="cart-list"></div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="orders">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Pesanan terakhir</h3>
+            <p>Data tersimpan dari browser ini.</p>
+          </div>
+        </div>
+        <div id="recentOrders" class="order-list"></div>
+      </section>
+    </section>
+  </div>
+
+  <button class="fab" id="fabCheckout" title="Buka checkout"><i class="fa-solid fa-cart-plus"></i></button>
+
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" data-page-target="home"><i class="fa-solid fa-house"></i><span>Home</span></button>
+    <button class="nav-btn" data-page-target="catalog"><i class="fa-solid fa-bag-shopping"></i><span>Katalog</span></button>
+    <button class="nav-btn" data-page-target="cart"><i class="fa-solid fa-cart-shopping"></i><span>Keranjang</span></button>
+    <button class="nav-btn" data-page-target="orders"><i class="fa-solid fa-receipt"></i><span>Pesanan</span></button>
+  </nav>
+
+  <div class="overlay" id="overlay"></div>
+
+  <section class="sheet" id="checkoutSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Checkout guest</h3>
+        <p>Isi data customer tanpa login. Nomor WhatsApp dan titik alamat wajib.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div>
+        <label class="label">Nama customer</label>
+        <input id="customerName" class="input" placeholder="Contoh: Ahmad" />
+      </div>
+      <div>
+        <label class="label">Nomor WhatsApp</label>
+        <input id="customerPhone" class="input" placeholder="08xxxxxxxxxx" />
+      </div>
+      <div>
+        <label class="label">Alamat lengkap</label>
+        <textarea id="customerAddress" class="textarea" placeholder="Tulis alamat lengkap, patokan rumah, RT/RW jika perlu."></textarea>
+      </div>
+      <div>
+        <label class="label">Titik alamat customer</label>
+        <div class="location-box">
+          <div class="location-status" id="locationStatus">
+            <strong>Belum ada titik lokasi.</strong>
+            <div class="muted" style="margin-top:6px">Klik <b>Ambil lokasi saya</b> untuk GPS otomatis atau <b>Pilih titik di peta</b> untuk tentukan titik manual.</div>
+          </div>
+          <div class="location-actions">
+            <button class="btn-ghost" id="useCurrentLocationBtn" type="button"><i class="fa-solid fa-location-crosshairs"></i> Ambil lokasi saya</button>
+            <button class="btn-ghost" id="pickMapLocationBtn" type="button"><i class="fa-solid fa-map-location-dot"></i> Pilih titik di peta</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label class="label">Metode pembayaran</label>
+        <select id="paymentMethod" class="select">
+          <option value="cod">COD</option>
+          <option value="transfer">Transfer</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Catatan customer</label>
+        <textarea id="customerNote" class="textarea" placeholder="Contoh: Tolong kirim siang, rumah pagar hitam."></textarea>
+      </div>
+      <div class="notice" id="distanceInfo">Isi titik alamat customer untuk menghitung jarak otomatis.</div>
+      <div class="checkout-summary" id="checkoutSummary"></div>
+      <button class="btn-primary" id="submitOrderBtn"><i class="fa-solid fa-check"></i> Buat Pesanan</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="lookupSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Cek pesanan</h3>
+        <p>Cek status dengan nomor WhatsApp dan nomor order.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div>
+        <label class="label">Nomor WhatsApp</label>
+        <input id="lookupPhone" class="input" placeholder="08xxxxxxxxxx" />
+      </div>
+      <div>
+        <label class="label">Nomor order</label>
+        <input id="lookupOrderNo" class="input" placeholder="EJ-20260317-001" />
+      </div>
+      <button class="btn-primary" id="lookupOrderBtn"><i class="fa-solid fa-magnifying-glass"></i> Cari Pesanan</button>
+      <div id="lookupResult" class="lookup-box helper">Belum ada pencarian.</div>
+    </div>
+  </section>
+
+
+  <section class="sheet" id="mapPickerSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Pilih titik di peta</h3>
+        <p>Geser peta lalu tap titik lokasi customer yang paling akurat.</p>
+      </div>
+      <button class="close" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="stack">
+      <div class="map-wrap" id="mapPicker"></div>
+      <div class="map-note" id="mapPickerNote">Tap di peta untuk meletakkan pin lokasi customer.</div>
+      <button class="btn-primary" id="confirmMapLocationBtn" type="button"><i class="fa-solid fa-check"></i> Gunakan titik ini</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, get, child, push, set, update, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+    import 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+
+    // GANTI DENGAN FIREBASE CONFIG ANDA
+ const firebaseConfig = {
+  apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+  authDomain: "ej-tobacco-store.firebaseapp.com",
+  databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ej-tobacco-store",
+  storageBucket: "ej-tobacco-store.firebasestorage.app",
+  messagingSenderId: "70458372662",
+  appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+  measurementId: "G-VCRFQSRB9H"
+};
+
+    // GANTI DENGAN DATA TOKO PUSAT / GUDANG ANDA
+    const STORE_CONFIG = {
+  name: "EJ TOBACCO STORE",
+  lat: -6.90,
+  lng: 109.03,
+  maxInternalDistanceKm: 7,
+  internalShippingRules: [
+    { maxKm: 3, cost: 2000 },
+    { maxKm: 5, cost: 4000 },
+    { maxKm: 7, cost: 6000 }
+  ]
+};
+
+    const hasFirebaseConfig = !Object.values(firebaseConfig).some(v => String(v).startsWith('PASTE_'));
+    let db = null;
+    if (hasFirebaseConfig) {
+      const app = initializeApp(firebaseConfig);
+      db = getDatabase(app);
+    }
+
+    const state = {
+      currentPage: 'home',
+      categories: {},
+      products: {},
+      cart: loadLocal('ej_guest_cart', {}),
+      recentOrders: loadLocal('ej_recent_orders', []),
+      search: '',
+      category: 'all',
+      checkoutLocation: null,
+      mapDraftLocation: null,
+      mapInstance: null,
+      mapMarker: null
+    };
+
+    const els = {
+      storeNameText: document.getElementById('storeNameText'),
+      storeSubText: document.getElementById('storeSubText'),
+      activeProductCount: document.getElementById('activeProductCount'),
+      cartCountText: document.getElementById('cartCountText'),
+      cartTotalText: document.getElementById('cartTotalText'),
+      distanceLimitText: document.getElementById('distanceLimitText'),
+      homeInfoList: document.getElementById('homeInfoList'),
+      productList: document.getElementById('productList'),
+      cartList: document.getElementById('cartList'),
+      recentOrders: document.getElementById('recentOrders'),
+      categoryFilter: document.getElementById('categoryFilter'),
+      searchInput: document.getElementById('searchInput'),
+      overlay: document.getElementById('overlay'),
+      checkoutSheet: document.getElementById('checkoutSheet'),
+      lookupSheet: document.getElementById('lookupSheet'),
+      customerName: document.getElementById('customerName'),
+      customerPhone: document.getElementById('customerPhone'),
+      customerAddress: document.getElementById('customerAddress'),
+      locationStatus: document.getElementById('locationStatus'),
+      useCurrentLocationBtn: document.getElementById('useCurrentLocationBtn'),
+      pickMapLocationBtn: document.getElementById('pickMapLocationBtn'),
+      paymentMethod: document.getElementById('paymentMethod'),
+      customerNote: document.getElementById('customerNote'),
+      distanceInfo: document.getElementById('distanceInfo'),
+      checkoutSummary: document.getElementById('checkoutSummary'),
+      mapPickerSheet: document.getElementById('mapPickerSheet'),
+      mapPickerNote: document.getElementById('mapPickerNote'),
+      confirmMapLocationBtn: document.getElementById('confirmMapLocationBtn'),
+      lookupPhone: document.getElementById('lookupPhone'),
+      lookupOrderNo: document.getElementById('lookupOrderNo'),
+      lookupResult: document.getElementById('lookupResult'),
+      toast: document.getElementById('toast')
+    };
+
+    function loadLocal(key, fallback) {
+      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+    }
+    function saveLocal(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => els.toast.classList.remove('show'), 2400);
+    }
+    function formatCurrency(v) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
+    }
+    function switchPage(pageName) {
+      state.currentPage = pageName;
+      document.querySelectorAll('.page').forEach(p => p.classList.toggle('hidden', p.dataset.page !== pageName));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.pageTarget === pageName));
+    }
+    function openSheet(id) {
+      els.overlay.classList.add('show');
+      document.querySelectorAll('.sheet').forEach(s => s.classList.remove('show'));
+      document.getElementById(id).classList.add('show');
+      if (id === 'mapPickerSheet' && state.mapInstance) setTimeout(() => state.mapInstance.invalidateSize(), 220);
+    }
+    function closeSheets() {
+      els.overlay.classList.remove('show');
+      document.querySelectorAll('.sheet').forEach(s => s.classList.remove('show'));
+    }
+    function slugify(text) {
+      return String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const toRad = d => (d * Math.PI) / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return +(R * c).toFixed(2);
+    }
+    function getInternalShippingCost(km) {
+      const rule = STORE_CONFIG.internalShippingRules.find(r => km <= r.maxKm);
+      return rule ? rule.cost : 0;
+    }
+    function getActiveProducts() {
+      return Object.entries(state.products)
+        .map(([id, p]) => ({ id, ...p }))
+        .filter(p => p.status !== 'inactive')
+        .filter(p => state.category === 'all' ? true : p.categoryId === state.category)
+        .filter(p => !state.search ? true : [p.name, p.description].join(' ').toLowerCase().includes(state.search));
+    }
+    function getCartItems() {
+      return Object.entries(state.cart).map(([productId, qty]) => {
+        const product = state.products[productId];
+        return product ? { productId, qty, ...product, pricingBreakdown: calculateBestPrice(product, qty) } : null;
+      }).filter(Boolean);
+    }
+    function getCartSummary() {
+      const items = getCartItems();
+      const subtotal = items.reduce((sum, item) => sum + item.pricingBreakdown.total, 0);
+      const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
+      return { items, subtotal, totalQty };
+    }
+    function calculateBestPrice(product, qty) {
+      const baseUnitPrice = Number(product.price || 0);
+      const packageRules = Object.values(product.packagePricing?.rules || {})
+        .filter(rule => product.packagePricing?.enabled && Number(rule.qty) > 0 && Number(rule.price) > 0)
+        .sort((a, b) => Number(b.qty) - Number(a.qty));
+
+      let remainingQty = qty;
+      const usedPackages = [];
+      let packageTotal = 0;
+
+      for (const rule of packageRules) {
+        const ruleQty = Number(rule.qty);
+        const rulePrice = Number(rule.price);
+        const count = Math.floor(remainingQty / ruleQty);
+        if (count > 0) {
+          for (let i = 0; i < count; i++) {
+            usedPackages.push({ qty: ruleQty, price: rulePrice, label: rule.label || `Paket ${ruleQty}` });
+            packageTotal += rulePrice;
+            remainingQty -= ruleQty;
+          }
+        }
+      }
+
+      const remainingTotal = remainingQty * baseUnitPrice;
+      return {
+        baseUnitPrice,
+        usedPackages,
+        remainingQty,
+        remainingUnitPrice: baseUnitPrice,
+        itemsTotal: packageTotal + remainingTotal,
+        total: packageTotal + remainingTotal
+      };
+    }
+    function syncSummary() {
+      const { subtotal, totalQty } = getCartSummary();
+      els.cartCountText.textContent = String(totalQty);
+      els.cartTotalText.textContent = formatCurrency(subtotal);
+      els.activeProductCount.textContent = String(Object.keys(state.products).length);
+      els.distanceLimitText.textContent = `${STORE_CONFIG.maxInternalDistanceKm} km`;
+    }
+    function renderHomeInfo() {
+      els.homeInfoList.innerHTML = [
+        { icon:'fa-location-dot', title:'Jarak dihitung otomatis', note:`Semua pesanan online dihitung dari ${STORE_CONFIG.name}.` },
+        { icon:'fa-motorcycle', title:'Kurir toko untuk area dekat', note:`Jika jarak <= ${STORE_CONFIG.maxInternalDistanceKm} km maka order masuk jalur internal.` },
+        { icon:'fa-truck-fast', title:'Ekspedisi luar untuk area jauh', note:'Jika jarak di luar batas, sistem otomatis tandai sebagai pengiriman eksternal.' },
+        { icon:'fa-tags', title:'Harga paket aktif', note:'Qty akan dihitung otomatis memakai harga paket terbaik.' }
+      ].map(item => `
+        <div class="order">
+          <div class="order-head">
+            <div><h4><i class="fa-solid ${item.icon}" style="color:var(--gold2);margin-right:8px"></i>${item.title}</h4><p>${item.note}</p></div>
+          </div>
+        </div>`).join('');
+    }
+    function renderCategories() {
+      const options = ['<option value="all">Semua kategori</option>'].concat(
+        Object.entries(state.categories).map(([id, c]) => `<option value="${id}">${c.name}</option>`)
+      );
+      els.categoryFilter.innerHTML = options.join('');
+      els.categoryFilter.value = state.category;
+    }
+    function renderProducts() {
+      const products = getActiveProducts();
+      if (!products.length) {
+        els.productList.innerHTML = '<div class="empty">Belum ada produk aktif.</div>';
+        return;
+      }
+      els.productList.innerHTML = products.map(product => {
+        const qty = Number(state.cart[product.id] || 0);
+        const pkgRules = Object.values(product.packagePricing?.rules || {})
+          .filter(rule => product.packagePricing?.enabled)
+          .sort((a,b)=>Number(a.qty)-Number(b.qty));
+        return `
+          <article class="product">
+            <div class="product-top">
+              <img class="thumb" src="${product.thumbnail || 'https://via.placeholder.com/160x160?text=Produk'}" alt="${product.name}" />
+              <div class="product-main">
+                <h4>${product.name}</h4>
+                <p>${product.description || 'Tanpa deskripsi'}</p>
+                <div class="price-line">
+                  <span class="price-chip"><i class="fa-solid fa-tag"></i>${formatCurrency(product.price)}</span>
+                  ${pkgRules.map(rule => `<span class="pkg-chip"><i class="fa-solid fa-box-open"></i>${rule.qty} pcs ${formatCurrency(rule.price)}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+            <div class="product-actions">
+              <div class="qty-wrap">
+                <button class="qty-btn" data-qty-minus="${product.id}"><i class="fa-solid fa-minus"></i></button>
+                <div class="qty-value">${qty}</div>
+                <button class="qty-btn" data-qty-plus="${product.id}"><i class="fa-solid fa-plus"></i></button>
+              </div>
+              <button class="action-btn action-blue" data-add-cart="${product.id}"><i class="fa-solid fa-cart-plus"></i></button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+    function renderCart() {
+      const items = getCartItems();
+      if (!items.length) {
+        els.cartList.innerHTML = '<div class="empty">Keranjang masih kosong. Tambahkan produk dulu.</div>';
+        return;
+      }
+      const listHtml = items.map(item => `
+        <article class="order">
+          <div class="order-head">
+            <div><h4>${item.name}</h4><p>${item.qty} pcs • ${formatCurrency(item.price)} / pcs</p></div>
+            <button class="action-btn action-green" data-remove-cart="${item.productId}" style="min-height:38px;padding:0 12px"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div class="breakdown">
+            <h5>Rincian harga</h5>
+            ${item.pricingBreakdown.usedPackages.map(p => `<div class="row"><span>${p.label} (${p.qty} pcs)</span><strong>${formatCurrency(p.price)}</strong></div>`).join('') || ''}
+            ${item.pricingBreakdown.remainingQty ? `<div class="row"><span>Sisa ${item.pricingBreakdown.remainingQty} pcs x ${formatCurrency(item.pricingBreakdown.remainingUnitPrice)}</span><strong>${formatCurrency(item.pricingBreakdown.remainingQty * item.pricingBreakdown.remainingUnitPrice)}</strong></div>` : ''}
+            <div class="row"><span>Total item</span><strong>${formatCurrency(item.pricingBreakdown.total)}</strong></div>
+          </div>
+        </article>
+      `).join('');
+      const summary = getCartSummary();
+      els.cartList.innerHTML = listHtml + `
+        <div class="checkout-summary">
+          <div class="row"><span>Total qty</span><strong>${summary.totalQty} pcs</strong></div>
+          <div class="row"><span>Subtotal</span><strong>${formatCurrency(summary.subtotal)}</strong></div>
+          <button class="btn-primary" id="cartCheckoutBtn" style="width:100%;margin-top:12px"><i class="fa-solid fa-check"></i>Lanjut Checkout</button>
+        </div>`;
+      document.getElementById('cartCheckoutBtn')?.addEventListener('click', () => openSheet('checkoutSheet'));
+    }
+    function renderRecentOrders() {
+      if (!state.recentOrders.length) {
+        els.recentOrders.innerHTML = '<div class="empty">Belum ada pesanan dari browser ini.</div>';
+        return;
+      }
+      els.recentOrders.innerHTML = state.recentOrders.map(order => `
+        <article class="order">
+          <div class="order-head">
+            <div>
+              <h4>${order.orderNo}</h4>
+              <p>${order.customerName} • ${order.customerPhone}</p>
+            </div>
+            <span class="status-badge ${order.status === 'delivered' ? 'status-delivered' : order.status === 'processing' ? 'status-processing' : 'status-waiting'}">${order.statusLabel || order.status}</span>
+          </div>
+          <div class="order-meta">
+            <div class="meta-item"><label>Shipping</label><strong>${order.shippingName}</strong></div>
+            <div class="meta-item"><label>Pembayaran</label><strong>${String(order.paymentMethod).toUpperCase()}</strong></div>
+            <div class="meta-item"><label>Jarak</label><strong>${order.distanceKm} km</strong></div>
+            <div class="meta-item"><label>Total</label><strong>${formatCurrency(order.grandTotal)}</strong></div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function setCheckoutLocation(lat, lng, source = 'manual') {
+      const fixedLat = Number(lat);
+      const fixedLng = Number(lng);
+      if (!Number.isFinite(fixedLat) || !Number.isFinite(fixedLng)) return;
+      state.checkoutLocation = { lat: fixedLat, lng: fixedLng, source };
+      const km = distanceKm(STORE_CONFIG.lat, STORE_CONFIG.lng, fixedLat, fixedLng);
+      const shippingType = km <= STORE_CONFIG.maxInternalDistanceKm ? 'internal' : 'external';
+      const shippingName = shippingType === 'internal' ? 'Kurir Toko' : 'Ekspedisi Luar';
+      els.locationStatus.innerHTML = `
+        <strong>Lokasi berhasil dipilih.</strong>
+        <div class="muted" style="margin-top:6px">Sumber: ${source === 'gps' ? 'GPS perangkat' : 'Pilih titik di peta'} • Jarak ${km} km • Pengiriman ${shippingName}</div>
+      `;
+      updateCheckoutSummary();
+    }
+
+    function ensureMapReady() {
+      if (state.mapInstance) return;
+      state.mapInstance = L.map('mapPicker').setView([STORE_CONFIG.lat, STORE_CONFIG.lng], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(state.mapInstance);
+      state.mapInstance.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        state.mapDraftLocation = { lat, lng };
+        if (state.mapMarker) state.mapMarker.setLatLng([lat, lng]);
+        else state.mapMarker = L.marker([lat, lng]).addTo(state.mapInstance);
+        els.mapPickerNote.textContent = `Titik dipilih: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      });
+      setTimeout(() => state.mapInstance.invalidateSize(), 250);
+    }
+
+    function openMapPicker() {
+      openSheet('mapPickerSheet');
+      ensureMapReady();
+      const baseLocation = state.checkoutLocation || { lat: STORE_CONFIG.lat, lng: STORE_CONFIG.lng };
+      state.mapInstance.setView([baseLocation.lat, baseLocation.lng], 15);
+      if (state.mapMarker) state.mapMarker.setLatLng([baseLocation.lat, baseLocation.lng]);
+      else state.mapMarker = L.marker([baseLocation.lat, baseLocation.lng]).addTo(state.mapInstance);
+      state.mapDraftLocation = { ...baseLocation };
+      els.mapPickerNote.textContent = `Titik aktif: ${baseLocation.lat.toFixed(6)}, ${baseLocation.lng.toFixed(6)}`;
+      setTimeout(() => state.mapInstance.invalidateSize(), 200);
+    }
+
+    function useCurrentLocation() {
+      if (!navigator.geolocation) {
+        showToast('Browser ini tidak mendukung GPS.');
+        return;
+      }
+      showToast('Mengambil lokasi GPS...');
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCheckoutLocation(latitude, longitude, 'gps');
+          showToast('Lokasi GPS berhasil diambil.');
+        },
+        (error) => {
+          console.error(error);
+          showToast('Gagal mengambil lokasi. Pastikan izin GPS diaktifkan.');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    function updateCheckoutSummary() {
+      const summary = getCartSummary();
+      const location = state.checkoutLocation;
+      let info = '<div class="row"><span>Subtotal</span><strong>' + formatCurrency(summary.subtotal) + '</strong></div>';
+      if (location && Number.isFinite(location.lat) && Number.isFinite(location.lng)) {
+        const km = distanceKm(STORE_CONFIG.lat, STORE_CONFIG.lng, location.lat, location.lng);
+        const shippingType = km <= STORE_CONFIG.maxInternalDistanceKm ? 'internal' : 'external';
+        const shippingCost = shippingType === 'internal' ? getInternalShippingCost(km) : 0;
+        const shippingName = shippingType === 'internal' ? 'Kurir Toko' : 'Ekspedisi Luar';
+        els.distanceInfo.textContent = `Jarak customer ${km} km dari ${STORE_CONFIG.name}. Pengiriman otomatis: ${shippingName}.`;
+        info += `<div class="row"><span>Jarak</span><strong>${km} km</strong></div>`;
+        info += `<div class="row"><span>Pengiriman</span><strong>${shippingName}</strong></div>`;
+        info += `<div class="row"><span>Ongkir</span><strong>${shippingType === 'internal' ? formatCurrency(shippingCost) : 'Ditentukan admin/ekspedisi'}</strong></div>`;
+        const grandTotal = shippingType === 'internal' ? summary.subtotal + shippingCost : summary.subtotal;
+        info += `<div class="row"><span>Total akhir</span><strong>${formatCurrency(grandTotal)}</strong></div>`;
+      } else {
+        els.distanceInfo.textContent = 'Ambil lokasi GPS atau pilih titik di peta untuk menghitung jarak otomatis.';
+        info += '<div class="helper" style="margin-top:8px">Lokasi customer belum dipilih.</div>';
+      }
+      els.checkoutSummary.innerHTML = info;
+    }
+    async function loadStoreData() {
+      if (!db) {
+        showToast('Isi firebaseConfig dulu di file HTML.');
+        return;
+      }
+      try {
+        const [categoriesSnap, productsSnap, settingsSnap, providersSnap, zonesSnap] = await Promise.all([
+          get(ref(db, 'categories')),
+          get(ref(db, 'products')),
+          get(ref(db, 'settings')),
+          get(ref(db, 'shipping_providers')),
+          get(ref(db, 'shipping_zones'))
+        ]);
+        state.categories = categoriesSnap.val() || {};
+        state.products = productsSnap.val() || {};
+        console.log('settings', settingsSnap.val() || {});
+        console.log('shipping_providers', providersSnap.val() || {});
+        console.log('shipping_zones', zonesSnap.val() || {});
+        renderCategories();
+        renderProducts();
+        renderCart();
+        renderRecentOrders();
+        syncSummary();
+        updateCheckoutSummary();
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal membaca data produk dari Firebase.');
+      }
+    }
+    function setCartQty(productId, qty) {
+      if (qty <= 0) delete state.cart[productId];
+      else state.cart[productId] = qty;
+      saveLocal('ej_guest_cart', state.cart);
+      renderProducts();
+      renderCart();
+      syncSummary();
+      updateCheckoutSummary();
+    }
+    function generateOrderNo() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const rand = Math.floor(100 + Math.random() * 900);
+      return `EJ-${y}${m}${d}-${rand}`;
+    }
+    function normalizePhone(phone) {
+      return String(phone || '').replace(/[^0-9]/g, '');
+    }
+    async function submitOrder() {
+      if (!db) return showToast('Isi firebaseConfig dulu.');
+      const summary = getCartSummary();
+      if (!summary.items.length) return showToast('Keranjang masih kosong.');
+      const customerName = els.customerName.value.trim();
+      const customerPhone = normalizePhone(els.customerPhone.value);
+      const fullAddress = els.customerAddress.value.trim();
+      const location = state.checkoutLocation;
+      const lat = location?.lat;
+      const lng = location?.lng;
+      const paymentMethod = els.paymentMethod.value;
+      const customerNote = els.customerNote.value.trim();
+      if (!customerName) return showToast('Nama customer wajib diisi.');
+      if (customerPhone.length < 9) return showToast('Nomor WhatsApp belum valid.');
+      if (!fullAddress) return showToast('Alamat lengkap wajib diisi.');
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return showToast('Lokasi customer wajib dipilih dulu.');
+
+      const distance = distanceKm(STORE_CONFIG.lat, STORE_CONFIG.lng, lat, lng);
+      const shippingType = distance <= STORE_CONFIG.maxInternalDistanceKm ? 'internal' : 'external';
+      const shippingName = shippingType === 'internal' ? 'Kurir Toko' : 'Ekspedisi Luar';
+      const shippingCost = shippingType === 'internal' ? getInternalShippingCost(distance) : 0;
+      const grandTotal = summary.subtotal + shippingCost;
+      const orderNo = generateOrderNo();
+      const orderId = push(child(ref(db), 'orders')).key;
+      const guestId = 'guest_' + customerPhone;
+      const addressId = 'addr_' + slugify(customerPhone);
+      const createdAt = Date.now();
+      const status = 'waiting_confirmation';
+
+      const pricingBreakdown = summary.items.map(item => ({
+        productId: item.productId,
+        productName: item.name,
+        qty: item.qty,
+        unitPrice: item.price,
+        breakdown: item.pricingBreakdown,
+        finalItemTotal: item.pricingBreakdown.total
+      }));
+
+      const orderPayload = {
+        orderNo,
+        customerType: 'guest',
+        customerId: guestId,
+        customerName,
+        customerPhone,
+        customerWhatsapp: customerPhone,
+        fullAddress,
+        lat,
+        lng,
+        storeName: STORE_CONFIG.name,
+        storeLat: STORE_CONFIG.lat,
+        storeLng: STORE_CONFIG.lng,
+        distanceKm: distance,
+        maxInternalDistanceKm: STORE_CONFIG.maxInternalDistanceKm,
+        shippingType,
+        shippingDecision: 'auto',
+        shippingName,
+        shippingCost,
+        paymentMethod,
+        paymentStatus: paymentMethod === 'transfer' ? 'waiting_verification' : 'unpaid',
+        status,
+        statusLabel: 'Menunggu diproses',
+        subtotal: summary.subtotal,
+        grandTotal,
+        itemCount: summary.totalQty,
+        customerNote,
+        createdAt,
+        updatedAt: createdAt
+      };
+
+      const updates = {};
+      updates[`orders/${orderId}`] = orderPayload;
+      updates[`guest_customers/${guestId}`] = {
+        guestId,
+        name: customerName,
+        phone: customerPhone,
+        whatsapp: customerPhone,
+        latestOrderNo: orderNo,
+        updatedAt: createdAt,
+        createdAt
+      };
+      updates[`guest_customer_addresses/${guestId}/${addressId}`] = {
+        addressId,
+        receiverName: customerName,
+        phone: customerPhone,
+        fullAddress,
+        lat,
+        lng,
+        isPrimary: true,
+        updatedAt: createdAt,
+        createdAt
+      };
+      updates[`public_order_lookup/${slugify(customerPhone + '-' + orderNo)}`] = {
+        orderId,
+        orderNo,
+        customerPhone,
+        status,
+        statusLabel: 'Menunggu diproses',
+        shippingType,
+        shippingName,
+        grandTotal,
+        distanceKm: distance,
+        createdAt
+      };
+      summary.items.forEach((item, idx) => {
+        updates[`order_items/${orderId}/item_${idx + 1}`] = {
+          productId: item.productId,
+          name: item.name,
+          qty: item.qty,
+          price: item.price,
+          subtotal: item.pricingBreakdown.total,
+          pricingBreakdown: item.pricingBreakdown
+        };
+      });
+      const timelineId = push(child(ref(db), `order_timeline/${orderId}`)).key;
+      updates[`order_timeline/${orderId}/${timelineId}`] = {
+        title: 'Pesanan dibuat',
+        description: 'Pesanan guest berhasil dibuat dari aplikasi customer.',
+        status,
+        actorType: 'guest_customer',
+        actorId: guestId,
+        createdAt
+      };
+      updates[`payments/${orderId}`] = {
+        paymentMethod,
+        paymentStatus: paymentMethod === 'transfer' ? 'waiting_verification' : 'unpaid',
+        amountPaid: 0,
+        amountDue: grandTotal,
+        changeAmount: 0,
+        createdAt
+      };
+      if (shippingType === 'internal') {
+        updates[`shipments_internal/${orderId}`] = {
+          assignmentStatus: 'waiting_assignment',
+          shippingName,
+          shippingCost,
+          distanceKm: distance,
+          liveTrackingEnabled: false,
+          createdAt
+        };
+      } else {
+        updates[`shipments_external/${orderId}`] = {
+          providerName: 'Ekspedisi Luar',
+          service: 'Belum dipilih admin',
+          trackingNumber: '',
+          shippingCost: 0,
+          status: 'waiting_external_booking',
+          createdAt
+        };
+      }
+
+      try {
+        await update(ref(db), updates);
+        state.recentOrders.unshift({ ...orderPayload, orderId });
+        state.recentOrders = state.recentOrders.slice(0, 10);
+        saveLocal('ej_recent_orders', state.recentOrders);
+        state.cart = {};
+        saveLocal('ej_guest_cart', state.cart);
+        renderCart();
+        renderRecentOrders();
+        renderProducts();
+        syncSummary();
+        closeSheets();
+        showToast(`Pesanan ${orderNo} berhasil dibuat.`);
+        switchPage('orders');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal membuat pesanan. Cek rules Firebase dan data produk.');
+      }
+    }
+    async function lookupOrder() {
+      if (!db) return showToast('Isi firebaseConfig dulu.');
+      const phone = normalizePhone(els.lookupPhone.value);
+      const orderNo = els.lookupOrderNo.value.trim();
+      if (!phone || !orderNo) return showToast('Isi nomor WhatsApp dan nomor order.');
+      try {
+        const lookupKey = slugify(phone + '-' + orderNo);
+        const snap = await get(ref(db, `public_order_lookup/${lookupKey}`));
+        const data = snap.val();
+        if (!data) {
+          els.lookupResult.textContent = 'Pesanan tidak ditemukan.';
+          return;
+        }
+        els.lookupResult.innerHTML = `
+          <div class="row"><span>Order</span><strong>${data.orderNo}</strong></div>
+          <div class="row"><span>Status</span><strong>${data.statusLabel || data.status}</strong></div>
+          <div class="row"><span>Pengiriman</span><strong>${data.shippingName}</strong></div>
+          <div class="row"><span>Jarak</span><strong>${data.distanceKm} km</strong></div>
+          <div class="row"><span>Total</span><strong>${formatCurrency(data.grandTotal)}</strong></div>`;
+      } catch (err) {
+        console.error(err);
+        els.lookupResult.textContent = 'Gagal membaca data pesanan.';
+      }
+    }
+
+    document.getElementById('bottomNav').addEventListener('click', e => {
+      const btn = e.target.closest('[data-page-target]');
+      if (!btn) return;
+      switchPage(btn.dataset.pageTarget);
+    });
+    document.getElementById('goCatalogBtn').addEventListener('click', () => switchPage('catalog'));
+    document.getElementById('goCheckoutBtn').addEventListener('click', () => openSheet('checkoutSheet'));
+    document.getElementById('fabCheckout').addEventListener('click', () => openSheet('checkoutSheet'));
+    document.getElementById('openLookupBtn').addEventListener('click', () => openSheet('lookupSheet'));
+    document.querySelectorAll('[data-close-sheet]').forEach(btn => btn.addEventListener('click', closeSheets));
+    els.overlay.addEventListener('click', closeSheets);
+    els.searchInput.addEventListener('input', () => { state.search = els.searchInput.value.trim().toLowerCase(); renderProducts(); });
+    els.categoryFilter.addEventListener('change', () => { state.category = els.categoryFilter.value; renderProducts(); });
+    [els.paymentMethod].forEach(el => el.addEventListener('input', updateCheckoutSummary));
+    els.useCurrentLocationBtn.addEventListener('click', useCurrentLocation);
+    els.pickMapLocationBtn.addEventListener('click', openMapPicker);
+    els.confirmMapLocationBtn.addEventListener('click', () => {
+      if (!state.mapDraftLocation) return showToast('Pilih titik dulu di peta.');
+      setCheckoutLocation(state.mapDraftLocation.lat, state.mapDraftLocation.lng, 'map');
+      closeSheets();
+      showToast('Titik lokasi berhasil dipilih.');
+    });
+    document.getElementById('submitOrderBtn').addEventListener('click', submitOrder);
+    document.getElementById('lookupOrderBtn').addEventListener('click', lookupOrder);
+    document.body.addEventListener('click', e => {
+      const plus = e.target.closest('[data-qty-plus]');
+      if (plus) {
+        const id = plus.dataset.qtyPlus;
+        setCartQty(id, Number(state.cart[id] || 0) + 1);
+        return;
+      }
+      const minus = e.target.closest('[data-qty-minus]');
+      if (minus) {
+        const id = minus.dataset.qtyMinus;
+        setCartQty(id, Number(state.cart[id] || 0) - 1);
+        return;
+      }
+      const addBtn = e.target.closest('[data-add-cart]');
+      if (addBtn) {
+        const id = addBtn.dataset.addCart;
+        const current = Number(state.cart[id] || 0);
+        setCartQty(id, current > 0 ? current : 1);
+        showToast('Produk masuk ke keranjang.');
+        return;
+      }
+      const removeBtn = e.target.closest('[data-remove-cart]');
+      if (removeBtn) {
+        const id = removeBtn.dataset.removeCart;
+        setCartQty(id, 0);
+        showToast('Produk dihapus dari keranjang.');
+      }
+    });
+
+    els.storeNameText.textContent = STORE_CONFIG.name;
+    els.storeSubText.textContent = `Guest checkout • Radius kurir toko ${STORE_CONFIG.maxInternalDistanceKm} km`;
+    renderHomeInfo();
+    renderRecentOrders();
+    syncSummary();
+    renderCategories();
+    renderProducts();
+    renderCart();
+    updateCheckoutSummary();
+    loadStoreData();
+  </script>
+</body>
+</html>
