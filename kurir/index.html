@@ -842,7 +842,6 @@
       const note = els.proofNote.value.trim() || 'Paket diterima pelanggan.';
       const now = Date.now();
       const eventId = push(child(ref(db), `order_timeline/${orderId}`)).key;
-      let gps = null;
       const gps = state.gpsOn ? await getGpsPosition() : null;
       const updates = {};
       updates[`orders/${orderId}/status`] = 'delivered';
