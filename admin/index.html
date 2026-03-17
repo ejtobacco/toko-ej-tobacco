@@ -371,15 +371,15 @@
     import { getDatabase, ref, get, onValue, push, update, set, child } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
 
     const firebaseConfig = {
-  apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
-  authDomain: "ej-tobacco-store.firebaseapp.com",
-  databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "ej-tobacco-store",
-  storageBucket: "ej-tobacco-store.firebasestorage.app",
-  messagingSenderId: "70458372662",
-  appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
-  measurementId: "G-VCRFQSRB9H"
-};
+      apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+      authDomain: "ej-tobacco-store.firebaseapp.com",
+      databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ej-tobacco-store",
+      storageBucket: "ej-tobacco-store.firebasestorage.app",
+      messagingSenderId: "70458372662",
+      appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+      measurementId: "G-VCRFQSRB9H"
+    };
 
     const STATUS_LABELS = {
       waiting_confirmation: 'Menunggu diproses',
@@ -754,7 +754,9 @@
         renderCouriers();
       });
       onValue(ref(db, 'orders'), snap => {
-        state.orders = normalizeOrders(snap.val() || {});
+        const raw = snap.val() || {};
+        console.log('ADMIN ORDERS RAW:', raw);
+        state.orders = normalizeOrders(raw);
         renderAll();
       });
     }
@@ -800,10 +802,6 @@
         actorId: 'admin_pusat',
         createdAt: now
       };
-      try:
-        pass
-      except:
-        pass
       try {
         await update(ref(db), updates);
         addLog(`Assign ${order?.orderNo}`, `Order diassign ke ${courier?.name || 'kurir'}.`);
