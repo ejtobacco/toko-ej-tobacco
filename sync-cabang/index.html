@@ -48,6 +48,15 @@
     .toast.show{transform:translate(-50%,0);opacity:1}
     @media (max-width:390px){body{padding:14px}.grid2,.grid3{grid-template-columns:1fr}}
   </style>
+<script>
+document.documentElement.style.visibility = 'hidden';
+window.EJ_ROLE_GUARD = {
+  allowedRoles: ['admin_pusat'],
+  loginUrl: '../portal/',
+  fallbackHome: '../'
+};
+</script>
+<script type="module" src="../assets/ej_role_guard.js"></script>
 </head>
 <body>
   <div class="app">
