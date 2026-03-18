@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script>
+document.documentElement.style.visibility = 'hidden';
+window.EJ_ROLE_GUARD = { allowedRoles: ['kurir', 'admin_pusat'], loginUrl: '../portal/', fallbackHome: '../' };
+</script>
+<script type="module" src="../assets/ej_role_guard.js"></script>
+<script>window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };</script>
+<script type="module" src="../assets/ej_session_badge.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>EJ Kurir Pickup V2</title>
@@ -160,15 +168,6 @@
       .badge-stack{justify-content:flex-start}.order-top{flex-direction:column}
     }
   </style>
-<script>
-document.documentElement.style.visibility = 'hidden';
-window.EJ_ROLE_GUARD = {
-  allowedRoles: ['kurir', 'admin_pusat'],
-  loginUrl: '../portal/',
-  fallbackHome: '../'
-};
-</script>
-<script type="module" src="../assets/ej_role_guard.js"></script>
 </head>
 <body>
   <div class="app-shell">
