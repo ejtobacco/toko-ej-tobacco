@@ -62,6 +62,15 @@
     .good{color:#86efac}.warn{color:#fbbf24}.danger{color:#fca5a5}
     @media (max-width:390px){body{padding:14px}.grid2,.grid3,.grid4,.filters{grid-template-columns:1fr}}
   </style>
+<script>
+document.documentElement.style.visibility = 'hidden';
+window.EJ_ROLE_GUARD = {
+  allowedRoles: ['admin_pusat'],
+  loginUrl: '../portal/',
+  fallbackHome: '../'
+};
+</script>
+<script type="module" src="../assets/ej_role_guard.js"></script>
 </head>
 <body>
   <div class="app">
