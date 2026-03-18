@@ -108,6 +108,15 @@
     .empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:13px;border-radius:18px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.02)}
     @media (max-width:390px){body{padding:14px}.hero h2{font-size:27px}.quick,.mini-grid,.product-actions,.order-meta{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}}
   </style>
+<script>
+document.documentElement.style.visibility = 'hidden';
+window.EJ_ROLE_GUARD = {
+  allowedRoles: ['customer', 'admin_pusat'],
+  loginUrl: '../portal/',
+  fallbackHome: '../'
+};
+</script>
+<script type="module" src="../assets/ej_role_guard.js"></script>
 </head>
 <body>
   <div class="app">
