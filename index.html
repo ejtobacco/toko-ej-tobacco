@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-  <title>EJ Master Admin Pusat</title>
+  <title>EJ Master Admin Pusat Realtime</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +21,9 @@
       radial-gradient(circle at bottom center, rgba(139,92,246,.08), transparent 24%),#07090d;
     }
     a,button,input,select{font:inherit}
-    .app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:24px}
+    a{text-decoration:none}
+    button{cursor:pointer}
+    .app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:26px}
     .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
     .brand{display:flex;align-items:center;gap:12px}
     .icon{
@@ -30,6 +32,10 @@
     }
     .brand h1{font-size:18px;font-weight:800}
     .brand p{margin-top:4px;color:var(--muted);font-size:11px}
+    .icon-btn{
+      width:42px;height:42px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);
+      color:var(--text);display:grid;place-items:center
+    }
     .card{
       background:linear-gradient(180deg, rgba(17,22,32,.90), rgba(12,16,24,.84));
       border:1px solid var(--stroke);border-radius:24px;box-shadow:var(--shadow);padding:14px;position:relative;overflow:hidden
@@ -47,43 +53,72 @@
       background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:var(--gold2);margin-bottom:14px
     }
     .hero h2{font-size:12px;color:rgba(255,255,255,.72);font-weight:700;letter-spacing:.9px;text-transform:uppercase}
-    .hero .value{font-size:32px;font-weight:800;margin-top:8px}
+    .hero .value{font-size:34px;font-weight:800;margin-top:8px}
     .hero .sub{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.6}
-    .grid2,.grid3,.grid4{display:grid;gap:12px}
-    .grid2{grid-template-columns:1fr 1fr}
+    .grid2,.grid3,.grid4,.filters,.actions{display:grid;gap:12px}
+    .grid2,.actions{grid-template-columns:1fr 1fr}
     .grid3{grid-template-columns:repeat(3,1fr)}
     .grid4{grid-template-columns:repeat(4,1fr)}
-    .stat,.mini,.module-card{
+    .stat,.mini,.module-card,.feed-card,.summary-box{
       background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px
     }
-    .stat label,.mini label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}
+    .stat label,.mini label,.summary-box label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}
     .stat strong,.mini strong{display:block;font-size:18px;font-weight:800}
     .section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
     .section-head h3{font-size:15px;font-weight:800}
     .section-head p{margin-top:4px;color:var(--muted);font-size:11px;line-height:1.5}
-    .module-list{display:flex;flex-direction:column;gap:12px}
-    .module-card .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .module-card .left h4{font-size:15px;font-weight:800;margin-bottom:5px}
-    .module-card .left p{font-size:11px;color:var(--muted);line-height:1.5}
-    .icon-badge{
-      min-width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:18px;font-weight:900;color:#151515;background:var(--grad)
+    .pill{
+      min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);color:var(--text);font-size:12px;font-weight:800
+    }
+    .module-list,.feed-list,.recent-list{display:flex;flex-direction:column;gap:12px}
+    .module-card .top,.feed-card .top{
+      display:flex;justify-content:space-between;gap:10px;align-items:flex-start
+    }
+    .module-card .left h4,.feed-card .left h4{font-size:15px;font-weight:800;margin-bottom:5px}
+    .module-card .left p,.feed-card .left p{font-size:11px;color:var(--muted);line-height:1.5}
+    .module-icon{
+      min-width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:18px;font-weight:900;color:#151515;background:var(--grad)
     }
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
     .chip{
       display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:6px 10px;border-radius:999px;
       border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted)
     }
-    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
     .btn,.ghost{
-      min-height:48px;border-radius:16px;border:none;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      text-decoration:none
+      min-height:48px;border-radius:16px;border:none;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px
     }
     .btn{background:var(--grad);color:#151515}
     .ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text)}
-    .helper{font-size:11px;color:var(--muted);line-height:1.6}
+    .tag-live{color:#86efac}
+    .tag-warn{color:#fbbf24}
+    .tag-danger{color:#fca5a5}
+    .feed-card strong{font-size:22px;font-weight:800}
+    .feed-card .caption{font-size:11px;color:var(--muted);margin-top:5px}
+    .recent-item{
+      display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)
+    }
+    .recent-item:last-child{border-bottom:none;padding-bottom:0}
+    .recent-dot{
+      width:12px;height:12px;border-radius:999px;background:var(--gold);margin-top:5px;flex:0 0 auto;
+      box-shadow:0 0 12px rgba(212,175,55,.35)
+    }
+    .recent-content{min-width:0;flex:1}
+    .recent-content strong{display:block;font-size:13px;margin-bottom:4px}
+    .recent-content p{font-size:11px;color:var(--muted);line-height:1.45}
     .path-box{
       margin-top:10px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);font-size:12px;line-height:1.7;color:#e7ebf2
     }
+    .empty{
+      padding:22px 16px;text-align:center;color:var(--muted);font-size:13px;border-radius:18px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.02)
+    }
+    .helper{font-size:11px;color:var(--muted);line-height:1.6}
+    .toast{
+      position:fixed;top:24px;left:50%;transform:translate(-50%,-18px);width:min(380px,calc(100% - 28px));padding:14px 16px;border-radius:18px;
+      background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;
+      opacity:0;pointer-events:none;transition:.25s ease;z-index:95
+    }
+    .toast.show{transform:translate(-50%,0);opacity:1}
     code{color:#fde68a}
     @media (max-width:390px){
       body{padding:14px}
@@ -98,24 +133,77 @@
         <div class="icon">👑</div>
         <div>
           <h1>EJ Master Admin Pusat</h1>
-          <p>Satu halaman masuk untuk semua modul operasional pusat dan cabang</p>
+          <p id="brandSub">Loading statistik Firebase realtime...</p>
         </div>
       </div>
+      <button class="icon-btn" id="refreshBtn">↻</button>
     </header>
 
     <section class="card hero">
-      <div class="badge">MASTER CONTROL • PUSAT</div>
-      <h2>Pintu masuk operasional</h2>
-      <div class="value">EJ TOBACCO STORE</div>
-      <div class="sub">
-        Halaman ini dipakai admin pusat untuk buka semua modul tanpa pindah-pindah cari link.
-        Cocok dijadikan <code>index.html</code> utama repo.
-      </div>
+      <div class="badge">MASTER CONTROL • FIREBASE REALTIME</div>
+      <h2>Snapshot operasional pusat</h2>
+      <div class="value" id="heroValue">Rp 0</div>
+      <div class="sub" id="heroSub">Halaman depan ini langsung membaca order pusat, stok pusat, stok cabang, penjualan cabang, sync, dan transfer stok.</div>
       <div class="grid4" style="margin-top:16px">
-        <div class="stat"><label>Order center</label><strong>Admin</strong></div>
-        <div class="stat"><label>Stok pusat</label><strong>Gudang</strong></div>
-        <div class="stat"><label>Cabang</label><strong>Live</strong></div>
-        <div class="stat"><label>Laporan</label><strong>Realtime</strong></div>
+        <div class="stat"><label>Order aktif</label><strong id="activeOrdersText">0</strong></div>
+        <div class="stat"><label>Cabang aktif</label><strong id="activeBranchesText">0</strong></div>
+        <div class="stat"><label>Stok pusat</label><strong id="centerStockText">0</strong></div>
+        <div class="stat"><label>Stok cabang</label><strong id="branchStockText">0</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h3>Snapshot realtime</h3>
+          <p>Angka ringkas dari node Firebase utama yang sekarang aktif.</p>
+        </div>
+      </div>
+      <div class="grid2" id="feedGrid">
+        <div class="feed-card">
+          <div class="top">
+            <div class="left">
+              <h4>Omzet cabang hari ini</h4>
+              <p>Diambil dari <code>pos_branch_sales</code>.</p>
+            </div>
+            <div class="module-icon">💰</div>
+          </div>
+          <strong id="todayBranchSales">Rp 0</strong>
+          <div class="caption" id="todayBranchSalesSub">0 transaksi hari ini</div>
+        </div>
+        <div class="feed-card">
+          <div class="top">
+            <div class="left">
+              <h4>Transfer stok hari ini</h4>
+              <p>Dari <code>stock_transfers</code>.</p>
+            </div>
+            <div class="module-icon">📦</div>
+          </div>
+          <strong id="todayTransferUnits">0 pcs</strong>
+          <div class="caption" id="todayTransferSub">0 transfer hari ini</div>
+        </div>
+        <div class="feed-card">
+          <div class="top">
+            <div class="left">
+              <h4>Order selesai hari ini</h4>
+              <p>Dari node <code>orders</code>.</p>
+            </div>
+            <div class="module-icon">✅</div>
+          </div>
+          <strong id="deliveredTodayText">0 order</strong>
+          <div class="caption" id="deliveredTodaySub">0 on the way</div>
+        </div>
+        <div class="feed-card">
+          <div class="top">
+            <div class="left">
+              <h4>Sync & POS live</h4>
+              <p>Kesehatan cabang dan sumber data.</p>
+            </div>
+            <div class="module-icon">⚡</div>
+          </div>
+          <strong id="syncHealthText">0</strong>
+          <div class="caption" id="syncHealthSub">Belum ada sumber aktif</div>
+        </div>
       </div>
     </section>
 
@@ -123,7 +211,7 @@
       <div class="section-head">
         <div>
           <h3>Menu utama admin pusat</h3>
-          <p>Semua modul yang sudah kita bangun dikumpulkan di sini.</p>
+          <p>Semua modul tetap bisa dibuka dari satu tempat, sekarang lengkap dengan statistik realtime.</p>
         </div>
       </div>
 
@@ -132,14 +220,14 @@
           <div class="top">
             <div class="left">
               <h4>Admin Order Pusat</h4>
-              <p>Kelola order customer, proses packing, gudang, timeline final, dan kontrol operasional pusat.</p>
+              <p>Kelola order customer, packing, gudang, timeline final, dan status realtime kurir.</p>
             </div>
-            <div class="icon-badge">🧾</div>
+            <div class="module-icon">🧾</div>
           </div>
           <div class="chips">
-            <span class="chip">Order online</span>
-            <span class="chip">Timeline realtime</span>
-            <span class="chip">Admin pusat</span>
+            <span class="chip" id="chipOrderActive">0 order aktif</span>
+            <span class="chip" id="chipOrderDone">0 selesai hari ini</span>
+            <span class="chip" id="chipOrderPending">0 pending</span>
           </div>
           <div class="actions">
             <a class="btn" href="./admin/">Masuk Admin</a>
@@ -151,14 +239,14 @@
           <div class="top">
             <div class="left">
               <h4>Stok Pusat & Transfer Cabang</h4>
-              <p>Lihat stok pusat, stock opname, kirim stok resmi ke cabang, dan cek riwayat transfer stok.</p>
+              <p>Lihat stok pusat, stock opname, dan kirim stok resmi ke cabang.</p>
             </div>
-            <div class="icon-badge">📦</div>
+            <div class="module-icon">📦</div>
           </div>
           <div class="chips">
-            <span class="chip">Gudang pusat</span>
-            <span class="chip">Transfer cabang</span>
-            <span class="chip">Realtime</span>
+            <span class="chip" id="chipCenterStock">0 pcs pusat</span>
+            <span class="chip" id="chipLowStock">0 low stock</span>
+            <span class="chip" id="chipTransferToday">0 pcs hari ini</span>
           </div>
           <div class="actions">
             <a class="btn" href="./stok-pusat/">Buka Stok Pusat</a>
@@ -170,14 +258,14 @@
           <div class="top">
             <div class="left">
               <h4>Dashboard Gabungan Cabang</h4>
-              <p>Satu layar untuk baca stok cabang, penjualan cabang, sync, dan transfer stok terakhir.</p>
+              <p>Lihat stok cabang, penjualan cabang, sync, dan transfer stok terakhir dalam satu layar.</p>
             </div>
-            <div class="icon-badge">🏪</div>
+            <div class="module-icon">🏪</div>
           </div>
           <div class="chips">
-            <span class="chip">Stok cabang</span>
-            <span class="chip">Sales cabang</span>
-            <span class="chip">Gabungan</span>
+            <span class="chip" id="chipBranchActive">0 cabang aktif</span>
+            <span class="chip" id="chipBranchStock">0 pcs cabang</span>
+            <span class="chip" id="chipBranchSales">Rp 0 omzet</span>
           </div>
           <div class="actions">
             <a class="btn" href="./dashboard-cabang/">Buka Dashboard</a>
@@ -188,15 +276,15 @@
         <article class="module-card">
           <div class="top">
             <div class="left">
-              <h4>POS Cabang Firebase Live</h4>
-              <p>POS cabang yang membaca <code>branch_stock</code> dan mengurangi stok cabang langsung saat checkout.</p>
+              <h4>POS Cabang & Sync</h4>
+              <p>POS cabang live untuk stok resmi, plus jalur sync manual cadangan.</p>
             </div>
-            <div class="icon-badge">💳</div>
+            <div class="module-icon">💳</div>
           </div>
           <div class="chips">
-            <span class="chip">POS live</span>
-            <span class="chip">Branch stock</span>
-            <span class="chip">Cabang</span>
+            <span class="chip" id="chipPosLive">0 transaksi live</span>
+            <span class="chip" id="chipSyncCount">0 sync</span>
+            <span class="chip" id="chipLatestSource">source -</span>
           </div>
           <div class="actions">
             <a class="btn" href="./pos-cabang/">Buka POS Cabang</a>
@@ -208,14 +296,14 @@
           <div class="top">
             <div class="left">
               <h4>Monitoring Customer & Kurir</h4>
-              <p>Buka halaman customer guest checkout dan kurir delivery dari satu tempat untuk tes alur end-to-end.</p>
+              <p>Tes alur end-to-end dari customer checkout sampai kurir deliver.</p>
             </div>
-            <div class="icon-badge">🛵</div>
+            <div class="module-icon">🛵</div>
           </div>
           <div class="chips">
-            <span class="chip">Customer</span>
-            <span class="chip">Kurir</span>
-            <span class="chip">End-to-end</span>
+            <span class="chip" id="chipCourierOnWay">0 on the way</span>
+            <span class="chip" id="chipCourierWarehouse">0 siap gudang</span>
+            <span class="chip" id="chipCourierDelay">0 tunda/gagal</span>
           </div>
           <div class="actions">
             <a class="btn" href="./customer/">Customer</a>
@@ -228,12 +316,24 @@
     <section class="card">
       <div class="section-head">
         <div>
-          <h3>Struktur folder repo yang disarankan</h3>
-          <p>Supaya semua link di halaman master ini langsung jalan.</p>
+          <h3>Aktivitas terbaru</h3>
+          <p>Gabungan order, transfer stok, dan sync cabang terbaru.</p>
+        </div>
+      </div>
+      <div id="recentList" class="recent-list">
+        <div class="empty">Menunggu data aktivitas realtime...</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h3>Struktur folder repo</h3>
+          <p>Kalau file ini dipasang di root, semua tombol akan langsung jalan.</p>
         </div>
       </div>
       <div class="path-box">
-        <div><code>index.html</code> ← halaman master admin pusat ini</div>
+        <div><code>index.html</code> ← master admin pusat realtime</div>
         <div><code>admin/index.html</code></div>
         <div><code>customer/index.html</code></div>
         <div><code>kurir/index.html</code></div>
@@ -244,9 +344,322 @@
         <div><code>dashboard-cabang/index.html</code></div>
       </div>
       <div class="helper" style="margin-top:12px">
-        Kalau mau paling rapi, jadikan file ini sebagai <code>index.html</code> di root repo, jadi saat buka domain GitHub Pages langsung masuk ke master admin pusat.
+        Pasang file ini sebagai <code>index.html</code> root repo. Halaman depan akan otomatis menampilkan angka terbaru dari Firebase setiap ada perubahan.
       </div>
     </section>
   </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+      authDomain: "ej-tobacco-store.firebaseapp.com",
+      databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ej-tobacco-store",
+      storageBucket: "ej-tobacco-store.firebasestorage.app",
+      messagingSenderId: "70458372662",
+      appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+      measurementId: "G-VCRFQSRB9H"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const state = {
+      orders:{},
+      products:{},
+      branchStock:{},
+      branchProfiles:{},
+      salesByBranch:{},
+      latestByBranch:{},
+      syncs:{},
+      transfers:{}
+    };
+
+    const els = {
+      brandSub: document.getElementById('brandSub'),
+      heroValue: document.getElementById('heroValue'),
+      heroSub: document.getElementById('heroSub'),
+      activeOrdersText: document.getElementById('activeOrdersText'),
+      activeBranchesText: document.getElementById('activeBranchesText'),
+      centerStockText: document.getElementById('centerStockText'),
+      branchStockText: document.getElementById('branchStockText'),
+      todayBranchSales: document.getElementById('todayBranchSales'),
+      todayBranchSalesSub: document.getElementById('todayBranchSalesSub'),
+      todayTransferUnits: document.getElementById('todayTransferUnits'),
+      todayTransferSub: document.getElementById('todayTransferSub'),
+      deliveredTodayText: document.getElementById('deliveredTodayText'),
+      deliveredTodaySub: document.getElementById('deliveredTodaySub'),
+      syncHealthText: document.getElementById('syncHealthText'),
+      syncHealthSub: document.getElementById('syncHealthSub'),
+      chipOrderActive: document.getElementById('chipOrderActive'),
+      chipOrderDone: document.getElementById('chipOrderDone'),
+      chipOrderPending: document.getElementById('chipOrderPending'),
+      chipCenterStock: document.getElementById('chipCenterStock'),
+      chipLowStock: document.getElementById('chipLowStock'),
+      chipTransferToday: document.getElementById('chipTransferToday'),
+      chipBranchActive: document.getElementById('chipBranchActive'),
+      chipBranchStock: document.getElementById('chipBranchStock'),
+      chipBranchSales: document.getElementById('chipBranchSales'),
+      chipPosLive: document.getElementById('chipPosLive'),
+      chipSyncCount: document.getElementById('chipSyncCount'),
+      chipLatestSource: document.getElementById('chipLatestSource'),
+      chipCourierOnWay: document.getElementById('chipCourierOnWay'),
+      chipCourierWarehouse: document.getElementById('chipCourierWarehouse'),
+      chipCourierDelay: document.getElementById('chipCourierDelay'),
+      recentList: document.getElementById('recentList'),
+      toast: document.getElementById('toast')
+    };
+
+    function showToast(message){
+      els.toast.textContent = message;
+      els.toast.classList.add('show');
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(()=>els.toast.classList.remove('show'), 2200);
+    }
+
+    function formatCurrency(value){
+      return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value || 0);
+    }
+
+    function formatNumber(value){
+      return new Intl.NumberFormat('id-ID').format(value || 0);
+    }
+
+    function todayKey(){
+      return new Date().toISOString().slice(0,10);
+    }
+
+    function getCenterStockValue(product){
+      if(Number.isFinite(product.stockPusat)) return Number(product.stockPusat);
+      if(Number.isFinite(product.stock)) return Number(product.stock);
+      if(Number.isFinite(product.currentStock)) return Number(product.currentStock);
+      return 0;
+    }
+
+    function getAllSales(){
+      const rows = [];
+      Object.entries(state.salesByBranch || {}).forEach(([branchCode, salesMap]) => {
+        Object.entries(salesMap || {}).forEach(([saleId, sale]) => {
+          rows.push({
+            id: saleId,
+            branchCode,
+            branchName: sale.branchName || state.latestByBranch?.[branchCode]?.branchName || branchCode,
+            total: Number(sale.total || 0),
+            itemCount: Number(sale.itemCount || 0),
+            dateKey: sale.dateKey || '',
+            createdAt: Number(sale.createdAt || 0),
+            source: state.latestByBranch?.[branchCode]?.source || 'manual_sync',
+            invoiceNo: sale.invoiceNo || saleId
+          });
+        });
+      });
+      return rows;
+    }
+
+    function renderRealtimeStats(){
+      const orders = Object.values(state.orders || {});
+      const products = Object.values(state.products || {});
+      const sales = getAllSales();
+      const transfers = Object.values(state.transfers || {});
+      const syncs = Object.values(state.syncs || {});
+      const branchStockRows = [];
+      Object.entries(state.branchStock || {}).forEach(([branchCode, stockMap]) => {
+        Object.entries(stockMap || {}).forEach(([productId, row]) => {
+          branchStockRows.push({
+            branchCode,
+            productId,
+            stock: Number(row.stock || 0),
+            productName: row.productName || productId,
+            updatedAt: Number(row.updatedAt || 0)
+          });
+        });
+      });
+
+      const activeOrderStatuses = ['waiting_confirmation','packing','ready_in_warehouse','picked_by_courier','on_the_way','delivery_delayed','ready_for_external_shipping','shipped_external'];
+      const activeOrders = orders.filter(order => activeOrderStatuses.includes(order.status));
+      const deliveredToday = orders.filter(order => order.status === 'delivered' && (order.updatedAt ? new Date(order.updatedAt).toISOString().slice(0,10) === todayKey() : false));
+      const onTheWay = orders.filter(order => order.status === 'on_the_way');
+      const readyWarehouse = orders.filter(order => order.status === 'ready_in_warehouse');
+      const delayOrFailed = orders.filter(order => ['delivery_delayed','failed_delivery'].includes(order.status));
+
+      const centerStock = products.reduce((sum, product) => sum + getCenterStockValue(product), 0);
+      const lowCenterStock = products.filter(product => getCenterStockValue(product) <= 5).length;
+
+      const activeBranches = [...new Set(branchStockRows.filter(row => row.stock > 0).map(row => row.branchCode).concat(sales.map(row => row.branchCode)))];
+      const totalBranchStock = branchStockRows.reduce((sum, row) => sum + row.stock, 0);
+
+      const salesToday = sales.filter(row => row.dateKey === todayKey());
+      const todaySalesValue = salesToday.reduce((sum, row) => sum + row.total, 0);
+      const latestSource = Object.values(state.latestByBranch || {}).sort((a,b)=>(b.lastSyncAt || 0) - (a.lastSyncAt || 0))[0]?.source || '-';
+      const livePosCount = Object.values(state.latestByBranch || {}).filter(row => row.source === 'live_pos').length;
+
+      const transferToday = transfers.filter(row => (row.dateKey || '').slice(0,10) === todayKey());
+      const transferUnitsToday = transferToday.reduce((sum, row) => sum + Number(row.qty || 0), 0);
+
+      els.brandSub.textContent = `${formatNumber(activeOrders.length)} order aktif • ${formatNumber(activeBranches.length)} cabang aktif • data realtime Firebase`;
+      els.heroValue.textContent = formatCurrency(todaySalesValue);
+      els.heroSub.textContent = `Hari ini ada ${formatNumber(salesToday.length)} transaksi cabang, ${formatNumber(activeOrders.length)} order pusat aktif, dan ${formatNumber(totalBranchStock)} unit stok cabang.`;
+
+      els.activeOrdersText.textContent = formatNumber(activeOrders.length);
+      els.activeBranchesText.textContent = formatNumber(activeBranches.length);
+      els.centerStockText.textContent = formatNumber(centerStock);
+      els.branchStockText.textContent = formatNumber(totalBranchStock);
+
+      els.todayBranchSales.textContent = formatCurrency(todaySalesValue);
+      els.todayBranchSalesSub.textContent = `${formatNumber(salesToday.length)} transaksi hari ini`;
+
+      els.todayTransferUnits.textContent = `${formatNumber(transferUnitsToday)} pcs`;
+      els.todayTransferSub.textContent = `${formatNumber(transferToday.length)} transfer hari ini`;
+
+      els.deliveredTodayText.textContent = `${formatNumber(deliveredToday.length)} order`;
+      els.deliveredTodaySub.textContent = `${formatNumber(onTheWay.length)} on the way`;
+
+      els.syncHealthText.textContent = formatNumber(syncs.length + livePosCount);
+      els.syncHealthSub.textContent = `${formatNumber(syncs.length)} sync manual • ${formatNumber(livePosCount)} cabang POS live`;
+
+      els.chipOrderActive.textContent = `${formatNumber(activeOrders.length)} order aktif`;
+      els.chipOrderDone.textContent = `${formatNumber(deliveredToday.length)} selesai hari ini`;
+      els.chipOrderPending.textContent = `${formatNumber(readyWarehouse.length)} siap gudang`;
+
+      els.chipCenterStock.textContent = `${formatNumber(centerStock)} pcs pusat`;
+      els.chipLowStock.textContent = `${formatNumber(lowCenterStock)} low stock`;
+      els.chipTransferToday.textContent = `${formatNumber(transferUnitsToday)} pcs hari ini`;
+
+      els.chipBranchActive.textContent = `${formatNumber(activeBranches.length)} cabang aktif`;
+      els.chipBranchStock.textContent = `${formatNumber(totalBranchStock)} pcs cabang`;
+      els.chipBranchSales.textContent = `${formatCurrency(todaySalesValue)} omzet`;
+
+      els.chipPosLive.textContent = `${formatNumber(sales.filter(row => state.latestByBranch?.[row.branchCode]?.source === 'live_pos').length)} transaksi live`;
+      els.chipSyncCount.textContent = `${formatNumber(syncs.length)} sync`;
+      els.chipLatestSource.textContent = `source ${latestSource}`;
+
+      els.chipCourierOnWay.textContent = `${formatNumber(onTheWay.length)} on the way`;
+      els.chipCourierWarehouse.textContent = `${formatNumber(readyWarehouse.length)} siap gudang`;
+      els.chipCourierDelay.textContent = `${formatNumber(delayOrFailed.length)} tunda/gagal`;
+    }
+
+    function renderRecentActivity(){
+      const items = [];
+
+      Object.entries(state.orders || {}).forEach(([id, order]) => {
+        if(order.updatedAt){
+          items.push({
+            type:'order',
+            sortTime:Number(order.updatedAt),
+            title:`Order ${order.orderNo || id}`,
+            note:`Status ${order.status || '-'} • ${order.customerName || 'Customer'}`,
+            time:Number(order.updatedAt)
+          });
+        }
+      });
+
+      Object.values(state.transfers || {}).forEach(row => {
+        items.push({
+          type:'transfer',
+          sortTime:Number(row.createdAt || 0),
+          title:`Transfer ${row.productName || row.productId}`,
+          note:`${row.qty || 0} pcs ke ${row.branchName || row.branchCode}`,
+          time:Number(row.createdAt || 0)
+        });
+      });
+
+      Object.values(state.syncs || {}).forEach(row => {
+        items.push({
+          type:'sync',
+          sortTime:Number(row.importedAt || 0),
+          title:`Sync ${row.branchName || row.branchCode}`,
+          note:`${row.salesImported || 0} transaksi masuk, ${row.salesSkipped || 0} dilewati`,
+          time:Number(row.importedAt || 0)
+        });
+      });
+
+      Object.values(state.latestByBranch || {}).forEach(row => {
+        if(row.lastSyncAt){
+          items.push({
+            type:'branch',
+            sortTime:Number(row.lastSyncAt || 0),
+            title:`POS ${row.branchName || row.branchCode}`,
+            note:`Source ${row.source || '-'} • ${row.totalTransactions || 0} transaksi total`,
+            time:Number(row.lastSyncAt || 0)
+          });
+        }
+      });
+
+      items.sort((a,b)=>b.sortTime-a.sortTime);
+      const top = items.slice(0,12);
+
+      if(!top.length){
+        els.recentList.innerHTML = '<div class="empty">Menunggu data aktivitas realtime...</div>';
+        return;
+      }
+
+      els.recentList.innerHTML = top.map(item => `
+        <div class="recent-item">
+          <span class="recent-dot"></span>
+          <div class="recent-content">
+            <strong>${item.title}</strong>
+            <p>${item.note} • ${item.time ? new Date(item.time).toLocaleString('id-ID') : '-'}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll(){
+      renderRealtimeStats();
+      renderRecentActivity();
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      renderAll();
+      showToast('Statistik realtime diperbarui.');
+    });
+
+    onValue(ref(db, 'orders'), snap => {
+      state.orders = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'products'), snap => {
+      state.products = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'branch_stock'), snap => {
+      state.branchStock = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'branch_profiles'), snap => {
+      state.branchProfiles = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'pos_branch_sales'), snap => {
+      state.salesByBranch = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'pos_branch_latest'), snap => {
+      state.latestByBranch = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'pos_branch_syncs'), snap => {
+      state.syncs = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'stock_transfers'), snap => {
+      state.transfers = snap.val() || {};
+      renderAll();
+    });
+
+    renderAll();
+  </script>
 </body>
 </html>
