@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<script>window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };</script>
+<script type="module" src="../assets/ej_session_badge.js"></script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>EJ TOBACCO — Guest Checkout Final</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#080b10;--panel:rgba(17,22,32,.88);--panel-2:rgba(255,255,255,.05);--stroke:rgba(255,255,255,.08);
+      --text:#f6f7fb;--muted:#96a0b2;--gold:#d4af37;--gold-2:#f6dd82;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;--amber:#f59e0b;
+      --shadow:0 20px 50px rgba(0,0,0,.35);--radius-xl:28px;--radius-lg:22px;--radius-md:16px;
+      --gradient-gold:linear-gradient(135deg,#f6e08c 0%,#d4af37 58%,#b8860b 100%);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top left, rgba(59,130,246,.12), transparent 24%),radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 26%),var(--bg);color:var(--text);padding:18px}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}
+    .hidden{display:none !important}
+    .app{max-width:440px;margin:0 auto;padding-bottom:96px;display:flex;flex-direction:column;gap:16px}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0 4px;background:linear-gradient(180deg,rgba(8,11,16,.92),rgba(8,11,16,.6),transparent);backdrop-filter:blur(20px)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand-icon{width:48px;height:48px;border-radius:16px;background:var(--gradient-gold);display:grid;place-items:center;color:#111;font-weight:800;box-shadow:0 12px 24px rgba(212,175,55,.25)}
+    .brand h1{font-size:16px;font-weight:800} .brand p{font-size:11px;color:var(--muted);margin-top:4px}
+    .icon-btn{width:42px;height:42px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text)}
+    .page{display:none;flex-direction:column;gap:16px}.page.active{display:flex}
+    .hero{border-radius:var(--radius-xl);padding:22px;position:relative;overflow:hidden;background:radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 38%),linear-gradient(180deg,#111827 0%,#090b10 100%);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow)}
+    .hero .badge,.status-chip,.pill,.option{display:inline-flex;align-items:center;justify-content:center}
+    .hero .badge{gap:8px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:var(--gold-2);font-size:11px;font-weight:800}
+    .hero h2{margin-top:14px;font-size:26px;line-height:1.15;font-weight:800}
+    .hero p{margin-top:10px;color:#d7dce7;font-size:13px;line-height:1.6}
+    .hero-actions{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn-primary,.btn-secondary,.small-btn,.nav-btn,.option,.ghost{min-height:50px;border-radius:18px;border:none;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
+    .btn-primary{background:var(--gradient-gold);color:#151515}.btn-secondary{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--stroke)}
+    .small-btn{min-height:42px;padding:0 14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);color:var(--text);font-size:12px}
+    .small-ghost{background:transparent}
+    .card{background:linear-gradient(180deg, rgba(17,22,32,.9), rgba(12,16,24,.84));border:1px solid var(--stroke);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:14px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .section-head h3{font-size:15px;font-weight:800}.section-head p{font-size:11px;color:var(--muted);margin-top:4px}
+    .mini-link{background:none;border:none;color:var(--gold-2);font-size:12px;font-weight:700}
+    .pill-row{display:flex;gap:8px;flex-wrap:wrap}.pill{min-height:36px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);font-size:12px;font-weight:700}
+    .pill.active{background:rgba(212,175,55,.12);color:var(--gold-2);border-color:rgba(212,175,55,.24)}
+    .notice{padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.08);font-size:12px;line-height:1.55}.notice strong{display:block;margin-bottom:6px}.notice.warn{background:rgba(245,158,11,.09);border-color:rgba(245,158,11,.2)}.notice.ok{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.18)}
+    .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .product{border-radius:20px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);overflow:hidden}
+    .product-media{height:118px;background:linear-gradient(135deg,rgba(212,175,55,.16),rgba(59,130,246,.10));display:grid;place-items:center;font-size:36px;background-size:cover;background-position:center}
+    .product-body{padding:12px}.product-title{font-size:14px;font-weight:800;line-height:1.35}.product-meta{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.45;min-height:32px}
+    .price-row{margin-top:10px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.price{font-size:16px;font-weight:800}.stock{font-size:10px;color:var(--muted);margin-top:4px}
+    .product-actions{margin-top:12px;display:grid;grid-template-columns:1fr auto;gap:8px}
+    .search-wrap{position:relative}.search-wrap input{width:100%;height:52px;padding:0 16px 0 46px;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.04);color:var(--text);outline:none}.search-wrap span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold)}
+    .cart-item,.order-item{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)}.cart-item:last-child,.order-item:last-child{border-bottom:none;padding-bottom:0}.thumb{width:54px;height:54px;border-radius:16px;background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:22px;flex:0 0 auto}.meta{flex:1;min-width:0}.meta strong{display:block;font-size:14px;font-weight:800}.meta p{margin-top:5px;font-size:11px;color:var(--muted);line-height:1.45}
+    .qty-row{margin-top:10px;display:flex;align-items:center;gap:10px}.qty-btn{width:30px;height:30px;border-radius:10px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text)}
+    .summary-box{margin-top:14px;padding:14px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}.summary-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;padding:7px 0}.summary-row span:last-child{text-align:right}
+    .field-grid,.coords-grid,.auth-grid,.lookup-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field-stack{display:flex;flex-direction:column;gap:12px}.field,.select,.textarea{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.04);color:var(--text);outline:none}.field,.select{height:52px;padding:0 16px}.textarea{min-height:96px;padding:14px 16px;resize:vertical}.label{display:block;font-size:12px;font-weight:700;color:#dbe2f1;margin-bottom:8px}
+    .shipping-grid,.payment-grid{display:grid;grid-template-columns:1fr;gap:10px}.option{min-height:unset;padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text);flex-direction:column;align-items:flex-start;text-align:left}.option strong{font-size:13px}.option p{margin-top:5px;font-size:11px;color:var(--muted);line-height:1.45}.option.active{border-color:rgba(212,175,55,.28);background:rgba(212,175,55,.12)}
+    .status-chip{padding:7px 12px;border-radius:999px;font-size:10px;font-weight:800}.status-processing{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.24)}.status-assigned{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.24)}.status-delivered{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.24)}.status-warning{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.24)}
+    .proof{margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.16)}.proof strong{font-size:12px}.proof p{margin-top:6px;font-size:11px;color:#d1fae5;line-height:1.45}
+    .distance-card{margin-top:14px;padding:14px;border-radius:18px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.16)}
+    .distance-card strong{display:block;font-size:13px}.distance-card p{margin-top:6px;font-size:11px;color:#dbeafe;line-height:1.5}
+    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 28px);max-width:412px;padding:10px;border-radius:24px;background:rgba(10,12,18,.88);border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 50px rgba(0,0,0,.45);backdrop-filter:blur(18px);display:grid;grid-template-columns:repeat(5,1fr);gap:8px;z-index:35}
+    .nav-btn{min-height:58px;border-radius:18px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;color:var(--muted);font-size:10px;font-weight:800;border:none;background:transparent}.nav-btn.active{background:rgba(212,175,55,.12);color:var(--gold-2)}
+    .toast{position:fixed;top:24px;left:50%;transform:translate(-50%,-18px);width:min(380px,calc(100% - 28px));padding:14px 16px;border-radius:18px;background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s ease;z-index:95}.toast.show{transform:translate(-50%,0);opacity:1}
+    @media (max-width:390px){body{padding:14px}.hero h2{font-size:22px}.product-grid,.field-grid,.coords-grid,.lookup-grid,.hero-actions{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">EJ</div>
+        <div>
+          <h1>EJ TOBACCO</h1>
+          <p id="authTopLabel">Guest checkout • WhatsApp wajib</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="openOrdersTop">📦</button>
+    </header>
+
+    <section class="page active" data-page="home">
+      <section class="hero">
+        <div class="badge">⚡ Guest checkout final</div>
+        <h2>Customer tinggal pilih produk, isi WA + titik alamat, lalu order langsung masuk admin.</h2>
+        <p>Versi ini tidak mewajibkan login. Sistem otomatis hitung jarak dari toko dan memutuskan: dalam batas = Kurir Toko, di luar batas = Ekspedisi Luar.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" data-go="catalog">Lihat Produk</button>
+          <button class="btn-secondary" data-go="checkout">Checkout Guest</button>
+        </div>
+        <div id="configNotice" class="notice warn" style="margin-top:14px;">
+          <strong>Isi config Firebase dan titik toko dulu</strong>
+          <p>Buka file ini, ganti <code>firebaseConfig</code> dan bagian <code>STORE_CONFIG</code> sesuai toko Anda.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Kategori populer</h3>
+            <p>Diambil realtime dari node <code>categories</code>.</p>
+          </div>
+        </div>
+        <div class="pill-row" id="categoryPills"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Info sistem</h3>
+            <p>Status Firebase dan konfigurasi pengiriman otomatis.</p>
+          </div>
+        </div>
+        <div class="summary-box" id="systemSummary"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Produk unggulan</h3>
+            <p>Katalog live dari database atau fallback lokal.</p>
+          </div>
+          <button class="mini-link" data-go="catalog">Lihat semua</button>
+        </div>
+        <div class="product-grid" id="featuredProducts"></div>
+      </section>
+    </section>
+
+    <section class="page" data-page="catalog">
+      <section class="card">
+        <div class="search-wrap">
+          <span>🔎</span>
+          <input id="searchInput" placeholder="Cari produk, kategori, atau deskripsi..." />
+        </div>
+        <div class="pill-row" id="catalogPills" style="margin-top:12px"></div>
+      </section>
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Katalog produk</h3>
+            <p>Tambah produk ke keranjang tanpa login.</p>
+          </div>
+          <button class="mini-link" id="cartJumpBtn">Ke keranjang</button>
+        </div>
+        <div class="product-grid" id="catalogGrid"></div>
+      </section>
+    </section>
+
+    <section class="page" data-page="cart">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Keranjang belanja</h3>
+            <p>Data keranjang disimpan di browser customer.</p>
+          </div>
+        </div>
+        <div id="cartList"></div>
+        <div class="summary-box" id="cartSummary"></div>
+        <button class="btn-primary" id="goCheckoutBtn" style="width:100%;margin-top:12px;">Lanjut ke Checkout</button>
+      </section>
+    </section>
+
+    <section class="page" data-page="checkout">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Checkout guest</h3>
+            <p>Isi data penerima, WA, dan titik lokasi. Sistem otomatis pilih pengiriman.</p>
+          </div>
+        </div>
+        <div class="field-stack">
+          <div class="field-grid">
+            <div><label class="label">Nama penerima</label><input class="field" id="receiverName" placeholder="Nama customer" /></div>
+            <div><label class="label">No. WhatsApp</label><input class="field" id="receiverPhone" value="" placeholder="08xxxxxxxxxx" /></div>
+          </div>
+          <div><label class="label">Alamat lengkap</label><textarea class="textarea" id="addressInput" placeholder="Alamat lengkap customer"></textarea></div>
+          <div><label class="label">Catatan</label><textarea class="textarea" id="noteInput" placeholder="Contoh: Tolong kirim siang hari"></textarea></div>
+          <div class="coords-grid">
+            <div><label class="label">Latitude titik customer</label><input class="field" id="latInput" type="number" step="any" placeholder="-6.87" /></div>
+            <div><label class="label">Longitude titik customer</label><input class="field" id="lngInput" type="number" step="any" placeholder="109.04" /></div>
+          </div>
+          <button class="btn-secondary" id="useMyLocationBtn">Gunakan lokasi sekarang</button>
+        </div>
+
+        <div class="distance-card" id="distanceBox">
+          <strong>Jarak dan pengiriman otomatis</strong>
+          <p>Isi latitude dan longitude customer untuk menghitung jarak dari toko.</p>
+        </div>
+
+        <div class="address-box" style="margin-top:14px">
+          <label class="label">Metode pengiriman otomatis</label>
+          <div class="shipping-grid" id="shippingOptions"></div>
+        </div>
+
+        <div class="address-box" style="margin-top:14px">
+          <label class="label">Metode pembayaran</label>
+          <div class="payment-grid" id="paymentOptions"></div>
+        </div>
+
+        <div class="summary-box" id="checkoutSummary"></div>
+        <button class="btn-primary" id="createOrderBtn" style="width:100%;margin-top:12px;">Buat Pesanan</button>
+      </section>
+    </section>
+
+    <section class="page" data-page="orders">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Cek pesanan</h3>
+            <p>Masukkan nomor WhatsApp dan nomor order untuk melihat status pesanan.</p>
+          </div>
+        </div>
+        <div class="lookup-grid">
+          <div><label class="label">No. WhatsApp</label><input class="field" id="lookupPhone" placeholder="08xxxxxxxxxx" /></div>
+          <div><label class="label">Nomor order</label><input class="field" id="lookupOrderNo" placeholder="EJ-20260317-001" /></div>
+        </div>
+        <div class="hero-actions" style="margin-top:12px;grid-template-columns:1fr 1fr">
+          <button class="btn-primary" id="lookupOrderBtn">Cari Pesanan</button>
+          <button class="btn-secondary" id="useLastOrderBtn">Pakai order terakhir</button>
+        </div>
+        <div id="ordersList" style="margin-top:14px"></div>
+      </section>
+    </section>
+
+    <section class="page" data-page="account">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Info customer guest</h3>
+            <p>Tidak perlu login. Identitas utama customer adalah nomor WhatsApp.</p>
+          </div>
+        </div>
+        <div class="summary-box" id="accountSummary"></div>
+        <div class="summary-box">
+          <div class="summary-row"><span>Produk di keranjang</span><span id="cartCountText">0 item</span></div>
+          <div class="summary-row"><span>Status koneksi</span><span id="dbStatusText">Belum terhubung</span></div>
+          <div class="summary-row"><span>Store</span><span id="storeNameText">EJ TOBACCO</span></div>
+          <div class="summary-row"><span>Batas kurir toko</span><span id="storeRangeText">7 km</span></div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" data-page-target="home">🏠<span>Home</span></button>
+    <button class="nav-btn" data-page-target="catalog">🛍️<span>Katalog</span></button>
+    <button class="nav-btn" data-page-target="cart">🛒<span>Keranjang</span></button>
+    <button class="nav-btn" data-page-target="checkout">🧾<span>Checkout</span></button>
+    <button class="nav-btn" data-page-target="orders">📦<span>Pesanan</span></button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js';
+    import {
+      getDatabase,
+      ref,
+      get,
+      set,
+      update,
+      push,
+      onValue,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: 'PASTE_YOUR_API_KEY',
+      authDomain: 'PASTE_YOUR_PROJECT.firebaseapp.com',
+      databaseURL: 'https://PASTE_YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId: 'PASTE_YOUR_PROJECT_ID',
+      storageBucket: 'PASTE_YOUR_PROJECT.appspot.com',
+      messagingSenderId: 'PASTE_YOUR_MESSAGING_SENDER_ID',
+      appId: 'PASTE_YOUR_APP_ID'
+    };
+
+    const STORE_CONFIG = {
+      name: 'EJ TOBACCO',
+      lat: -6.870000,
+      lng: 109.040000,
+      maxInternalDistanceKm: 7,
+      internalShippingRules: [
+        { maxKm: 3, cost: 2000 },
+        { maxKm: 5, cost: 4000 },
+        { maxKm: 7, cost: 6000 }
+      ],
+      externalFlatCost: 15000,
+      externalShippingName: 'Ekspedisi Luar'
+    };
+
+    const FALLBACK_CATEGORIES = [
+      { id: 'cat_tembakau', name: 'Tembakau' },
+      { id: 'cat_aksesoris', name: 'Aksesoris' },
+      { id: 'cat_bundle', name: 'Bundle' }
+    ];
+
+    const FALLBACK_PRODUCTS = [
+      { id: 'prod_001', name: 'Tembakau Premium A', categoryId: 'cat_tembakau', price: 45000, stock: 120, soldCount: 35, status: 'active', description: 'Tembakau pilihan untuk pelanggan rutin.' },
+      { id: 'prod_002', name: 'Kertas Linting Gold', categoryId: 'cat_aksesoris', price: 12000, stock: 80, soldCount: 22, status: 'active', description: 'Kertas linting tipis dan halus.' },
+      { id: 'prod_003', name: 'Bundle Hemat Weekend', categoryId: 'cat_bundle', price: 79000, stock: 40, soldCount: 14, status: 'active', description: 'Paket bundling hemat untuk repeat order.' }
+    ];
+
+    const state = {
+      category: 'all',
+      cart: [],
+      products: [],
+      categories: [],
+      firebaseReady: false,
+      dbConnected: false,
+      selectedShipping: null,
+      selectedPayment: 'cod',
+      lookupResult: null,
+      lastOrder: null,
+      shippingCalc: null
+    };
+
+    const toastEl = document.getElementById('toast');
+    const configNotice = document.getElementById('configNotice');
+    const els = {
+      featuredProducts: document.getElementById('featuredProducts'),
+      catalogGrid: document.getElementById('catalogGrid'),
+      categoryPills: document.getElementById('categoryPills'),
+      catalogPills: document.getElementById('catalogPills'),
+      searchInput: document.getElementById('searchInput'),
+      cartList: document.getElementById('cartList'),
+      cartSummary: document.getElementById('cartSummary'),
+      receiverName: document.getElementById('receiverName'),
+      receiverPhone: document.getElementById('receiverPhone'),
+      addressInput: document.getElementById('addressInput'),
+      noteInput: document.getElementById('noteInput'),
+      latInput: document.getElementById('latInput'),
+      lngInput: document.getElementById('lngInput'),
+      shippingOptions: document.getElementById('shippingOptions'),
+      paymentOptions: document.getElementById('paymentOptions'),
+      checkoutSummary: document.getElementById('checkoutSummary'),
+      distanceBox: document.getElementById('distanceBox'),
+      ordersList: document.getElementById('ordersList'),
+      accountSummary: document.getElementById('accountSummary'),
+      cartCountText: document.getElementById('cartCountText'),
+      dbStatusText: document.getElementById('dbStatusText'),
+      storeNameText: document.getElementById('storeNameText'),
+      storeRangeText: document.getElementById('storeRangeText'),
+      systemSummary: document.getElementById('systemSummary'),
+      authTopLabel: document.getElementById('authTopLabel'),
+      lookupPhone: document.getElementById('lookupPhone'),
+      lookupOrderNo: document.getElementById('lookupOrderNo')
+    };
+
+    function showToast(message){
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toastEl.classList.remove('show'), 2400);
+    }
+
+    function formatCurrency(value){
+      return new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(value || 0);
+    }
+
+    function switchPage(page){
+      document.querySelectorAll('.page').forEach(el => el.classList.toggle('active', el.dataset.page === page));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.toggle('active', el.dataset.pageTarget === page));
+      if(page === 'orders') renderLookupPanel();
+      if(page === 'account') renderAccountSummary();
+      if(page === 'checkout') renderCheckoutSummary();
+    }
+
+    function safeValue(value, fallback = '') { return value ?? fallback; }
+
+    function sanitizePhone(phone){
+      return String(phone || '').replace(/[^0-9]/g, '');
+    }
+
+    function phoneKey(phone){
+      const cleaned = sanitizePhone(phone);
+      return cleaned ? `wa_${cleaned}` : '';
+    }
+
+    function normalizeProducts(snapshotValue){
+      const items = Object.entries(snapshotValue || {}).map(([id, item]) => ({ id, ...item })).filter(item => (item.status || 'active') === 'active');
+      return items.length ? items : FALLBACK_PRODUCTS;
+    }
+
+    function normalizeCategories(snapshotValue){
+      const items = Object.entries(snapshotValue || {}).map(([id, item]) => ({ id, name: item.name || id }));
+      return items.length ? items : FALLBACK_CATEGORIES;
+    }
+
+    function iconForProduct(product){
+      const name = [product.name, product.categoryId].join(' ').toLowerCase();
+      if (name.includes('tembakau')) return '🍂';
+      if (name.includes('kertas') || name.includes('linting')) return '📜';
+      if (name.includes('bundle') || name.includes('promo')) return '🎁';
+      if (name.includes('filter')) return '🧩';
+      return '📦';
+    }
+
+    function loadLocalCart(){
+      try {
+        const raw = localStorage.getItem('ej_customer_guest_cart_v1');
+        state.cart = raw ? JSON.parse(raw) : [];
+      } catch { state.cart = []; }
+    }
+
+    function persistLocalCart(){
+      localStorage.setItem('ej_customer_guest_cart_v1', JSON.stringify(state.cart));
+      els.cartCountText.textContent = `${state.cart.reduce((sum, item) => sum + item.qty, 0)} item`;
+    }
+
+    function loadLastOrder(){
+      try { state.lastOrder = JSON.parse(localStorage.getItem('ej_customer_last_order_v1') || 'null'); } catch { state.lastOrder = null; }
+    }
+
+    function persistLastOrder(payload){
+      state.lastOrder = payload;
+      localStorage.setItem('ej_customer_last_order_v1', JSON.stringify(payload));
+    }
+
+    function renderCategoryPills(targetId){
+      const wrap = document.getElementById(targetId);
+      const cats = [{ id: 'all', name: 'Semua' }, ...state.categories.filter(cat => cat.id !== 'all')];
+      wrap.innerHTML = cats.map(cat => `<button class="pill ${state.category === cat.id ? 'active' : ''}" data-category="${cat.id}">${cat.name}</button>`).join('');
+    }
+
+    function getFilteredProducts(){
+      const keyword = document.getElementById('searchInput')?.value?.trim().toLowerCase() || '';
+      return state.products.filter(product => {
+        const matchCategory = state.category === 'all' ? true : product.categoryId === state.category;
+        const matchSearch = !keyword || [product.name, product.description].join(' ').toLowerCase().includes(keyword);
+        return matchCategory && matchSearch;
+      });
+    }
+
+    function productCard(product){
+      const mediaStyle = product.thumbnail ? `style="background-image:url('${product.thumbnail}')"` : '';
+      return `<article class="product">
+        <div class="product-media" ${mediaStyle}>${product.thumbnail ? '' : iconForProduct(product)}</div>
+        <div class="product-body">
+          <div class="product-title">${product.name}</div>
+          <div class="product-meta">${safeValue(product.description, 'Deskripsi produk belum diisi.')}</div>
+          <div class="price-row"><div><div class="price">${formatCurrency(product.price)}</div><div class="stock">Stok ${safeValue(product.stock, 0)} • Terjual ${safeValue(product.soldCount, 0)}</div></div></div>
+          <div class="product-actions">
+            <button class="small-btn" data-add-cart="${product.id}">Tambah</button>
+            <button class="small-btn small-ghost" data-go="checkout">Checkout</button>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function renderFeatured(){
+      const items = state.products.slice(0, 4);
+      els.featuredProducts.innerHTML = items.map(productCard).join('') || '<div class="notice warn"><strong>Produk kosong</strong><p>Isi node <code>products</code> dari admin agar katalog tampil.</p></div>';
+    }
+
+    function renderCatalog(){
+      const items = getFilteredProducts();
+      els.catalogGrid.innerHTML = items.map(productCard).join('') || '<div class="notice warn"><strong>Tidak ada produk</strong><p>Coba ganti kata kunci pencarian atau kategori.</p></div>';
+    }
+
+    function upsertCartItem(productId, delta){
+      const product = state.products.find(item => item.id === productId);
+      if (!product) return;
+      const existing = state.cart.find(item => item.productId === productId);
+      if (existing) {
+        existing.qty += delta;
+        if (existing.qty <= 0) state.cart = state.cart.filter(item => item.productId !== productId);
+      } else if (delta > 0) {
+        state.cart.push({ productId, qty: 1, price: product.price, name: product.name, icon: iconForProduct(product) });
+      }
+      persistLocalCart();
+      renderCart();
+      renderCheckoutSummary();
+    }
+
+    function renderCart(){
+      if(!state.cart.length){
+        els.cartList.innerHTML = '<div class="summary-box">Keranjang masih kosong.</div>';
+        els.cartSummary.innerHTML = '';
+        persistLocalCart();
+        return;
+      }
+      els.cartList.innerHTML = state.cart.map(item => `<div class="cart-item">
+        <div class="thumb">${item.icon}</div>
+        <div class="meta">
+          <strong>${item.name}</strong>
+          <p>${formatCurrency(item.price)} per item</p>
+          <div class="qty-row">
+            <button class="qty-btn" data-qty-minus="${item.productId}">−</button>
+            <span>${item.qty}</span>
+            <button class="qty-btn" data-qty-plus="${item.productId}">+</button>
+          </div>
+        </div>
+        <strong>${formatCurrency(item.qty * item.price)}</strong>
+      </div>`).join('');
+      const subtotal = state.cart.reduce((sum, item) => sum + item.qty * item.price, 0);
+      els.cartSummary.innerHTML = `<div class="summary-row"><span>Subtotal</span><span>${formatCurrency(subtotal)}</span></div><div class="summary-row"><span>Jumlah item</span><span>${state.cart.reduce((sum,item)=>sum+item.qty,0)}</span></div>`;
+      persistLocalCart();
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2){
+      const toRad = v => v * Math.PI / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) ** 2;
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    function getInternalShippingCost(distanceKm){
+      for (const rule of STORE_CONFIG.internalShippingRules) {
+        if (distanceKm <= rule.maxKm) return rule.cost;
+      }
+      return STORE_CONFIG.internalShippingRules.at(-1)?.cost || 0;
+    }
+
+    function computeShippingDecision(){
+      const lat = Number(els.latInput.value);
+      const lng = Number(els.lngInput.value);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        state.shippingCalc = null;
+        return null;
+      }
+      const distanceKm = Number(haversineKm(STORE_CONFIG.lat, STORE_CONFIG.lng, lat, lng).toFixed(2));
+      const internal = distanceKm <= STORE_CONFIG.maxInternalDistanceKm;
+      const shippingType = internal ? 'internal' : 'external';
+      const shippingName = internal ? 'Kurir Toko' : STORE_CONFIG.externalShippingName;
+      const shippingCost = internal ? getInternalShippingCost(distanceKm) : STORE_CONFIG.externalFlatCost;
+      const shippingService = internal ? 'Same Day' : 'Diatur admin';
+      state.shippingCalc = { lat, lng, distanceKm, shippingType, shippingName, shippingService, shippingCost };
+      state.selectedShipping = shippingType;
+      return state.shippingCalc;
+    }
+
+    function renderShippingOptions(){
+      const calc = computeShippingDecision();
+      if (!calc) {
+        state.selectedShipping = null;
+        els.shippingOptions.innerHTML = '<div class="notice warn"><strong>Titik customer belum lengkap</strong><p>Isi latitude dan longitude agar sistem bisa menentukan kurir toko atau ekspedisi luar.</p></div>';
+        els.distanceBox.innerHTML = '<strong>Jarak dan pengiriman otomatis</strong><p>Isi latitude dan longitude customer untuk menghitung jarak dari toko.</p>';
+        return;
+      }
+      els.shippingOptions.innerHTML = `<button class="option active"><strong>${calc.shippingName}</strong><p>${calc.shippingType === 'internal' ? `Jarak ${calc.distanceKm} km • dalam batas ${STORE_CONFIG.maxInternalDistanceKm} km` : `Jarak ${calc.distanceKm} km • di luar batas ${STORE_CONFIG.maxInternalDistanceKm} km`}</p></button>`;
+      els.distanceBox.innerHTML = `<strong>Jarak ${calc.distanceKm} km dari toko</strong><p>${calc.shippingType === 'internal' ? `Order akan dikirim oleh Kurir Toko. Ongkir otomatis ${formatCurrency(calc.shippingCost)}.` : `Order akan diproses sebagai Ekspedisi Luar. Ongkir awal ${formatCurrency(calc.shippingCost)} dan admin bisa override jika perlu.`}</p>`;
+    }
+
+    function renderPaymentOptions(){
+      const options = [
+        { id:'cod', title:'COD', desc:'Bayar saat barang diterima' },
+        { id:'transfer', title:'Transfer', desc:'Transfer manual atau payment gateway' }
+      ];
+      if(!state.selectedPayment || !options.find(o => o.id === state.selectedPayment)) state.selectedPayment = 'cod';
+      els.paymentOptions.innerHTML = options.map(item => `<button class="option ${state.selectedPayment === item.id ? 'active' : ''}" data-payment="${item.id}"><strong>${item.title}</strong><p>${item.desc}</p></button>`).join('');
+    }
+
+    function getCheckoutNumbers(){
+      const calc = state.shippingCalc || computeShippingDecision() || { shippingCost: 0 };
+      const subtotal = state.cart.reduce((sum, item) => sum + item.qty * item.price, 0);
+      const shippingCost = calc.shippingCost || 0;
+      return { subtotal, shippingCost, total: subtotal + shippingCost };
+    }
+
+    function renderCheckoutSummary(){
+      renderShippingOptions();
+      renderPaymentOptions();
+      const calc = state.shippingCalc;
+      const { subtotal, shippingCost, total } = getCheckoutNumbers();
+      els.checkoutSummary.innerHTML = `
+        <div class="summary-row"><span>Toko</span><span>${STORE_CONFIG.name}</span></div>
+        <div class="summary-row"><span>Jarak</span><span>${calc ? `${calc.distanceKm} km` : '-'}</span></div>
+        <div class="summary-row"><span>Metode kirim</span><span>${calc ? calc.shippingName : '-'}</span></div>
+        <div class="summary-row"><span>Subtotal</span><span>${formatCurrency(subtotal)}</span></div>
+        <div class="summary-row"><span>Ongkir</span><span>${formatCurrency(shippingCost)}</span></div>
+        <div class="summary-row"><span>Pembayaran</span><span>${state.selectedPayment || '-'}</span></div>
+        <div class="summary-row"><span>Total</span><span>${formatCurrency(total)}</span></div>`;
+    }
+
+    function renderSystemSummary(){
+      document.getElementById('systemSummary').innerHTML = `
+        <div class="summary-row"><span>Firebase</span><span>${state.firebaseReady ? 'Aktif' : 'Mock mode'}</span></div>
+        <div class="summary-row"><span>Mode customer</span><span>Guest checkout</span></div>
+        <div class="summary-row"><span>Store</span><span>${STORE_CONFIG.name}</span></div>
+        <div class="summary-row"><span>Batas kurir toko</span><span>${STORE_CONFIG.maxInternalDistanceKm} km</span></div>
+        <div class="summary-row"><span>Produk live</span><span>${state.products.length} item</span></div>`;
+      els.dbStatusText.textContent = state.dbConnected ? 'Terhubung' : 'Belum terhubung';
+      els.authTopLabel.textContent = state.dbConnected ? 'Guest checkout • Firebase siap' : 'Guest checkout • menunggu Firebase';
+      els.storeNameText.textContent = STORE_CONFIG.name;
+      els.storeRangeText.textContent = `${STORE_CONFIG.maxInternalDistanceKm} km`;
+    }
+
+    function renderAccountSummary(){
+      const phone = els.receiverPhone.value.trim() || state.lastOrder?.phone || '-';
+      const address = els.addressInput.value.trim() || state.lastOrder?.address || '-';
+      els.accountSummary.innerHTML = `
+        <div class="summary-row"><span>Mode</span><span>Guest checkout</span></div>
+        <div class="summary-row"><span>WhatsApp</span><span>${phone}</span></div>
+        <div class="summary-row"><span>Alamat terakhir</span><span>${address}</span></div>
+        <div class="summary-row"><span>Order terakhir</span><span>${state.lastOrder?.orderNo || '-'}</span></div>
+        <div class="summary-row"><span>Status</span><span>${state.lastOrder?.statusLabel || 'Belum ada order'}</span></div>`;
+    }
+
+    function statusHtml(order){
+      const status = order.status || '';
+      const map = {
+        waiting_confirmation: '<span class="status-chip status-processing">Menunggu konfirmasi</span>',
+        waiting_payment: '<span class="status-chip status-warning">Menunggu pembayaran</span>',
+        processing: '<span class="status-chip status-processing">Diproses admin</span>',
+        assigned_to_courier: '<span class="status-chip status-assigned">Kurir ditugaskan</span>',
+        ready_for_external_shipping: '<span class="status-chip status-assigned">Siap ekspedisi</span>',
+        shipped_external: '<span class="status-chip status-assigned">Dikirim ekspedisi</span>',
+        on_the_way: '<span class="status-chip status-assigned">Kurir menuju lokasi</span>',
+        delivered: '<span class="status-chip status-delivered">Pesanan selesai</span>',
+        failed_delivery: '<span class="status-chip status-warning">Gagal kirim</span>',
+        cancelled: '<span class="status-chip status-warning">Dibatalkan</span>'
+      };
+      return map[status] || '<span class="status-chip status-processing">Diproses</span>';
+    }
+
+    function renderLookupPanel(){
+      if (!state.lookupResult) {
+        els.ordersList.innerHTML = '<div class="summary-box">Belum ada hasil pencarian. Masukkan nomor WhatsApp dan nomor order.</div>';
+        return;
+      }
+      const order = state.lookupResult;
+      const proof = order.proof ? `<div class="proof"><strong>Bukti kirim • ${order.proof.recipient}</strong><p>${order.proof.note}</p></div>` : '';
+      els.ordersList.innerHTML = `<div class="order-item">
+        <div class="thumb">📦</div>
+        <div class="meta">
+          <strong>${order.orderNo}</strong>
+          <p>${order.customerName} • ${order.customerPhone}</p>
+          <p>${order.shippingName} • ${formatCurrency(order.grandTotal || 0)}</p>
+          <p>Jarak ${order.distanceKm || '-'} km • Pembayaran ${order.paymentMethod || '-'}</p>
+          <div style="margin-top:10px">${statusHtml(order)}</div>
+          ${proof}
+        </div>
+      </div>`;
+    }
+
+    function getPhoneProfilePayload(){
+      const phone = els.receiverPhone.value.trim();
+      return {
+        phone,
+        phoneKey: phoneKey(phone),
+        name: els.receiverName.value.trim(),
+        address: els.addressInput.value.trim(),
+        lat: Number(els.latInput.value),
+        lng: Number(els.lngInput.value),
+        note: els.noteInput.value.trim()
+      };
+    }
+
+    function generateOrderNo(){
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const t = String(now.getTime()).slice(-4);
+      return `EJ-${y}${m}${d}-${t}`;
+    }
+
+    function buildOrderPayload(orderId){
+      const calc = computeShippingDecision();
+      const { subtotal, shippingCost, total } = getCheckoutNumbers();
+      const phone = els.receiverPhone.value.trim();
+      const orderNo = generateOrderNo();
+      const paymentMethod = state.selectedPayment;
+      const paymentStatus = paymentMethod === 'transfer' ? 'waiting_transfer_confirmation' : 'unpaid';
+      const initialStatus = paymentMethod === 'transfer' ? 'waiting_payment' : 'waiting_confirmation';
+      return {
+        orderId,
+        orderNo,
+        customerMode: 'guest',
+        customerName: els.receiverName.value.trim(),
+        customerPhone: phone,
+        customerWhatsapp: phone,
+        customerPhoneKey: phoneKey(phone),
+        customerUid: '',
+        customerId: `guest_${phoneKey(phone)}`,
+        fullAddress: els.addressInput.value.trim(),
+        lat: calc.lat,
+        lng: calc.lng,
+        storeLat: STORE_CONFIG.lat,
+        storeLng: STORE_CONFIG.lng,
+        distanceKm: calc.distanceKm,
+        maxInternalDistanceKm: STORE_CONFIG.maxInternalDistanceKm,
+        shippingType: calc.shippingType,
+        shippingDecision: 'auto',
+        shippingName: calc.shippingName,
+        shippingService: calc.shippingService,
+        shippingCost,
+        externalProviderId: calc.shippingType === 'external' ? 'manual_external' : '',
+        paymentMethod,
+        paymentStatus,
+        status: initialStatus,
+        subtotal,
+        discount: 0,
+        grandTotal: total,
+        customerNote: els.noteInput.value.trim(),
+        adminNote: '',
+        courierId: '',
+        trackingNumber: '',
+        isUrgent: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        statusLabel: initialStatus === 'waiting_payment' ? 'Menunggu pembayaran' : 'Menunggu konfirmasi'
+      };
+    }
+
+    async function createOrder(){
+      if (!state.firebaseReady) return showToast('Isi config Firebase dulu.');
+      if (!state.cart.length) { showToast('Keranjang masih kosong.'); switchPage('catalog'); return; }
+      const receiverName = els.receiverName.value.trim();
+      const receiverPhone = els.receiverPhone.value.trim();
+      const address = els.addressInput.value.trim();
+      const lat = Number(els.latInput.value);
+      const lng = Number(els.lngInput.value);
+      if (!receiverName || !receiverPhone || !address) return showToast('Lengkapi nama, WhatsApp, dan alamat dulu.');
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return showToast('Isi titik latitude dan longitude customer dulu.');
+      const calc = computeShippingDecision();
+      if (!calc) return showToast('Titik customer belum valid.');
+      try {
+        const orderKey = push(ref(db, 'orders')).key;
+        const orderPayload = buildOrderPayload(orderKey);
+        await set(ref(db, `orders/${orderKey}`), orderPayload);
+
+        const detailUpdates = {};
+        state.cart.forEach(item => {
+          const itemKey = push(ref(db, `order_items/${orderKey}`)).key;
+          detailUpdates[`order_items/${orderKey}/${itemKey}`] = {
+            productId: item.productId,
+            name: item.name,
+            price: item.price,
+            qty: item.qty,
+            weight: (state.products.find(p => p.id === item.productId)?.weight) || 0,
+            subtotal: item.qty * item.price
+          };
+        });
+
+        const timelineKey = push(ref(db, `order_timeline/${orderKey}`)).key;
+        detailUpdates[`order_timeline/${orderKey}/${timelineKey}`] = {
+          title: 'Pesanan dibuat',
+          description: 'Order dibuat dari guest checkout aplikasi pelanggan',
+          status: orderPayload.status,
+          actorType: 'guest_customer',
+          actorId: orderPayload.customerPhoneKey,
+          createdAt: Date.now()
+        };
+        if (orderPayload.status === 'waiting_payment') {
+          const payTimelineKey = push(ref(db, `order_timeline/${orderKey}`)).key;
+          detailUpdates[`order_timeline/${orderKey}/${payTimelineKey}`] = {
+            title: 'Menunggu pembayaran transfer',
+            description: 'Customer memilih transfer. Admin perlu verifikasi pembayaran.',
+            status: 'waiting_payment',
+            actorType: 'system',
+            actorId: 'web_guest_app',
+            createdAt: Date.now()
+          };
+        }
+
+        detailUpdates[`payments/${orderKey}`] = {
+          paymentMethod: orderPayload.paymentMethod,
+          paymentStatus: orderPayload.paymentStatus,
+          amountPaid: 0,
+          amountDue: orderPayload.grandTotal,
+          changeAmount: 0,
+          proofUrl: '',
+          paidAt: null
+        };
+
+        if (orderPayload.shippingType === 'internal') {
+          detailUpdates[`shipments_internal/${orderKey}`] = {
+            courierId: '',
+            assignmentStatus: 'waiting_assignment',
+            pickupAt: null,
+            onTheWayAt: null,
+            deliveredAt: null,
+            failedReason: '',
+            recipientName: '',
+            proofPhotoUrl: '',
+            proofLat: null,
+            proofLng: null,
+            liveTrackingEnabled: true
+          };
+        } else {
+          detailUpdates[`shipments_external/${orderKey}`] = {
+            providerId: 'manual_external',
+            providerName: STORE_CONFIG.externalShippingName,
+            service: 'Diatur admin',
+            trackingNumber: '',
+            shippingCost: orderPayload.shippingCost,
+            bookedBy: '',
+            bookedAt: null,
+            status: 'waiting_external_booking'
+          };
+        }
+
+        const profile = getPhoneProfilePayload();
+        detailUpdates[`guest_customers/${profile.phoneKey}`] = {
+          phone: profile.phone,
+          name: profile.name,
+          latestAddress: profile.address,
+          latestLat: profile.lat,
+          latestLng: profile.lng,
+          latestOrderNo: orderPayload.orderNo,
+          updatedAt: Date.now(),
+          createdAt: Date.now()
+        };
+        detailUpdates[`guest_customer_addresses/${profile.phoneKey}/addr_latest`] = {
+          label: 'Alamat terakhir',
+          receiverName: profile.name,
+          phone: profile.phone,
+          fullAddress: profile.address,
+          lat: profile.lat,
+          lng: profile.lng,
+          isPrimary: true,
+          updatedAt: Date.now()
+        };
+        detailUpdates[`public_order_lookup/${profile.phoneKey}/${orderPayload.orderNo}`] = {
+          orderId: orderKey,
+          orderNo: orderPayload.orderNo,
+          customerName: orderPayload.customerName,
+          customerPhone: orderPayload.customerPhone,
+          shippingType: orderPayload.shippingType,
+          shippingName: orderPayload.shippingName,
+          paymentMethod: orderPayload.paymentMethod,
+          status: orderPayload.status,
+          statusLabel: orderPayload.statusLabel,
+          distanceKm: orderPayload.distanceKm,
+          grandTotal: orderPayload.grandTotal,
+          trackingNumber: '',
+          proof: null,
+          updatedAt: Date.now()
+        };
+
+        await update(ref(db), detailUpdates);
+        const lastOrderPayload = {
+          orderNo: orderPayload.orderNo,
+          phone: orderPayload.customerPhone,
+          phoneKey: orderPayload.customerPhoneKey,
+          status: orderPayload.status,
+          statusLabel: orderPayload.statusLabel,
+          shippingType: orderPayload.shippingType,
+          shippingName: orderPayload.shippingName,
+          distanceKm: orderPayload.distanceKm,
+          address: orderPayload.fullAddress
+        };
+        persistLastOrder(lastOrderPayload);
+        state.lookupResult = { ...orderPayload, proof: null };
+        state.cart = [];
+        persistLocalCart();
+        renderCart();
+        renderCheckoutSummary();
+        renderAccountSummary();
+        els.lookupPhone.value = receiverPhone;
+        els.lookupOrderNo.value = orderPayload.orderNo;
+        switchPage('orders');
+        renderLookupPanel();
+        showToast(`Pesanan ${orderPayload.orderNo} berhasil dibuat.`);
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || 'Gagal membuat pesanan.');
+      }
+    }
+
+    async function lookupOrder(){
+      if (!state.firebaseReady) return showToast('Firebase belum aktif.');
+      const phone = els.lookupPhone.value.trim();
+      const orderNo = els.lookupOrderNo.value.trim();
+      if (!phone || !orderNo) return showToast('Isi WhatsApp dan nomor order dulu.');
+      try {
+        const snap = await get(ref(db, `public_order_lookup/${phoneKey(phone)}/${orderNo}`));
+        if (!snap.exists()) {
+          state.lookupResult = null;
+          renderLookupPanel();
+          return showToast('Pesanan tidak ditemukan.');
+        }
+        state.lookupResult = snap.val();
+        renderLookupPanel();
+        showToast('Pesanan ditemukan.');
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || 'Gagal mencari pesanan.');
+      }
+    }
+
+    function fillLastOrder(){
+      if (!state.lastOrder) return showToast('Belum ada order terakhir di browser ini.');
+      els.lookupPhone.value = state.lastOrder.phone || '';
+      els.lookupOrderNo.value = state.lastOrder.orderNo || '';
+      lookupOrder();
+    }
+
+    function applyFallbackData(){
+      state.categories = FALLBACK_CATEGORIES;
+      state.products = FALLBACK_PRODUCTS;
+      state.dbConnected = false;
+      renderCategoryPills('categoryPills');
+      renderCategoryPills('catalogPills');
+      renderFeatured();
+      renderCatalog();
+      renderCheckoutSummary();
+      renderSystemSummary();
+    }
+
+    const hasRealConfig = !Object.values(firebaseConfig).some(value => String(value).includes('PASTE_YOUR'));
+    let app, db;
+
+    if (hasRealConfig) {
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
+        state.firebaseReady = true;
+        state.dbConnected = true;
+        configNotice.classList.remove('warn');
+        configNotice.classList.add('ok');
+        configNotice.innerHTML = '<strong>Firebase aktif</strong><p>Guest checkout sudah siap tersambung ke project Anda.</p>';
+        onValue(ref(db, 'categories'), snap => {
+          state.categories = normalizeCategories(snap.val());
+          renderCategoryPills('categoryPills');
+          renderCategoryPills('catalogPills');
+        });
+        onValue(ref(db, 'products'), snap => {
+          state.products = normalizeProducts(snap.val());
+          renderFeatured();
+          renderCatalog();
+        });
+      } catch (error) {
+        console.error(error);
+        configNotice.classList.remove('ok');
+        configNotice.classList.add('warn');
+        configNotice.innerHTML = `<strong>Config Firebase error</strong><p>${error.message}</p>`;
+        applyFallbackData();
+      }
+    } else {
+      applyFallbackData();
+    }
+
+    function refreshAllViews(){
+      renderCategoryPills('categoryPills');
+      renderCategoryPills('catalogPills');
+      renderFeatured();
+      renderCatalog();
+      renderCart();
+      renderCheckoutSummary();
+      renderAccountSummary();
+      renderSystemSummary();
+      renderLookupPanel();
+    }
+
+    document.addEventListener('click', (e) => {
+      const nav = e.target.closest('[data-page-target]'); if(nav){ switchPage(nav.dataset.pageTarget); return; }
+      const go = e.target.closest('[data-go]'); if(go){ switchPage(go.dataset.go); return; }
+      const add = e.target.closest('[data-add-cart]'); if(add){ upsertCartItem(add.dataset.addCart, 1); showToast('Produk masuk ke keranjang.'); return; }
+      const pill = e.target.closest('[data-category]'); if(pill){ state.category = pill.dataset.category; renderCategoryPills('categoryPills'); renderCategoryPills('catalogPills'); renderCatalog(); return; }
+      const minus = e.target.closest('[data-qty-minus]'); if(minus){ upsertCartItem(minus.dataset.qtyMinus, -1); return; }
+      const plus = e.target.closest('[data-qty-plus]'); if(plus){ upsertCartItem(plus.dataset.qtyPlus, 1); return; }
+      const pay = e.target.closest('[data-payment]'); if(pay){ state.selectedPayment = pay.dataset.payment; renderCheckoutSummary(); return; }
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderCatalog);
+    document.getElementById('goCheckoutBtn').addEventListener('click', () => { if(!state.cart.length){ showToast('Keranjang masih kosong.'); return; } switchPage('checkout'); renderCheckoutSummary(); });
+    document.getElementById('cartJumpBtn').addEventListener('click', () => switchPage('cart'));
+    document.getElementById('createOrderBtn').addEventListener('click', createOrder);
+    document.getElementById('openOrdersTop').addEventListener('click', () => switchPage('orders'));
+    document.getElementById('lookupOrderBtn').addEventListener('click', lookupOrder);
+    document.getElementById('useLastOrderBtn').addEventListener('click', fillLastOrder);
+    document.getElementById('useMyLocationBtn').addEventListener('click', () => {
+      if (!navigator.geolocation) return showToast('Browser tidak mendukung geolokasi.');
+      navigator.geolocation.getCurrentPosition(pos => {
+        els.latInput.value = pos.coords.latitude.toFixed(6);
+        els.lngInput.value = pos.coords.longitude.toFixed(6);
+        renderCheckoutSummary();
+        showToast('Lokasi berhasil diisi.');
+      }, err => {
+        console.error(err);
+        showToast('Gagal mengambil lokasi. Izinkan akses lokasi dulu.');
+      }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+    els.latInput.addEventListener('input', renderCheckoutSummary);
+    els.lngInput.addEventListener('input', renderCheckoutSummary);
+    els.receiverPhone.addEventListener('input', renderAccountSummary);
+    els.receiverName.addEventListener('input', renderAccountSummary);
+    els.addressInput.addEventListener('input', renderAccountSummary);
+
+    loadLocalCart();
+    loadLastOrder();
+    refreshAllViews();
+  </script>
+</body>
+</html>

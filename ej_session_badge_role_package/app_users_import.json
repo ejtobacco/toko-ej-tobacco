@@ -1,0 +1,35 @@
+{
+  "admin_pusat_1": {
+    "username": "pusat",
+    "pin": "123456",
+    "role": "admin_pusat",
+    "name": "Admin Pusat",
+    "isActive": true,
+    "target": "./"
+  },
+  "admin_cabang_barat": {
+    "username": "cabangbarat",
+    "pin": "123456",
+    "role": "admin_cabang",
+    "name": "Admin Cabang Brebes Barat",
+    "branchCode": "CBG-BRB-BARAT",
+    "isActive": true,
+    "target": "./pos-cabang/"
+  },
+  "kurir_a": {
+    "username": "kurira",
+    "pin": "123456",
+    "role": "kurir",
+    "name": "Kurir A",
+    "isActive": true,
+    "target": "./kurir/"
+  },
+  "customer_guest": {
+    "username": "customer",
+    "pin": "123456",
+    "role": "customer",
+    "name": "Customer Guest",
+    "isActive": true,
+    "target": "./customer/"
+  }
+}

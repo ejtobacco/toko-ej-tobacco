@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>EJ Portal Login Role</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#07090d;--stroke:rgba(255,255,255,.08);--text:#f5f7fb;--muted:#98a2b3;
+      --gold:#d4af37;--gold2:#f6dd82;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;
+      --grad:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%);--shadow:0 20px 60px rgba(0,0,0,.38);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;font-family:'Inter',sans-serif;color:var(--text);padding:18px;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 28%),
+        radial-gradient(circle at bottom center, rgba(34,197,94,.08), transparent 24%),#07090d;
+      display:flex;align-items:center;justify-content:center;
+    }
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .app{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
+    .card{
+      background:linear-gradient(180deg, rgba(17,22,32,.90), rgba(12,16,24,.84));
+      border:1px solid var(--stroke);border-radius:28px;box-shadow:var(--shadow);padding:18px;position:relative;overflow:hidden
+    }
+    .card:before{
+      content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 35%);pointer-events:none
+    }
+    .hero{
+      padding:22px;border-radius:30px;background:
+      radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 38%),
+      linear-gradient(180deg,#111827 0%,#090b10 100%)
+    }
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand-icon{
+      width:58px;height:58px;border-radius:20px;background:var(--grad);display:grid;place-items:center;
+      color:#151515;font-size:26px;font-weight:900;box-shadow:0 10px 22px rgba(212,175,55,.35)
+    }
+    .brand h1{font-size:20px;font-weight:800}
+    .brand p{margin-top:5px;color:var(--muted);font-size:12px;line-height:1.5}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:7px 12px;border-radius:999px;
+      background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:var(--gold2);margin-bottom:14px
+    }
+    .hero-title{margin-top:18px;font-size:32px;font-weight:800;letter-spacing:-.8px}
+    .hero-sub{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.65}
+    .grid2,.grid4{display:grid;gap:12px}
+    .grid2{grid-template-columns:1fr 1fr}
+    .grid4{grid-template-columns:repeat(4,1fr)}
+    .mini{
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px
+    }
+    .mini label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}
+    .mini strong{display:block;font-size:17px;font-weight:800}
+    .section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+    .section-head h2{font-size:15px;font-weight:800}
+    .section-head p{margin-top:4px;color:var(--muted);font-size:11px;line-height:1.5}
+    .field,.select{
+      width:100%;height:54px;border-radius:16px;border:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.04);color:var(--text);outline:none;padding:0 16px
+    }
+    .stack{display:flex;flex-direction:column;gap:12px}
+    .btn,.ghost{
+      min-height:52px;border-radius:16px;border:none;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none
+    }
+    .btn{background:var(--grad);color:#151515}
+    .ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text)}
+    .helper{font-size:11px;color:var(--muted);line-height:1.6}
+    .roles{display:flex;flex-direction:column;gap:12px}
+    .role-card{
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:14px
+    }
+    .role-card strong{display:block;font-size:14px;margin-bottom:5px}
+    .role-card p{font-size:11px;color:var(--muted);line-height:1.5}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .chip{
+      display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted)
+    }
+    .notice{
+      padding:14px;border-radius:16px;background:rgba(59,130,246,.10);border:1px solid rgba(59,130,246,.18);font-size:12px;line-height:1.6
+    }
+    .notice.error{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.18)}
+    .hidden{display:none!important}
+    .session-box{
+      padding:14px;border-radius:18px;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.18)
+    }
+    .session-box strong{display:block;font-size:14px;margin-bottom:6px}
+    .session-box p{font-size:12px;color:#d1fae5;line-height:1.6}
+    .footer-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+    code{color:#fde68a}
+    @media (max-width:390px){
+      body{padding:14px}
+      .grid2,.grid4{grid-template-columns:1fr}
+      .hero-title{font-size:28px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="card hero">
+      <div class="badge">LOGIN ROLE • FIREBASE LIVE</div>
+      <div class="brand">
+        <div class="brand-icon">🔐</div>
+        <div>
+          <h1>EJ Portal Role</h1>
+          <p id="brandSub">Admin pusat, admin cabang, kurir, dan customer masuk dari satu gerbang.</p>
+        </div>
+      </div>
+      <div class="hero-title">Akses berdasarkan role</div>
+      <div class="hero-sub">Portal ini membaca user dari <code>app_users</code> di Firebase Realtime Database, lalu otomatis mengarahkan user ke halaman yang sesuai dengan rolenya.</div>
+      <div class="grid4" style="margin-top:16px">
+        <div class="mini"><label>User aktif</label><strong id="userCountText">0</strong></div>
+        <div class="mini"><label>Admin pusat</label><strong id="pusatCountText">0</strong></div>
+        <div class="mini"><label>Cabang</label><strong id="cabangCountText">0</strong></div>
+        <div class="mini"><label>Kurir</label><strong id="kurirCountText">0</strong></div>
+      </div>
+    </section>
+
+    <section class="card" id="sessionCard">
+      <div class="section-head">
+        <div>
+          <h2>Sesi login tersimpan</h2>
+          <p>Kalau sebelumnya sudah login, bisa langsung masuk tanpa ketik ulang.</p>
+        </div>
+      </div>
+      <div id="sessionBox" class="session-box hidden">
+        <strong id="sessionName">-</strong>
+        <p id="sessionMeta">-</p>
+        <div class="grid2" style="margin-top:12px">
+          <button class="btn" id="continueSessionBtn">Lanjut Masuk</button>
+          <button class="ghost" id="logoutSessionBtn">Logout</button>
+        </div>
+      </div>
+      <div id="sessionEmpty" class="helper">Belum ada sesi tersimpan di perangkat ini.</div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>Masuk ke sistem</h2>
+          <p>Masukkan username dan PIN sesuai user yang ada di Firebase.</p>
+        </div>
+      </div>
+      <div class="stack">
+        <input class="field" id="usernameInput" placeholder="Username" autocomplete="username" />
+        <input class="field" id="pinInput" type="password" placeholder="PIN / password" autocomplete="current-password" />
+        <button class="btn" id="loginBtn">Login Sekarang</button>
+        <div id="noticeBox" class="notice hidden"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>Role yang tersedia</h2>
+          <p>Target halaman otomatis ditentukan dari field <code>role</code>.</p>
+        </div>
+      </div>
+      <div class="roles">
+        <div class="role-card">
+          <strong>admin_pusat</strong>
+          <p>Masuk ke root master admin pusat realtime.</p>
+          <div class="chips"><span class="chip"><code>/</code></span><span class="chip">Master admin</span></div>
+        </div>
+        <div class="role-card">
+          <strong>admin_cabang</strong>
+          <p>Masuk ke POS cabang live sesuai branch code.</p>
+          <div class="chips"><span class="chip"><code>/pos-cabang/</code></span><span class="chip">Kasir live</span></div>
+        </div>
+        <div class="role-card">
+          <strong>kurir</strong>
+          <p>Masuk ke panel kurir yang sudah dipakai operasional delivery.</p>
+          <div class="chips"><span class="chip"><code>/kurir/</code></span><span class="chip">Delivery</span></div>
+        </div>
+        <div class="role-card">
+          <strong>customer</strong>
+          <p>Masuk ke halaman order customer/checkout.</p>
+          <div class="chips"><span class="chip"><code>/customer/</code></span><span class="chip">Order</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      Simpan portal ini sebagai <code>portal/index.html</code> atau jadikan halaman login utama.
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+      authDomain: "ej-tobacco-store.firebaseapp.com",
+      databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ej-tobacco-store",
+      storageBucket: "ej-tobacco-store.firebasestorage.app",
+      messagingSenderId: "70458372662",
+      appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+      measurementId: "G-VCRFQSRB9H"
+    };
+
+    const SESSION_KEY = 'ej_role_session_v1';
+    const ROLE_TARGETS = {
+      admin_pusat: './',
+      admin_cabang: './pos-cabang/',
+      kurir: './kurir/',
+      customer: './customer/'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const state = {
+      users: {}
+    };
+
+    const els = {
+      usernameInput: document.getElementById('usernameInput'),
+      pinInput: document.getElementById('pinInput'),
+      loginBtn: document.getElementById('loginBtn'),
+      noticeBox: document.getElementById('noticeBox'),
+      userCountText: document.getElementById('userCountText'),
+      pusatCountText: document.getElementById('pusatCountText'),
+      cabangCountText: document.getElementById('cabangCountText'),
+      kurirCountText: document.getElementById('kurirCountText'),
+      sessionBox: document.getElementById('sessionBox'),
+      sessionEmpty: document.getElementById('sessionEmpty'),
+      sessionName: document.getElementById('sessionName'),
+      sessionMeta: document.getElementById('sessionMeta'),
+      continueSessionBtn: document.getElementById('continueSessionBtn'),
+      logoutSessionBtn: document.getElementById('logoutSessionBtn')
+    };
+
+    function showNotice(message, isError = false){
+      els.noticeBox.textContent = message;
+      els.noticeBox.classList.remove('hidden', 'error');
+      if(isError) els.noticeBox.classList.add('error');
+    }
+
+    function hideNotice(){
+      els.noticeBox.classList.add('hidden');
+      els.noticeBox.classList.remove('error');
+      els.noticeBox.textContent = '';
+    }
+
+    function countRoles(){
+      const users = Object.values(state.users || {});
+      const pusat = users.filter(u => u.role === 'admin_pusat').length;
+      const cabang = users.filter(u => u.role === 'admin_cabang').length;
+      const kurir = users.filter(u => u.role === 'kurir').length;
+      els.userCountText.textContent = String(users.length);
+      els.pusatCountText.textContent = String(pusat);
+      els.cabangCountText.textContent = String(cabang);
+      els.kurirCountText.textContent = String(kurir);
+    }
+
+    function saveSession(user){
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        name: user.name || user.username,
+        branchCode: user.branchCode || '',
+        target: user.target || ROLE_TARGETS[user.role] || './',
+        savedAt: Date.now()
+      }));
+      renderSession();
+    }
+
+    function loadSession(){
+      try{
+        return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      }catch(err){
+        return null;
+      }
+    }
+
+    function clearSession(){
+      localStorage.removeItem(SESSION_KEY);
+      renderSession();
+    }
+
+    function renderSession(){
+      const session = loadSession();
+      if(!session){
+        els.sessionBox.classList.add('hidden');
+        els.sessionEmpty.classList.remove('hidden');
+        return;
+      }
+      els.sessionBox.classList.remove('hidden');
+      els.sessionEmpty.classList.add('hidden');
+      els.sessionName.textContent = session.name;
+      els.sessionMeta.textContent = `${session.role}${session.branchCode ? ' • ' + session.branchCode : ''}`;
+    }
+
+    function resolveTarget(user){
+      if(user.target) return user.target;
+      return ROLE_TARGETS[user.role] || './';
+    }
+
+    async function loginNow(){
+      hideNotice();
+      const username = els.usernameInput.value.trim().toLowerCase();
+      const pin = els.pinInput.value.trim();
+
+      if(!username || !pin){
+        showNotice('Username dan PIN wajib diisi.', true);
+        return;
+      }
+
+      const users = Object.entries(state.users || {}).map(([id, user]) => ({ id, ...user }));
+      const found = users.find(user =>
+        String(user.username || '').toLowerCase() === username &&
+        String(user.pin || '') === pin &&
+        user.isActive !== false
+      );
+
+      if(!found){
+        showNotice('Login gagal. Username atau PIN tidak cocok.', true);
+        return;
+      }
+
+      const target = resolveTarget(found);
+      saveSession({ ...found, target });
+      showNotice(`Login berhasil sebagai ${found.role}. Mengalihkan ke halaman tujuan...`);
+      setTimeout(() => {
+        window.location.href = target;
+      }, 500);
+    }
+
+    async function continueSession(){
+      const session = loadSession();
+      if(!session) return;
+      window.location.href = session.target || './';
+    }
+
+    onValue(ref(db, 'app_users'), snap => {
+      state.users = snap.val() || {};
+      countRoles();
+    });
+
+    els.loginBtn.addEventListener('click', loginNow);
+    els.continueSessionBtn.addEventListener('click', continueSession);
+    els.logoutSessionBtn.addEventListener('click', () => {
+      clearSession();
+      showNotice('Sesi login di perangkat ini sudah dihapus.');
+    });
+
+    els.pinInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter') loginNow();
+    });
+    els.usernameInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter') els.pinInput.focus();
+    });
+
+    renderSession();
+  </script>
+</body>
+</html>
