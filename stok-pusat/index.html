@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>EJ Stok Pusat & Transfer Cabang</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#07090d;--stroke:rgba(255,255,255,.08);--text:#f5f7fb;--muted:#98a2b3;--gold:#d4af37;--gold2:#f6dd82;
+      --green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--amber:#f59e0b;--red:#ef4444;
+      --grad:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%);--shadow:0 20px 60px rgba(0,0,0,.38);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Inter',sans-serif;color:var(--text);padding:18px;background:
+      radial-gradient(circle at top left, rgba(59,130,246,.12), transparent 24%),
+      radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 28%),
+      radial-gradient(circle at bottom center, rgba(139,92,246,.08), transparent 24%),#07090d
+    }
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:108px}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;background:linear-gradient(180deg,rgba(7,9,13,.94),rgba(7,9,13,.60),transparent);backdrop-filter:blur(18px)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .icon{width:48px;height:48px;border-radius:16px;background:var(--grad);display:grid;place-items:center;color:#151515;font-size:20px;font-weight:900;box-shadow:0 10px 22px rgba(212,175,55,.35)}
+    .brand h1{font-size:17px;font-weight:800}
+    .brand p{margin-top:3px;color:var(--muted);font-size:11px}
+    .icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text)}
+    .card{background:linear-gradient(180deg, rgba(17,22,32,.90), rgba(12,16,24,.84));border:1px solid var(--stroke);border-radius:24px;box-shadow:var(--shadow);padding:14px;position:relative;overflow:hidden}
+    .card:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 35%);pointer-events:none}
+    .hero{padding:20px;border-radius:28px;background:radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 36%), linear-gradient(180deg,#111827 0%,#090b10 100%)}
+    .badge{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:var(--gold2);margin-bottom:14px}
+    .hero h2{font-size:12px;color:rgba(255,255,255,.72);font-weight:700;letter-spacing:.9px;text-transform:uppercase}
+    .hero .value{font-size:32px;font-weight:800;margin-top:8px}
+    .hero .sub{margin-top:6px;font-size:12px;color:var(--muted)}
+    .grid2,.grid3,.grid4,.filters{display:grid;gap:12px}
+    .grid2,.filters{grid-template-columns:1fr 1fr}
+    .grid3{grid-template-columns:repeat(3,1fr)}
+    .grid4{grid-template-columns:repeat(4,1fr)}
+    .stat,.mini,.summary-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px}
+    .stat label,.mini label,.summary-box label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}
+    .stat strong,.mini strong{font-size:18px;font-weight:800}
+    .section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+    .section-head h3{font-size:15px;font-weight:800}
+    .section-head p{margin-top:4px;color:var(--muted);font-size:11px}
+    .field,.select,.area{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.04);color:var(--text);outline:none}
+    .field,.select{height:52px;padding:0 16px}
+    .area{min-height:110px;padding:14px 16px;resize:vertical}
+    .search-wrap{position:relative}
+    .search-wrap span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold)}
+    .search-wrap .field{padding-left:42px}
+    .stack,.list{display:flex;flex-direction:column;gap:12px}
+    .product-card,.branch-card,.transfer-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:18px;padding:14px}
+    .row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .left h4{font-size:14px;font-weight:800;margin-bottom:5px}
+    .left p{font-size:11px;color:var(--muted);line-height:1.45}
+    .badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+    .badge2{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800}
+    .stock{background:rgba(59,130,246,.12);color:#93c5fd}
+    .branch{background:rgba(139,92,246,.12);color:#c4b5fd}
+    .low{background:rgba(239,68,68,.14);color:#fca5a5}
+    .ok{background:rgba(34,197,94,.14);color:#86efac}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted)}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .btn,.ghost,.danger{min-height:48px;border-radius:16px;border:none;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .btn.gold{background:var(--grad);color:#151515}
+    .btn.green{background:linear-gradient(180deg,#22c55e,#16a34a);color:#fff}
+    .btn.blue{background:linear-gradient(180deg,#3b82f6,#2563eb);color:#fff}
+    .ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text)}
+    .danger{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.28);color:#fca5a5}
+    .helper{font-size:11px;color:var(--muted);line-height:1.6}
+    .empty{padding:24px 16px;text-align:center;color:var(--muted);font-size:13px;border-radius:18px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.02)}
+    .page.hidden{display:none}
+    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 28px);max-width:430px;padding:10px;border-radius:28px;background:rgba(10,12,18,.86);border:1px solid rgba(255,255,255,.08);display:grid;grid-template-columns:repeat(3,1fr);gap:8px;z-index:35}
+    .nav{min-height:60px;border-radius:18px;border:none;background:transparent;color:var(--muted);font-size:10px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+    .nav.active{background:rgba(212,175,55,.12);color:var(--gold2)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:70}
+    .overlay.show{opacity:1;pointer-events:auto}
+    .sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(460px,calc(100% - 18px));background:#0e131c;border:1px solid rgba(255,255,255,.08);border-bottom:none;border-top-left-radius:28px;border-top-right-radius:28px;padding:18px 18px 28px;box-shadow:0 -20px 60px rgba(0,0,0,.45);transition:transform .28s ease;z-index:80;max-height:85vh;overflow-y:auto}
+    .sheet.show{transform:translate(-50%,0)}
+    .handle{width:64px;height:6px;border-radius:999px;background:rgba(255,255,255,.14);margin:0 auto 16px}
+    .sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+    .sheet-head h3{font-size:18px;font-weight:800;margin-bottom:4px}
+    .sheet-head p{font-size:12px;color:var(--muted);line-height:1.5}
+    .close{width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text)}
+    .label{display:block;font-size:12px;font-weight:700;color:#dbe2f1;margin-bottom:8px}
+    .toast{position:fixed;top:24px;left:50%;transform:translate(-50%,-18px);width:min(380px,calc(100% - 28px));padding:14px 16px;border-radius:18px;background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s ease;z-index:95}
+    .toast.show{transform:translate(-50%,0);opacity:1}
+    code{color:#fde68a}
+    @media (max-width:390px){body{padding:14px}.grid2,.grid3,.grid4,.filters,.actions{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="icon">📦</div>
+        <div>
+          <h1>Stok Pusat & Transfer</h1>
+          <p id="brandSub">Gudang pusat • kirim stok resmi ke cabang</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="refreshBtn">↻</button>
+    </header>
+
+    <section class="card hero">
+      <div class="badge">GUDANG PUSAT • FIREBASE LIVE</div>
+      <h2>Total stok pusat</h2>
+      <div class="value" id="heroValue">0 pcs</div>
+      <div class="sub" id="heroSub">Lihat stok pusat, edit stok, dan transfer ke cabang secara realtime.</div>
+      <div class="grid4" style="margin-top:16px">
+        <div class="stat"><label>SKU aktif</label><strong id="skuCount">0</strong></div>
+        <div class="stat"><label>Low stock</label><strong id="lowCount">0</strong></div>
+        <div class="stat"><label>Transfer pending</label><strong id="transferCount">0</strong></div>
+        <div class="stat"><label>Unit hari ini</label><strong id="todayTransferUnits">0</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h3>Filter stok pusat</h3>
+          <p>Cari produk, kategori, atau tampilkan low stock saja.</p>
+        </div>
+      </div>
+      <div class="filters">
+        <div class="search-wrap">
+          <span>⌕</span>
+          <input class="field" id="searchInput" placeholder="Cari nama produk / SKU..." />
+        </div>
+        <select class="select" id="categoryFilter">
+          <option value="all">Semua kategori</option>
+        </select>
+        <select class="select" id="branchFilter">
+          <option value="all">Semua cabang</option>
+        </select>
+        <select class="select" id="stockFilter">
+          <option value="all">Semua stok</option>
+          <option value="low">Low stock</option>
+          <option value="ready">Stok aman</option>
+        </select>
+      </div>
+      <div class="helper" style="margin-top:12px">Modul ini menulis ke <code>products</code>, <code>branch_stock</code>, <code>stock_transfers</code>, <code>stock_adjustments</code>, <code>branch_profiles</code>, dan <code>audit_logs</code>.</div>
+    </section>
+
+    <section class="page" data-page="pusat">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Daftar stok pusat</h3>
+            <p>Admin pusat boleh stock opname dan transfer stok ke cabang.</p>
+          </div>
+        </div>
+        <div id="productList" class="list"><div class="empty">Memuat produk...</div></div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="cabang">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Stok per cabang</h3>
+            <p>Ringkasan stok yang sudah dikirim ke masing-masing cabang.</p>
+          </div>
+        </div>
+        <div id="branchList" class="list"><div class="empty">Belum ada stok cabang.</div></div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="transfer">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h3>Riwayat transfer stok</h3>
+            <p>Setiap transfer dari pusat ke cabang tercatat realtime.</p>
+          </div>
+        </div>
+        <div id="transferList" class="list"><div class="empty">Belum ada transfer stok.</div></div>
+      </section>
+    </section>
+  </div>
+
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav active" data-page-target="pusat">Stok Pusat</button>
+    <button class="nav" data-page-target="cabang">Stok Cabang</button>
+    <button class="nav" data-page-target="transfer">Transfer</button>
+  </nav>
+
+  <div class="overlay" id="overlay"></div>
+
+  <section class="sheet" id="adjustSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Stock opname pusat</h3>
+        <p id="adjustHead">Ubah stok pusat produk yang dipilih.</p>
+      </div>
+      <button class="close" data-close-sheet>✕</button>
+    </div>
+    <div class="stack">
+      <div class="summary-box">
+        <label>Produk</label>
+        <p id="adjustProductText">-</p>
+      </div>
+      <div>
+        <label class="label">Stok pusat baru</label>
+        <input class="field" id="newStockInput" type="number" placeholder="Masukkan stok terbaru" />
+      </div>
+      <div>
+        <label class="label">Catatan opname</label>
+        <textarea class="area" id="adjustNoteInput" placeholder="Contoh: hasil stock opname gudang pagi"></textarea>
+      </div>
+      <button class="btn gold" id="saveAdjustBtn">Simpan Stok Pusat</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="transferSheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Transfer stok ke cabang</h3>
+        <p id="transferHead">Pilih cabang tujuan dan jumlah unit yang dikirim.</p>
+      </div>
+      <button class="close" data-close-sheet>✕</button>
+    </div>
+    <div class="stack">
+      <div class="summary-box">
+        <label>Produk pusat</label>
+        <p id="transferProductText">-</p>
+      </div>
+      <div>
+        <label class="label">Cabang tujuan</label>
+        <select class="select" id="transferBranchSelect"></select>
+      </div>
+      <div>
+        <label class="label">Jumlah transfer</label>
+        <input class="field" id="transferQtyInput" type="number" placeholder="Masukkan qty transfer" />
+      </div>
+      <div>
+        <label class="label">Catatan transfer</label>
+        <textarea class="area" id="transferNoteInput" placeholder="Contoh: isi ulang stok mingguan cabang"></textarea>
+      </div>
+      <button class="btn green" id="saveTransferBtn">Kirim Stok ke Cabang</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, onValue, push, set, update, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+      authDomain: "ej-tobacco-store.firebaseapp.com",
+      databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ej-tobacco-store",
+      storageBucket: "ej-tobacco-store.firebasestorage.app",
+      messagingSenderId: "70458372662",
+      appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+      measurementId: "G-VCRFQSRB9H"
+    };
+
+    const DEFAULT_BRANCHES = {
+      'CBG-BRB-BARAT': { code:'CBG-BRB-BARAT', name:'Cabang Brebes Barat', type:'offline_branch' },
+      'CBG-BRB-TENGAH': { code:'CBG-BRB-TENGAH', name:'Cabang Brebes Tengah', type:'offline_branch' },
+      'CBG-BRB-TIMUR': { code:'CBG-BRB-TIMUR', name:'Cabang Brebes Timur', type:'offline_branch' }
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const state = {
+      currentPage:'pusat',
+      search:'',
+      category:'all',
+      branchFilter:'all',
+      stockFilter:'all',
+      productsRaw:{},
+      branchStockRaw:{},
+      transferRaw:{},
+      branchProfilesRaw:{},
+      activeProductId:null
+    };
+
+    const els = {
+      heroValue: document.getElementById('heroValue'),
+      heroSub: document.getElementById('heroSub'),
+      skuCount: document.getElementById('skuCount'),
+      lowCount: document.getElementById('lowCount'),
+      transferCount: document.getElementById('transferCount'),
+      todayTransferUnits: document.getElementById('todayTransferUnits'),
+      searchInput: document.getElementById('searchInput'),
+      categoryFilter: document.getElementById('categoryFilter'),
+      branchFilter: document.getElementById('branchFilter'),
+      stockFilter: document.getElementById('stockFilter'),
+      productList: document.getElementById('productList'),
+      branchList: document.getElementById('branchList'),
+      transferList: document.getElementById('transferList'),
+      overlay: document.getElementById('overlay'),
+      adjustHead: document.getElementById('adjustHead'),
+      adjustProductText: document.getElementById('adjustProductText'),
+      newStockInput: document.getElementById('newStockInput'),
+      adjustNoteInput: document.getElementById('adjustNoteInput'),
+      transferHead: document.getElementById('transferHead'),
+      transferProductText: document.getElementById('transferProductText'),
+      transferBranchSelect: document.getElementById('transferBranchSelect'),
+      transferQtyInput: document.getElementById('transferQtyInput'),
+      transferNoteInput: document.getElementById('transferNoteInput'),
+      toast: document.getElementById('toast'),
+      refreshBtn: document.getElementById('refreshBtn')
+    };
+
+    function showToast(message){
+      els.toast.textContent = message;
+      els.toast.classList.add('show');
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(()=>els.toast.classList.remove('show'), 2400);
+    }
+
+    function formatCurrency(value){
+      return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value || 0);
+    }
+
+    function openSheet(id){
+      els.overlay.classList.add('show');
+      document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show'));
+      document.getElementById(id).classList.add('show');
+    }
+
+    function closeSheets(){
+      els.overlay.classList.remove('show');
+      document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show'));
+    }
+
+    function getBranches(){
+      const merged = { ...DEFAULT_BRANCHES };
+      Object.entries(state.branchProfilesRaw || {}).forEach(([code, row]) => {
+        merged[code] = {
+          code,
+          name: row.name || row.branchName || code,
+          type: row.type || 'offline_branch'
+        };
+      });
+      return Object.values(merged).filter(b => b.type !== 'pusat');
+    }
+
+    function getProductStockValue(product){
+      if(Number.isFinite(product.stockPusat)) return Number(product.stockPusat);
+      if(Number.isFinite(product.stock)) return Number(product.stock);
+      if(Number.isFinite(product.currentStock)) return Number(product.currentStock);
+      return 0;
+    }
+
+    function getProducts(){
+      return Object.entries(state.productsRaw || {}).map(([id, product]) => {
+        const centerStock = getProductStockValue(product || {});
+        const totalBranch = Object.values(state.branchStockRaw || {}).reduce((sum, branchMap) => {
+          const row = branchMap?.[id];
+          return sum + Number(row?.stock || 0);
+        }, 0);
+        return {
+          id,
+          name: product.name || product.title || product.productName || `Produk ${id}`,
+          sku: product.sku || product.code || id,
+          category: product.category || 'Umum',
+          price: Number(product.price || 0),
+          centerStock,
+          totalBranch,
+          low: centerStock <= 5
+        };
+      }).sort((a,b)=>a.name.localeCompare(b.name,'id'));
+    }
+
+    function filteredProducts(){
+      const q = state.search.trim().toLowerCase();
+      return getProducts().filter(product => {
+        const matchSearch = !q || [product.name, product.sku, product.category].join(' ').toLowerCase().includes(q);
+        const matchCategory = state.category === 'all' ? true : product.category === state.category;
+        const matchStock = state.stockFilter === 'all' ? true : state.stockFilter === 'low' ? product.low : !product.low;
+        const matchBranch = state.branchFilter === 'all' ? true : Number(state.branchStockRaw?.[state.branchFilter]?.[product.id]?.stock || 0) > 0;
+        return matchSearch && matchCategory && matchStock && matchBranch;
+      });
+    }
+
+    function renderFilters(){
+      const categories = [...new Set(getProducts().map(p=>p.category))].sort();
+      const currentCat = state.category;
+      els.categoryFilter.innerHTML = '<option value="all">Semua kategori</option>' + categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+      els.categoryFilter.value = categories.includes(currentCat) ? currentCat : 'all';
+
+      const branches = getBranches();
+      const currentBranch = state.branchFilter;
+      els.branchFilter.innerHTML = '<option value="all">Semua cabang</option>' + branches.map(branch => `<option value="${branch.code}">${branch.name}</option>`).join('');
+      els.branchFilter.value = branches.some(b => b.code === currentBranch) ? currentBranch : 'all';
+
+      els.transferBranchSelect.innerHTML = branches.map(branch => `<option value="${branch.code}">${branch.name}</option>`).join('');
+    }
+
+    function renderHero(){
+      const products = getProducts();
+      const totalCenter = products.reduce((sum,p)=>sum + p.centerStock, 0);
+      const low = products.filter(p=>p.low).length;
+      const transfers = Object.values(state.transferRaw || {});
+      const todayKey = new Date().toISOString().slice(0,10);
+      const todayUnits = transfers.filter(t => (t.dateKey || '').slice(0,10) === todayKey).reduce((sum,t)=>sum + Number(t.qty || 0), 0);
+
+      els.heroValue.textContent = `${totalCenter} pcs`;
+      els.skuCount.textContent = String(products.length);
+      els.lowCount.textContent = String(low);
+      els.transferCount.textContent = String(transfers.length);
+      els.todayTransferUnits.textContent = String(todayUnits);
+      els.heroSub.textContent = products.length
+        ? `${products.length} SKU pusat terbaca, ${low} produk perlu perhatian stok.`
+        : 'Belum ada produk pusat yang terbaca dari Firebase.';
+    }
+
+    function renderProducts(){
+      const rows = filteredProducts();
+      if(!rows.length){
+        els.productList.innerHTML = '<div class="empty">Tidak ada produk cocok dengan filter saat ini.</div>';
+        return;
+      }
+      els.productList.innerHTML = rows.map(product => `
+        <div class="product-card">
+          <div class="row">
+            <div class="left">
+              <h4>${product.name}</h4>
+              <p>${product.sku} • ${product.category}</p>
+            </div>
+            <div class="badges">
+              <span class="badge2 stock">Pusat ${product.centerStock}</span>
+              <span class="badge2 branch">Cabang ${product.totalBranch}</span>
+              ${product.low ? '<span class="badge2 low">Low stock</span>' : '<span class="badge2 ok">Stok aman</span>'}
+            </div>
+          </div>
+          <div class="chips">
+            <span class="chip">Harga ${formatCurrency(product.price)}</span>
+            <span class="chip">Online ikut stok pusat</span>
+          </div>
+          <div class="actions">
+            <button class="btn gold" data-adjust="${product.id}">Edit stok pusat</button>
+            <button class="btn green" data-transfer="${product.id}">Transfer ke cabang</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderBranches(){
+      const branches = getBranches();
+      if(!branches.length){
+        els.branchList.innerHTML = '<div class="empty">Belum ada profil cabang.</div>';
+        return;
+      }
+      els.branchList.innerHTML = branches.map(branch => {
+        const stockMap = state.branchStockRaw?.[branch.code] || {};
+        const items = Object.values(stockMap);
+        const totalUnits = items.reduce((sum,row)=>sum + Number(row.stock || 0), 0);
+        const skuCount = items.filter(row => Number(row.stock || 0) > 0).length;
+        const latestTransfer = Object.values(state.transferRaw || {}).filter(t => t.branchCode === branch.code).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+        return `
+          <div class="branch-card">
+            <div class="row">
+              <div class="left">
+                <h4>${branch.name}</h4>
+                <p>${branch.code}</p>
+              </div>
+              <div class="badges">
+                <span class="badge2 branch">${skuCount} SKU</span>
+                <span class="badge2 stock">${totalUnits} pcs</span>
+              </div>
+            </div>
+            <div class="chips">
+              <span class="chip">Transfer terakhir ${latestTransfer?.createdAt ? new Date(latestTransfer.createdAt).toLocaleDateString('id-ID') : '-'}</span>
+              <span class="chip">${latestTransfer?.productName ? latestTransfer.productName : 'Belum ada transfer'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTransfers(){
+      const rows = Object.values(state.transferRaw || {}).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      if(!rows.length){
+        els.transferList.innerHTML = '<div class="empty">Belum ada transfer stok tercatat.</div>';
+        return;
+      }
+      els.transferList.innerHTML = rows.map(item => `
+        <div class="transfer-card">
+          <div class="row">
+            <div class="left">
+              <h4>${item.productName || item.productId}</h4>
+              <p>${item.branchName || item.branchCode} • ${item.note || 'Tanpa catatan'}</p>
+            </div>
+            <div class="badges">
+              <span class="badge2 ok">${item.qty || 0} pcs</span>
+            </div>
+          </div>
+          <div class="chips">
+            <span class="chip">Sebelum ${item.beforeCenter || 0}</span>
+            <span class="chip">Sesudah ${item.afterCenter || 0}</span>
+            <span class="chip">${item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '-'}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAll(){
+      renderFilters();
+      renderHero();
+      renderProducts();
+      renderBranches();
+      renderTransfers();
+    }
+
+    function switchPage(page){
+      state.currentPage = page;
+      document.querySelectorAll('.page').forEach(p => p.classList.toggle('hidden', p.dataset.page !== page));
+      document.querySelectorAll('.nav').forEach(btn => btn.classList.toggle('active', btn.dataset.pageTarget === page));
+    }
+
+    function openAdjust(productId){
+      const product = getProducts().find(p => p.id === productId);
+      if(!product) return;
+      state.activeProductId = productId;
+      els.adjustHead.textContent = `${product.name} • ${product.sku}`;
+      els.adjustProductText.textContent = `${product.name} • stok saat ini ${product.centerStock} pcs`;
+      els.newStockInput.value = product.centerStock;
+      els.adjustNoteInput.value = '';
+      openSheet('adjustSheet');
+    }
+
+    function openTransfer(productId){
+      const product = getProducts().find(p => p.id === productId);
+      if(!product) return;
+      state.activeProductId = productId;
+      els.transferHead.textContent = `${product.name} • stok pusat ${product.centerStock} pcs`;
+      els.transferProductText.textContent = `${product.name} • ${product.sku}`;
+      els.transferQtyInput.value = '';
+      els.transferNoteInput.value = '';
+      openSheet('transferSheet');
+    }
+
+    async function saveAdjust(){
+      const product = getProducts().find(p => p.id === state.activeProductId);
+      if(!product) return;
+      const newStock = Number(els.newStockInput.value || 0);
+      const note = els.adjustNoteInput.value.trim() || 'Stock opname pusat';
+      if(newStock < 0) return showToast('Stok pusat tidak boleh minus.');
+
+      const now = Date.now();
+      const adjustId = push(ref(db, 'stock_adjustments')).key;
+      const updates = {};
+      updates[`products/${product.id}/stockPusat`] = newStock;
+      updates[`products/${product.id}/stock`] = newStock;
+      updates[`products/${product.id}/updatedAt`] = now;
+      updates[`stock_adjustments/${adjustId}`] = {
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku,
+        before: product.centerStock,
+        after: newStock,
+        note,
+        createdAt: now,
+        actorType: 'admin_pusat',
+        dateKey: new Date(now).toISOString().slice(0,10)
+      };
+      const logId = push(ref(db, 'audit_logs')).key;
+      updates[`audit_logs/${logId}`] = {
+        title: `Stock opname ${product.sku}`,
+        note: `${product.centerStock} → ${newStock} • ${note}`,
+        actorType: 'admin_pusat',
+        actorId: 'admin_pusat',
+        createdAt: now
+      };
+
+      try{
+        await update(ref(db), updates);
+        closeSheets();
+        showToast(`Stok pusat ${product.name} diperbarui.`);
+      }catch(err){
+        console.error('SAVE_ADJUST_FAILED', err);
+        showToast('Gagal menyimpan stok pusat.');
+      }
+    }
+
+    async function saveTransfer(){
+      const product = getProducts().find(p => p.id === state.activeProductId);
+      if(!product) return;
+
+      const branchCode = els.transferBranchSelect.value;
+      const branch = getBranches().find(b => b.code === branchCode);
+      const qty = Number(els.transferQtyInput.value || 0);
+      const note = els.transferNoteInput.value.trim() || 'Transfer stok rutin';
+      if(!branchCode || !branch) return showToast('Pilih cabang tujuan dulu.');
+      if(!qty || qty <= 0) return showToast('Jumlah transfer harus diisi.');
+      if(qty > product.centerStock) return showToast('Stok pusat tidak cukup untuk transfer.');
+
+      const currentBranchStock = Number(state.branchStockRaw?.[branchCode]?.[product.id]?.stock || 0);
+      const now = Date.now();
+      const transferId = push(ref(db, 'stock_transfers')).key;
+      const afterCenter = product.centerStock - qty;
+
+      const updates = {};
+      updates[`products/${product.id}/stockPusat`] = afterCenter;
+      updates[`products/${product.id}/stock`] = afterCenter;
+      updates[`products/${product.id}/updatedAt`] = now;
+      updates[`branch_profiles/${branchCode}`] = {
+        code: branch.code,
+        name: branch.name,
+        type: 'offline_branch',
+        updatedAt: now
+      };
+      updates[`branch_stock/${branchCode}/${product.id}`] = {
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku,
+        category: product.category,
+        stock: currentBranchStock + qty,
+        updatedAt: now
+      };
+      updates[`stock_transfers/${transferId}`] = {
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku,
+        category: product.category,
+        branchCode,
+        branchName: branch.name,
+        qty,
+        beforeCenter: product.centerStock,
+        afterCenter,
+        beforeBranch: currentBranchStock,
+        afterBranch: currentBranchStock + qty,
+        note,
+        createdAt: now,
+        dateKey: new Date(now).toISOString().slice(0,10),
+        actorType: 'admin_pusat'
+      };
+      const logId = push(ref(db, 'audit_logs')).key;
+      updates[`audit_logs/${logId}`] = {
+        title: `Transfer stok ${product.sku}`,
+        note: `${qty} pcs ke ${branch.name} • stok pusat ${product.centerStock} → ${afterCenter}`,
+        actorType: 'admin_pusat',
+        actorId: 'admin_pusat',
+        createdAt: now
+      };
+
+      try{
+        await update(ref(db), updates);
+        closeSheets();
+        showToast(`Transfer ${qty} pcs ke ${branch.name} berhasil.`);
+      }catch(err){
+        console.error('SAVE_TRANSFER_FAILED', err);
+        showToast('Gagal transfer stok ke cabang.');
+      }
+    }
+
+    function setupEvents(){
+      els.searchInput.addEventListener('input', e => { state.search = e.target.value; renderProducts(); });
+      els.categoryFilter.addEventListener('change', e => { state.category = e.target.value; renderProducts(); });
+      els.branchFilter.addEventListener('change', e => { state.branchFilter = e.target.value; renderProducts(); });
+      els.stockFilter.addEventListener('change', e => { state.stockFilter = e.target.value; renderProducts(); });
+
+      document.getElementById('bottomNav').addEventListener('click', e => {
+        const btn = e.target.closest('[data-page-target]');
+        if(!btn) return;
+        switchPage(btn.dataset.pageTarget);
+      });
+
+      document.body.addEventListener('click', e => {
+        const adjust = e.target.closest('[data-adjust]');
+        if(adjust) return openAdjust(adjust.dataset.adjust);
+
+        const transfer = e.target.closest('[data-transfer]');
+        if(transfer) return openTransfer(transfer.dataset.transfer);
+      });
+
+      els.overlay.addEventListener('click', closeSheets);
+      document.querySelectorAll('[data-close-sheet]').forEach(btn => btn.addEventListener('click', closeSheets));
+      document.getElementById('saveAdjustBtn').addEventListener('click', saveAdjust);
+      document.getElementById('saveTransferBtn').addEventListener('click', saveTransfer);
+      els.refreshBtn.addEventListener('click', () => { renderAll(); showToast('Data stok diperbarui.'); });
+    }
+
+    onValue(ref(db, 'products'), snap => {
+      state.productsRaw = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'branch_stock'), snap => {
+      state.branchStockRaw = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'stock_transfers'), snap => {
+      state.transferRaw = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'branch_profiles'), snap => {
+      state.branchProfilesRaw = snap.val() || {};
+      renderAll();
+    });
+
+    setupEvents();
+    renderAll();
+  </script>
+</body>
+</html>
