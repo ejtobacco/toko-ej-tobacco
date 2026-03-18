@@ -2,15 +2,15 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>EJ POS Cabang Offline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>EJ POS Cabang Firebase Live</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#07090d;--card:#101722;--card2:#0d131c;--stroke:rgba(255,255,255,.08);--text:#f5f7fb;--muted:#97a3b6;
-      --gold:#d4af37;--gold2:#f6dd82;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--amber:#f59e0b;
+      --bg:#07090d;--stroke:rgba(255,255,255,.08);--text:#f5f7fb;--muted:#97a3b6;
+      --gold:#d4af37;--gold2:#f6dd82;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--red:#ef4444;
       --grad:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%);--shadow:0 18px 50px rgba(0,0,0,.35);
     }
     *{box-sizing:border-box;margin:0;padding:0}
@@ -18,48 +18,37 @@
       font-family:'Inter',sans-serif;background:
       radial-gradient(circle at top left, rgba(59,130,246,.10), transparent 25%),
       radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 28%),
-      var(--bg);color:var(--text);padding:18px;
+      var(--bg);color:var(--text);padding:18px
     }
-    button,input,select,textarea{font:inherit}
-    button{cursor:pointer}
-    .app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:110px}
-    .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:12px 0;background:linear-gradient(180deg,rgba(7,9,13,.94),rgba(7,9,13,.6),transparent);backdrop-filter:blur(18px)}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}
+    .app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:108px}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:12px 0;background:linear-gradient(180deg,rgba(7,9,13,.94),rgba(7,9,13,.60),transparent);backdrop-filter:blur(18px)}
     .brand{display:flex;align-items:center;gap:12px}
-    .brand-icon{width:48px;height:48px;border-radius:16px;background:var(--grad);display:grid;place-items:center;color:#151515;font-size:20px;font-weight:900;box-shadow:0 10px 22px rgba(212,175,55,.34)}
-    .brand h1{font-size:17px;font-weight:800}
-    .brand p{margin-top:3px;color:var(--muted);font-size:11px}
-    .mini-actions{display:flex;gap:8px}
+    .brand-icon{width:48px;height:48px;border-radius:16px;background:var(--grad);display:grid;place-items:center;color:#151515;font-size:18px;font-weight:900;box-shadow:0 10px 22px rgba(212,175,55,.34)}
+    .brand h1{font-size:17px;font-weight:800}.brand p{margin-top:3px;color:var(--muted);font-size:11px}
     .icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text)}
-    .card{background:linear-gradient(180deg, rgba(17,22,32,.9), rgba(12,16,24,.84));border:1px solid var(--stroke);border-radius:24px;box-shadow:var(--shadow);padding:14px;position:relative;overflow:hidden}
+    .card{background:linear-gradient(180deg, rgba(17,22,32,.90), rgba(12,16,24,.84));border:1px solid var(--stroke);border-radius:24px;box-shadow:var(--shadow);padding:14px;position:relative;overflow:hidden}
     .card:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 35%);pointer-events:none}
     .hero{padding:20px;border-radius:28px;background:radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 36%),linear-gradient(180deg,#111827 0%,#090b10 100%)}
     .hero-badge{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:var(--gold2);margin-bottom:14px}
     .hero h2{font-size:12px;color:rgba(255,255,255,.72);letter-spacing:.9px;text-transform:uppercase}
     .hero .value{font-size:32px;font-weight:800;margin-top:8px}
     .hero .sub{margin-top:6px;font-size:12px;color:var(--muted)}
-    .grid2,.grid3,.grid4,.quick-row{display:grid;gap:12px}
-    .grid2,.quick-row{grid-template-columns:1fr 1fr}
+    .grid2,.grid3{display:grid;gap:12px}
+    .grid2{grid-template-columns:1fr 1fr}
     .grid3{grid-template-columns:repeat(3,1fr)}
-    .grid4{grid-template-columns:repeat(4,1fr)}
-    .stat,.mini{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px}
-    .stat label,.mini label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}
+    .stat,.mini,.summary-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px}
+    .stat label,.mini label,.summary-box label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}
     .stat strong,.mini strong{display:block;font-size:18px;font-weight:800}
     .section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
     .section-head h3{font-size:15px;font-weight:800}
     .section-head p{margin-top:4px;color:var(--muted);font-size:11px}
-    .pill{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text);font-size:12px;font-weight:800}
     .field,.select,.area{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.04);color:var(--text);outline:none}
     .field,.select{height:52px;padding:0 16px}
     .area{min-height:110px;padding:14px 16px;resize:vertical}
     .search-grid{display:grid;grid-template-columns:1fr 118px;gap:10px}
-    .search-wrap{position:relative}
-    .search-wrap span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold)}
-    .search-wrap .field{padding-left:42px}
-    .tabs{padding:10px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-    .tab{min-height:74px;border-radius:18px;background:rgba(255,255,255,.02);border:1px solid transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:10px;font-weight:800}
-    .tab b{font-size:15px;color:var(--text)}
-    .tab.active{background:linear-gradient(180deg,rgba(212,175,55,.17),rgba(212,175,55,.06));border-color:rgba(212,175,55,.30);color:var(--gold2)}
-    .product-list,.cart-list,.history-list,.summary-list{display:flex;flex-direction:column;gap:12px}
+    .search-wrap{position:relative}.search-wrap span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold)} .search-wrap .field{padding-left:42px}
+    .list,.cart-list,.history-list{display:flex;flex-direction:column;gap:12px}
     .product,.cart-item,.history-item{border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.08);padding:14px}
     .row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
     .left-meta{min-width:0}
@@ -73,6 +62,7 @@
     .qris{background:rgba(59,130,246,.12);color:#93c5fd}
     .transfer{background:rgba(139,92,246,.12);color:#c4b5fd}
     .low{background:rgba(239,68,68,.14);color:#fca5a5}
+    .live{background:rgba(34,197,94,.14);color:#86efac}
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
     .chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted)}
     .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
@@ -86,8 +76,12 @@
     .total-line{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:8px}
     .total-line:last-child{margin-bottom:0}
     .total-line strong{font-size:16px}
+    .helper{font-size:11px;color:var(--muted);line-height:1.6}
     .empty{padding:22px 16px;text-align:center;color:var(--muted);font-size:13px;border-radius:18px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.02)}
-    .footer-note{font-size:11px;color:var(--muted);line-height:1.5}
+    .page.hidden{display:none}
+    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 28px);max-width:430px;padding:10px;border-radius:28px;background:rgba(10,12,18,.86);border:1px solid rgba(255,255,255,.08);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;z-index:35}
+    .nav{min-height:60px;border-radius:18px;border:none;background:transparent;color:var(--muted);font-size:10px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+    .nav.active{background:rgba(212,175,55,.12);color:var(--gold2)}
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:70}
     .overlay.show{opacity:1;pointer-events:auto}
     .sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(460px,calc(100% - 18px));background:#0e131c;border:1px solid rgba(255,255,255,.08);border-bottom:none;border-top-left-radius:28px;border-top-right-radius:28px;padding:18px 18px 28px;box-shadow:0 -20px 60px rgba(0,0,0,.45);transition:transform .28s ease;z-index:80;max-height:85vh;overflow-y:auto}
@@ -97,17 +91,13 @@
     .sheet-head h3{font-size:18px;font-weight:800;margin-bottom:4px}
     .sheet-head p{font-size:12px;color:var(--muted);line-height:1.5}
     .close{width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text)}
-    .stack{display:flex;flex-direction:column;gap:12px}
     .label{display:block;font-size:12px;font-weight:700;color:#dbe2f1;margin-bottom:8px}
+    .stack{display:flex;flex-direction:column;gap:12px}
     .toast{position:fixed;top:24px;left:50%;transform:translate(-50%,-18px);width:min(380px,calc(100% - 28px));padding:14px 16px;border-radius:18px;background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s ease;z-index:95}
     .toast.show{transform:translate(-50%,0);opacity:1}
-    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 28px);max-width:430px;padding:10px;border-radius:28px;background:rgba(10,12,18,.86);border:1px solid rgba(255,255,255,.08);display:grid;grid-template-columns:repeat(5,1fr);gap:8px;z-index:35}
-    .nav{min-height:60px;border-radius:18px;border:none;background:transparent;color:var(--muted);font-size:10px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
-    .nav.active{background:rgba(212,175,55,.12);color:var(--gold2)}
-    .page.hidden{display:none}
+    code{color:#fde68a}
     @media (max-width:390px){
-      body{padding:14px}.grid2,.grid3,.grid4,.quick-row,.search-grid,.actions{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(3,1fr)}
-      .bottom-nav{grid-template-columns:repeat(5,1fr)}
+      body{padding:14px}.grid2,.grid3,.search-grid,.actions{grid-template-columns:1fr}.bottom-nav{grid-template-columns:repeat(4,1fr)}
     }
   </style>
 </head>
@@ -117,79 +107,71 @@
       <div class="brand">
         <div class="brand-icon">POS</div>
         <div>
-          <h1>EJ POS Cabang Offline</h1>
-          <p id="brandSub">Cabang Brebes Barat • Offline ready • Kasir cepat</p>
+          <h1>EJ POS Cabang Live</h1>
+          <p id="brandSub">Branch stock Firebase • checkout realtime</p>
         </div>
       </div>
-      <div class="mini-actions">
-        <button class="icon-btn" id="openSettingsBtn">⚙</button>
-        <button class="icon-btn" id="exportBtn">⇩</button>
-      </div>
+      <button class="icon-btn" id="openSettingsBtn">⚙</button>
     </header>
 
+    <section class="card hero">
+      <div class="hero-badge">FIREBASE LIVE • STOK CABANG RESMI</div>
+      <h2>Omzet cabang hari ini</h2>
+      <div class="value" id="todaySales">Rp 0</div>
+      <div class="sub" id="heroSub">POS ini membaca <code>branch_stock</code> dan mengurangi stok cabang saat checkout.</div>
+      <div class="grid3" style="margin-top:16px">
+        <div class="stat"><label>Transaksi hari ini</label><strong id="todayCount">0 trx</strong></div>
+        <div class="stat"><label>Item terjual</label><strong id="todayItems">0 item</strong></div>
+        <div class="stat"><label>Produk aktif</label><strong id="productCount">0</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h3>Filter produk cabang</h3>
+          <p>Produk diambil langsung dari stok cabang yang dikirim pusat.</p>
+        </div>
+      </div>
+      <div class="search-grid">
+        <div class="search-wrap">
+          <span>⌕</span>
+          <input class="field" id="productSearch" placeholder="Cari nama produk..." />
+        </div>
+        <select class="select" id="categoryFilter">
+          <option value="all">Semua</option>
+        </select>
+      </div>
+    </section>
+
     <section class="page" data-page="kasir">
-      <section class="card hero">
-        <div class="hero-badge">POS CABANG • OFFLINE</div>
-        <h2>Total penjualan hari ini</h2>
-        <div class="value" id="todaySales">Rp 0</div>
-        <div class="sub" id="heroSub">Transaksi tersimpan di perangkat ini. Cocok untuk admin cabang yang fokus jualan offline.</div>
-        <div class="grid2" style="margin-top:16px">
-          <div class="stat"><label>Total transaksi</label><strong id="todayCount">0 trx</strong></div>
-          <div class="stat"><label>Item terjual</label><strong id="todayItems">0 item</strong></div>
-        </div>
-      </section>
-
-      <section class="quick-row">
-        <button class="btn gold" id="newSaleBtn">Transaksi Baru</button>
-        <button class="ghost" id="openHistoryBtn">Riwayat Hari Ini</button>
-      </section>
-
       <section class="card">
         <div class="section-head">
           <div>
-            <h3>Cari produk cabang</h3>
-            <p>Stok cabang hanya berkurang dari transaksi. Tidak ada stock opname manual di layar ini.</p>
+            <h3>Produk stok cabang</h3>
+            <p>Cabang hanya menjual stok resmi hasil transfer dari pusat.</p>
           </div>
         </div>
-        <div class="search-grid">
-          <div class="search-wrap">
-            <span>⌕</span>
-            <input class="field" id="productSearch" placeholder="Cari nama produk..." />
-          </div>
-          <select class="select" id="categoryFilter">
-            <option value="all">Semua</option>
-          </select>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-head">
-          <div>
-            <h3>Produk siap jual</h3>
-            <p>Bundle price otomatis didukung, misalnya 3 pcs = harga paket.</p>
-          </div>
-          <button class="pill" id="seedDataBtn">Reset Demo</button>
-        </div>
-        <div id="productList" class="product-list"></div>
+        <div id="productList" class="list"><div class="empty">Memuat branch stock...</div></div>
       </section>
 
       <section class="card">
         <div class="section-head">
           <div>
             <h3>Keranjang kasir</h3>
-            <p>Transaksi offline tersimpan lokal sampai Anda checkout.</p>
+            <p>Checkout akan update Firebase realtime.</p>
           </div>
-          <button class="pill" id="clearCartBtn">Kosongkan</button>
+          <button class="ghost" id="clearCartBtn">Kosongkan</button>
         </div>
-        <div id="cartList" class="cart-list"></div>
+        <div id="cartList" class="cart-list"><div class="empty">Keranjang masih kosong.</div></div>
         <div class="total-box">
           <div class="total-line"><span>Subtotal</span><span id="subtotalText">Rp 0</span></div>
-          <div class="total-line"><span>Diskon</span><span id="discountText">Rp 0</span></div>
+          <div class="total-line"><span>Diskon bundle</span><span id="discountText">Rp 0</span></div>
           <div class="total-line"><strong>Total</strong><strong id="grandTotalText">Rp 0</strong></div>
         </div>
         <div class="actions">
-          <button class="btn green" id="checkoutBtn">Checkout</button>
-          <button class="ghost" id="saveDraftBtn">Simpan Draft</button>
+          <button class="btn.green btn" id="checkoutBtn">Checkout Live</button>
+          <button class="ghost" id="refreshStockBtn">Refresh stok</button>
         </div>
       </section>
     </section>
@@ -198,76 +180,45 @@
       <section class="card">
         <div class="section-head">
           <div>
-            <h3>Riwayat transaksi cabang</h3>
-            <p>Hanya cabang ini. Cocok untuk admin cabang yang tidak boleh lihat toko lain.</p>
+            <h3>Riwayat transaksi live</h3>
+            <p>Langsung membaca <code>pos_branch_sales/{branchCode}</code>.</p>
           </div>
-          <button class="pill" id="clearHistoryBtn">Hapus Demo</button>
         </div>
-        <div id="historyList" class="history-list"></div>
+        <div id="historyList" class="history-list"><div class="empty">Belum ada transaksi cabang.</div></div>
       </section>
     </section>
 
-    <section class="page hidden" data-page="produk">
+    <section class="page hidden" data-page="stok">
       <section class="card">
         <div class="section-head">
           <div>
-            <h3>Stok cabang</h3>
-            <p>Tampilan read only untuk admin cabang. Stock opname tetap tugas admin pusat.</p>
+            <h3>Ringkasan stok cabang</h3>
+            <p>Read only untuk admin cabang. Stock opname tetap admin pusat.</p>
           </div>
         </div>
-        <div class="summary-list" id="stockList"></div>
+        <div id="stockList" class="list"><div class="empty">Belum ada data stok cabang.</div></div>
       </section>
     </section>
 
-    <section class="page hidden" data-page="ringkasan">
+    <section class="page hidden" data-page="setting">
       <section class="card">
         <div class="section-head">
           <div>
-            <h3>Ringkasan harian</h3>
-            <p>Laporan singkat penjualan offline cabang.</p>
-          </div>
-        </div>
-        <div class="grid2">
-          <div class="mini"><label>Penjualan cash</label><strong id="sumCash">Rp 0</strong></div>
-          <div class="mini"><label>Penjualan QRIS</label><strong id="sumQris">Rp 0</strong></div>
-          <div class="mini"><label>Penjualan transfer</label><strong id="sumTransfer">Rp 0</strong></div>
-          <div class="mini"><label>Rata-rata trx</label><strong id="avgSale">Rp 0</strong></div>
-        </div>
-        <div class="card" style="margin-top:14px;padding:14px;background:rgba(255,255,255,.03)">
-          <div class="section-head">
-            <div>
-              <h3>Produk terlaris</h3>
-              <p>Diambil dari histori transaksi lokal hari ini.</p>
-            </div>
-          </div>
-          <div id="bestSellerList" class="summary-list"></div>
-        </div>
-      </section>
-    </section>
-
-    <section class="page hidden" data-page="pengaturan">
-      <section class="card">
-        <div class="section-head">
-          <div>
-            <h3>Pengaturan cabang</h3>
-            <p>Semua data di modul ini disimpan di perangkat/browser saat ini.</p>
+            <h3>Pengaturan cabang live</h3>
+            <p>Pilih branch code yang dipakai device POS ini.</p>
           </div>
         </div>
         <div class="stack">
           <div>
-            <label class="label">Nama cabang</label>
-            <input class="field" id="branchNameInput" placeholder="Cabang Brebes Barat" />
-          </div>
-          <div>
-            <label class="label">Kode cabang</label>
-            <input class="field" id="branchCodeInput" placeholder="CBG-BRB-BARAT" />
+            <label class="label">Cabang aktif</label>
+            <select class="select" id="branchSelect"></select>
           </div>
           <div>
             <label class="label">Nama kasir default</label>
             <input class="field" id="cashierNameInput" placeholder="Admin Cabang" />
           </div>
           <button class="btn gold" id="saveSettingsBtn">Simpan Pengaturan</button>
-          <div class="footer-note">Tahap berikutnya bisa ditambah sinkron manual ke admin pusat dan transfer stok dari gudang.</div>
+          <div class="helper">Setelah ganti cabang, POS akan membaca <code>branch_stock/{branchCode}</code> yang baru.</div>
         </div>
       </section>
     </section>
@@ -276,9 +227,8 @@
   <nav class="bottom-nav" id="bottomNav">
     <button class="nav active" data-page-target="kasir">Kasir</button>
     <button class="nav" data-page-target="riwayat">Riwayat</button>
-    <button class="nav" data-page-target="produk">Produk</button>
-    <button class="nav" data-page-target="ringkasan">Ringkasan</button>
-    <button class="nav" data-page-target="pengaturan">Setting</button>
+    <button class="nav" data-page-target="stok">Stok</button>
+    <button class="nav" data-page-target="setting">Setting</button>
   </nav>
 
   <div class="overlay" id="overlay"></div>
@@ -287,12 +237,16 @@
     <div class="handle"></div>
     <div class="sheet-head">
       <div>
-        <h3>Checkout POS cabang</h3>
-        <p>Selesaikan transaksi offline dan stok cabang akan berkurang otomatis.</p>
+        <h3>Checkout cabang live</h3>
+        <p>Stok cabang akan berkurang langsung di Firebase saat transaksi disimpan.</p>
       </div>
       <button class="close" data-close-sheet>✕</button>
     </div>
     <div class="stack">
+      <div class="summary-box">
+        <label>Cabang aktif</label>
+        <p id="checkoutBranchText">-</p>
+      </div>
       <div>
         <label class="label">Nama pelanggan (opsional)</label>
         <input class="field" id="customerNameInput" placeholder="Pelanggan toko" />
@@ -313,95 +267,54 @@
         <label class="label">Catatan transaksi</label>
         <textarea class="area" id="saleNoteInput" placeholder="Contoh: pelanggan beli untuk stok mingguan"></textarea>
       </div>
-      <button class="btn green" id="confirmCheckoutBtn">Simpan Transaksi</button>
-    </div>
-  </section>
-
-  <section class="sheet" id="settingsSheet">
-    <div class="handle"></div>
-    <div class="sheet-head">
-      <div>
-        <h3>Export data cabang</h3>
-        <p>Download JSON histori transaksi lokal untuk rekap admin pusat.</p>
-      </div>
-      <button class="close" data-close-sheet>✕</button>
-    </div>
-    <div class="stack">
-      <div class="footer-note">Gunakan export ini untuk backup atau dikirim ke admin pusat. Import sinkron pusat bisa kita buat di tahap berikutnya.</div>
-      <button class="btn blue" id="downloadJsonBtn">Download JSON Transaksi</button>
-      <button class="ghost" id="downloadCsvBtn">Download CSV Ringkas</button>
+      <button class="btn green" id="confirmCheckoutBtn">Simpan Transaksi Live</button>
     </div>
   </section>
 
   <div class="toast" id="toast"></div>
 
-  <script>
-    const STORAGE_KEY = 'ej_pos_cabang_offline_v1';
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, onValue, get, update, push, set } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
 
-    const sampleProducts = [
-      {
-        id:'PRD-001',
-        name:'Tembakau Original 50g',
-        category:'Tembakau',
-        price:20000,
-        stock:18,
-        sku:'TBK-ORG-50',
-        bundles:[{qty:3, price:55000}]
-      },
-      {
-        id:'PRD-002',
-        name:'Tembakau Special Blend 50g',
-        category:'Tembakau',
-        price:25000,
-        stock:12,
-        sku:'TBK-SPC-50',
-        bundles:[{qty:3, price:70000}]
-      },
-      {
-        id:'PRD-003',
-        name:'Paper Roll Slim',
-        category:'Aksesoris',
-        price:8000,
-        stock:24,
-        sku:'PPR-SLM',
-        bundles:[{qty:5, price:35000}]
-      },
-      {
-        id:'PRD-004',
-        name:'Filter Premium',
-        category:'Aksesoris',
-        price:12000,
-        stock:16,
-        sku:'FLT-PRM',
-        bundles:[{qty:3, price:30000}]
-      },
-      {
-        id:'PRD-005',
-        name:'Paket Hemat 3 Item',
-        category:'Paket',
-        price:0,
-        stock:8,
-        sku:'PKT-HMT-3',
-        bundles:[{qty:1, price:50000}],
-        isPackage:true
-      }
-    ];
-
-    const initialState = {
-      branch:{name:'Cabang Brebes Barat', code:'CBG-BRB-BARAT', cashier:'Admin Cabang'},
-      products: sampleProducts,
-      cart: [],
-      sales: [],
-      draft: null
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+      authDomain: "ej-tobacco-store.firebaseapp.com",
+      databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ej-tobacco-store",
+      storageBucket: "ej-tobacco-store.firebasestorage.app",
+      messagingSenderId: "70458372662",
+      appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+      measurementId: "G-VCRFQSRB9H"
     };
 
-    const state = loadState();
+    const SETTINGS_KEY = 'ej_pos_cabang_live_settings_v1';
+    const DEFAULT_BRANCHES = {
+      'CBG-BRB-BARAT': { code:'CBG-BRB-BARAT', name:'Cabang Brebes Barat', type:'offline_branch' },
+      'CBG-BRB-TENGAH': { code:'CBG-BRB-TENGAH', name:'Cabang Brebes Tengah', type:'offline_branch' },
+      'CBG-BRB-TIMUR': { code:'CBG-BRB-TIMUR', name:'Cabang Brebes Timur', type:'offline_branch' }
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const state = {
+      currentPage:'kasir',
+      settings: loadSettings(),
+      branchProfilesRaw:{},
+      productsRaw:{},
+      branchStockRaw:{},
+      salesRaw:{},
+      cart:[]
+    };
 
     const els = {
       brandSub: document.getElementById('brandSub'),
       todaySales: document.getElementById('todaySales'),
       todayCount: document.getElementById('todayCount'),
       todayItems: document.getElementById('todayItems'),
+      productCount: document.getElementById('productCount'),
+      heroSub: document.getElementById('heroSub'),
       productSearch: document.getElementById('productSearch'),
       categoryFilter: document.getElementById('categoryFilter'),
       productList: document.getElementById('productList'),
@@ -411,17 +324,10 @@
       grandTotalText: document.getElementById('grandTotalText'),
       historyList: document.getElementById('historyList'),
       stockList: document.getElementById('stockList'),
-      sumCash: document.getElementById('sumCash'),
-      sumQris: document.getElementById('sumQris'),
-      sumTransfer: document.getElementById('sumTransfer'),
-      avgSale: document.getElementById('avgSale'),
-      bestSellerList: document.getElementById('bestSellerList'),
-      branchNameInput: document.getElementById('branchNameInput'),
-      branchCodeInput: document.getElementById('branchCodeInput'),
+      branchSelect: document.getElementById('branchSelect'),
       cashierNameInput: document.getElementById('cashierNameInput'),
       overlay: document.getElementById('overlay'),
-      checkoutSheet: document.getElementById('checkoutSheet'),
-      settingsSheet: document.getElementById('settingsSheet'),
+      checkoutBranchText: document.getElementById('checkoutBranchText'),
       customerNameInput: document.getElementById('customerNameInput'),
       paymentMethodInput: document.getElementById('paymentMethodInput'),
       paidAmountInput: document.getElementById('paidAmountInput'),
@@ -429,25 +335,18 @@
       toast: document.getElementById('toast')
     };
 
-    function loadState(){
+    function loadSettings(){
       try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return JSON.parse(JSON.stringify(initialState));
-        const parsed = JSON.parse(raw);
-        return {
-          branch: parsed.branch || JSON.parse(JSON.stringify(initialState.branch)),
-          products: parsed.products || JSON.parse(JSON.stringify(initialState.products)),
-          cart: parsed.cart || [],
-          sales: parsed.sales || [],
-          draft: parsed.draft || null
-        };
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if(!raw) return { branchCode:'CBG-BRB-BARAT', cashier:'Admin Cabang' };
+        return JSON.parse(raw);
       }catch(err){
-        return JSON.parse(JSON.stringify(initialState));
+        return { branchCode:'CBG-BRB-BARAT', cashier:'Admin Cabang' };
       }
     }
 
-    function saveState(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    function saveSettingsLocal(){
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
     }
 
     function showToast(message){
@@ -461,9 +360,8 @@
       return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value || 0);
     }
 
-    function nowKey(){
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    function todayKey(){
+      return new Date().toISOString().slice(0,10);
     }
 
     function openSheet(id){
@@ -478,18 +376,52 @@
     }
 
     function switchPage(page){
+      state.currentPage = page;
       document.querySelectorAll('.page').forEach(p=>p.classList.toggle('hidden', p.dataset.page !== page));
       document.querySelectorAll('.nav').forEach(btn=>btn.classList.toggle('active', btn.dataset.pageTarget === page));
     }
 
-    function getCategories(){
-      return [...new Set(state.products.map(p=>p.category))].sort();
+    function allBranches(){
+      const merged = { ...DEFAULT_BRANCHES };
+      Object.entries(state.branchProfilesRaw || {}).forEach(([code, row]) => {
+        merged[code] = { code, name: row.name || row.branchName || code, type: row.type || 'offline_branch' };
+      });
+      return Object.values(merged).filter(b => b.type !== 'pusat');
     }
 
-    function getFilteredProducts(){
+    function activeBranch(){
+      const code = state.settings.branchCode;
+      return allBranches().find(b => b.code === code) || { code, name: code };
+    }
+
+    function activeBranchStockMap(){
+      return state.branchStockRaw?.[state.settings.branchCode] || {};
+    }
+
+    function activeSalesMap(){
+      return state.salesRaw?.[state.settings.branchCode] || {};
+    }
+
+    function activeProducts(){
+      const stockMap = activeBranchStockMap();
+      return Object.entries(stockMap).map(([productId, row]) => {
+        const master = state.productsRaw?.[productId] || {};
+        return {
+          id: productId,
+          name: row.productName || master.name || `Produk ${productId}`,
+          sku: row.sku || master.sku || productId,
+          category: row.category || master.category || 'Umum',
+          price: Number(master.price || row.price || 0),
+          stock: Number(row.stock || 0),
+          bundles: Array.isArray(master.bundles) ? master.bundles : []
+        };
+      }).sort((a,b)=>a.name.localeCompare(b.name,'id'));
+    }
+
+    function filteredProducts(){
       const keyword = els.productSearch.value.trim().toLowerCase();
       const category = els.categoryFilter.value;
-      return state.products.filter(product => {
+      return activeProducts().filter(product => {
         const matchKeyword = !keyword || [product.name, product.sku, product.category].join(' ').toLowerCase().includes(keyword);
         const matchCategory = category === 'all' ? true : product.category === category;
         return matchKeyword && matchCategory;
@@ -499,17 +431,15 @@
     function calculateBestUnitPrice(product, qty){
       let unit = product.price || 0;
       let label = `1 pcs = ${formatCurrency(unit)}`;
-      if(product.bundles && product.bundles.length){
-        product.bundles.forEach(bundle => {
-          if(qty >= bundle.qty){
-            const bundleUnit = Math.round(bundle.price / bundle.qty);
-            if(bundleUnit < unit){
-              unit = bundleUnit;
-              label = `${bundle.qty} pcs = ${formatCurrency(bundle.price)}`;
-            }
+      (product.bundles || []).forEach(bundle => {
+        if(qty >= bundle.qty){
+          const bundleUnit = Math.round(bundle.price / bundle.qty);
+          if(unit === 0 || bundleUnit < unit){
+            unit = bundleUnit;
+            label = `${bundle.qty} pcs = ${formatCurrency(bundle.price)}`;
           }
-        });
-      }
+        }
+      });
       return { unit, label };
     }
 
@@ -520,35 +450,51 @@
     }
 
     function todaySalesOnly(){
-      return state.sales.filter(sale => sale.dateKey === nowKey());
+      return Object.values(activeSalesMap() || {}).filter(sale => sale.dateKey === todayKey());
     }
 
-    function renderHeader(){
-      els.brandSub.textContent = `${state.branch.name} • Offline ready • Kasir ${state.branch.cashier}`;
-      const sales = todaySalesOnly();
-      const total = sales.reduce((sum,sale)=>sum + sale.total, 0);
-      const count = sales.length;
-      const items = sales.reduce((sum,sale)=>sum + sale.items.reduce((n,item)=>n + item.qty, 0), 0);
+    function invoiceNo(){
+      return `POS-${state.settings.branchCode}-${Date.now().toString().slice(-6)}`;
+    }
+
+    function refreshHeader(){
+      const branch = activeBranch();
+      const todaySales = todaySalesOnly();
+      const total = todaySales.reduce((sum,sale)=>sum + Number(sale.total || 0), 0);
+      const trx = todaySales.length;
+      const items = todaySales.reduce((sum,sale)=>sum + Number(sale.itemCount || 0), 0);
+      const products = activeProducts();
+      els.brandSub.textContent = `${branch.name} • Live stock • Kasir ${state.settings.cashier}`;
       els.todaySales.textContent = formatCurrency(total);
-      els.todayCount.textContent = `${count} trx`;
+      els.todayCount.textContent = `${trx} trx`;
       els.todayItems.textContent = `${items} item`;
+      els.productCount.textContent = String(products.length);
+      els.heroSub.innerHTML = `Cabang aktif: <code>${branch.code}</code>. Checkout akan update <code>branch_stock/${branch.code}</code>.`;
     }
 
     function renderCategoryFilter(){
-      const categories = getCategories();
+      const categories = [...new Set(activeProducts().map(p=>p.category))].sort();
       const current = els.categoryFilter.value || 'all';
       els.categoryFilter.innerHTML = '<option value="all">Semua</option>' + categories.map(cat=>`<option value="${cat}">${cat}</option>`).join('');
       els.categoryFilter.value = categories.includes(current) ? current : 'all';
     }
 
+    function renderBranchSettings(){
+      const branches = allBranches();
+      const current = state.settings.branchCode;
+      els.branchSelect.innerHTML = branches.map(branch => `<option value="${branch.code}">${branch.name}</option>`).join('');
+      if(branches.some(b => b.code === current)) els.branchSelect.value = current;
+      els.cashierNameInput.value = state.settings.cashier;
+    }
+
     function renderProducts(){
-      const products = getFilteredProducts();
+      const products = filteredProducts();
       if(!products.length){
-        els.productList.innerHTML = '<div class="empty">Tidak ada produk cocok dengan pencarian.</div>';
+        els.productList.innerHTML = '<div class="empty">Belum ada produk di branch_stock cabang ini.</div>';
         return;
       }
       els.productList.innerHTML = products.map(product => {
-        const best = calculateBestUnitPrice(product, 3);
+        const previewBundle = calculateBestUnitPrice(product, 3);
         const low = product.stock <= 5;
         return `
           <article class="product">
@@ -559,13 +505,14 @@
               </div>
               <div class="badge-wrap">
                 <span class="badge stok">Stok ${product.stock}</span>
-                ${product.bundles?.length ? `<span class="badge paket">${best.label}</span>` : ''}
-                ${low ? `<span class="badge low">Stok menipis</span>` : ''}
+                ${product.bundles?.length ? `<span class="badge paket">${previewBundle.label}</span>` : ''}
+                <span class="badge live">Live</span>
+                ${low ? `<span class="badge low">Low stock</span>` : ''}
               </div>
             </div>
             <div class="chips">
-              <span class="chip">Harga normal ${formatCurrency(product.price || product.bundles?.[0]?.price || 0)}</span>
-              ${product.isPackage ? '<span class="chip">Produk paket</span>' : ''}
+              <span class="chip">Harga ${formatCurrency(product.price)}</span>
+              <span class="chip">Sumber: branch_stock</span>
             </div>
             <div class="actions">
               <button class="btn gold" data-add="${product.id}">Tambah 1</button>
@@ -606,24 +553,25 @@
     }
 
     function renderHistory(){
-      if(!state.sales.length){
-        els.historyList.innerHTML = '<div class="empty">Belum ada transaksi tersimpan.</div>';
+      const sales = Object.values(activeSalesMap() || {}).sort((a,b)=>(b.createdAt || 0) - (a.createdAt || 0));
+      if(!sales.length){
+        els.historyList.innerHTML = '<div class="empty">Belum ada transaksi cabang live.</div>';
         return;
       }
-      els.historyList.innerHTML = state.sales.slice().reverse().map(sale => `
+      els.historyList.innerHTML = sales.map(sale => `
         <article class="history-item">
           <div class="row">
             <div class="left-meta">
               <h4>${sale.invoiceNo}</h4>
-              <p>${sale.customerName || 'Pelanggan toko'} • ${sale.paymentMethod.toUpperCase()} • ${sale.time}</p>
+              <p>${sale.customerName || 'Pelanggan toko'} • ${String(sale.paymentMethod || '').toUpperCase()} • ${sale.time || '-'}</p>
             </div>
             <div class="badge-wrap">
-              <span class="badge ${sale.paymentMethod}">${formatCurrency(sale.total)}</span>
+              <span class="badge ${sale.paymentMethod || 'cash'}">${formatCurrency(sale.total)}</span>
             </div>
           </div>
           <div class="chips">
-            <span class="chip">${sale.items.reduce((n,i)=>n+i.qty,0)} item</span>
-            <span class="chip">Kasir ${sale.cashier}</span>
+            <span class="chip">${sale.itemCount || 0} item</span>
+            <span class="chip">Kasir ${sale.cashier || '-'}</span>
             <span class="chip">${sale.note || 'Tanpa catatan'}</span>
           </div>
         </article>
@@ -631,7 +579,12 @@
     }
 
     function renderStock(){
-      els.stockList.innerHTML = state.products.map(product => `
+      const products = activeProducts();
+      if(!products.length){
+        els.stockList.innerHTML = '<div class="empty">Belum ada stok cabang untuk branch ini.</div>';
+        return;
+      }
+      els.stockList.innerHTML = products.map(product => `
         <article class="product">
           <div class="row">
             <div class="left-meta">
@@ -640,74 +593,38 @@
             </div>
             <div class="badge-wrap">
               <span class="badge stok">${product.stock} pcs</span>
-              ${product.stock <= 5 ? '<span class="badge low">Perlu isi stok</span>' : ''}
+              <span class="badge live">Realtime</span>
+              ${product.stock <= 5 ? '<span class="badge low">Perlu suplai</span>' : ''}
             </div>
           </div>
           <div class="chips">
-            <span class="chip">Read only untuk cabang</span>
-            <span class="chip">Harga ${formatCurrency(product.price || product.bundles?.[0]?.price || 0)}</span>
+            <span class="chip">Read only cabang</span>
+            <span class="chip">Harga ${formatCurrency(product.price)}</span>
           </div>
         </article>
       `).join('');
     }
 
-    function renderSummary(){
-      const sales = todaySalesOnly();
-      const cash = sales.filter(s=>s.paymentMethod==='cash').reduce((sum,s)=>sum+s.total,0);
-      const qris = sales.filter(s=>s.paymentMethod==='qris').reduce((sum,s)=>sum+s.total,0);
-      const transfer = sales.filter(s=>s.paymentMethod==='transfer').reduce((sum,s)=>sum+s.total,0);
-      const total = sales.reduce((sum,s)=>sum+s.total,0);
-      els.sumCash.textContent = formatCurrency(cash);
-      els.sumQris.textContent = formatCurrency(qris);
-      els.sumTransfer.textContent = formatCurrency(transfer);
-      els.avgSale.textContent = formatCurrency(sales.length ? Math.round(total / sales.length) : 0);
-
-      const totalsByProduct = {};
-      sales.forEach(sale => sale.items.forEach(item => {
-        totalsByProduct[item.name] = (totalsByProduct[item.name] || 0) + item.qty;
-      }));
-      const best = Object.entries(totalsByProduct).sort((a,b)=>b[1]-a[1]).slice(0,5);
-      els.bestSellerList.innerHTML = best.length ? best.map(([name,qty], idx) => `
-        <article class="history-item">
-          <div class="row">
-            <div class="left-meta">
-              <h4>${idx + 1}. ${name}</h4>
-              <p>Terjual ${qty} pcs hari ini</p>
-            </div>
-            <div class="badge-wrap">
-              <span class="badge paket">${qty} pcs</span>
-            </div>
-          </div>
-        </article>
-      `).join('') : '<div class="empty">Belum ada data penjualan hari ini.</div>';
-    }
-
-    function renderSettings(){
-      els.branchNameInput.value = state.branch.name;
-      els.branchCodeInput.value = state.branch.code;
-      els.cashierNameInput.value = state.branch.cashier;
-    }
-
     function renderAll(){
-      renderHeader();
+      refreshHeader();
       renderCategoryFilter();
+      renderBranchSettings();
       renderProducts();
       renderCart();
       renderHistory();
       renderStock();
-      renderSummary();
-      renderSettings();
     }
 
     function updateCart(productId, addQty){
-      const product = state.products.find(p=>p.id===productId);
+      const product = activeProducts().find(p=>p.id===productId);
       if(!product) return;
       const existing = state.cart.find(item=>item.productId===productId);
       const currentQty = existing ? existing.qty : 0;
       const nextQty = currentQty + addQty;
       if(nextQty <= 0){
         state.cart = state.cart.filter(item=>item.productId!==productId);
-        saveState(); renderCart(); return;
+        renderCart();
+        return;
       }
       if(nextQty > product.stock){
         showToast('Stok cabang tidak cukup.');
@@ -725,46 +642,44 @@
         total,
         baseTotal
       };
-      if(existing){
-        Object.assign(existing, payload);
-      }else{
-        state.cart.push(payload);
-      }
-      saveState();
+      if(existing) Object.assign(existing, payload);
+      else state.cart.push(payload);
       renderCart();
       showToast(`${product.name} diperbarui di keranjang.`);
     }
 
-    function addProduct(productId, qty){
-      updateCart(productId, qty);
-    }
-
-    function invoiceNo(){
-      return `POS-${state.branch.code}-${Date.now().toString().slice(-6)}`;
-    }
-
-    function checkoutSale(){
-      if(!state.cart.length){
-        showToast('Keranjang masih kosong.');
-        return;
-      }
+    async function checkoutLive(){
+      if(!state.cart.length) return showToast('Keranjang masih kosong.');
       const totals = getCartTotals();
       const paymentMethod = els.paymentMethodInput.value;
       const paid = Number(els.paidAmountInput.value || 0);
-      if(!paid){
-        showToast('Masukkan nominal dibayar dulu.');
-        return;
-      }
-      if(paymentMethod === 'cash' && paid < totals.total){
-        showToast('Uang bayar kurang.');
-        return;
+      if(!paid) return showToast('Masukkan nominal dibayar dulu.');
+      if(paymentMethod === 'cash' && paid < totals.total) return showToast('Uang bayar kurang.');
+
+      const branch = activeBranch();
+      const branchCode = state.settings.branchCode;
+      const stockSnap = await get(ref(db, `branch_stock/${branchCode}`));
+      const liveStock = stockSnap.val() || {};
+
+      for(const item of state.cart){
+        const liveQty = Number(liveStock?.[item.productId]?.stock || 0);
+        if(item.qty > liveQty){
+          return showToast(`Stok ${item.name} berubah. Refresh stok dulu.`);
+        }
       }
 
+      const now = Date.now();
+      const dateKey = todayKey();
+      const saleId = 'SALE-' + now;
+      const invoice = invoiceNo();
       const sale = {
-        id: 'SALE-' + Date.now(),
-        invoiceNo: invoiceNo(),
-        dateKey: nowKey(),
-        time: new Date().toLocaleString('id-ID'),
+        id: saleId,
+        invoiceNo: invoice,
+        dateKey,
+        time: new Date(now).toLocaleString('id-ID'),
+        branchCode,
+        branchName: branch.name,
+        cashier: state.settings.cashier,
         customerName: els.customerNameInput.value.trim(),
         paymentMethod,
         paid,
@@ -773,80 +688,65 @@
         subtotal: totals.subtotal,
         discount: totals.discount,
         note: els.saleNoteInput.value.trim(),
-        cashier: state.branch.cashier,
-        branchName: state.branch.name,
-        branchCode: state.branch.code,
-        items: state.cart.map(item => ({...item}))
+        itemCount: state.cart.reduce((sum,item)=>sum + item.qty, 0),
+        items: state.cart.map(item=>({...item})),
+        createdAt: now
       };
 
-      sale.items.forEach(item => {
-        const product = state.products.find(p=>p.id===item.productId);
-        if(product) product.stock = Math.max(product.stock - item.qty, 0);
+      const dailySnap = await get(ref(db, `pos_branch_daily/${branchCode}/${dateKey}`));
+      const daily = dailySnap.val() || {
+        totalSales:0, transactionCount:0, itemsSold:0, cashSales:0, qrisSales:0, transferSales:0
+      };
+
+      const updates = {};
+      state.cart.forEach(item => {
+        const current = Number(liveStock?.[item.productId]?.stock || 0);
+        updates[`branch_stock/${branchCode}/${item.productId}/stock`] = current - item.qty;
+        updates[`branch_stock/${branchCode}/${item.productId}/updatedAt`] = now;
       });
 
-      state.sales.push(sale);
-      state.cart = [];
-      state.draft = null;
-      saveState();
-      closeSheets();
-      els.customerNameInput.value = '';
-      els.paidAmountInput.value = '';
-      els.saleNoteInput.value = '';
-      renderAll();
-      showToast(`Transaksi ${sale.invoiceNo} berhasil disimpan.`);
-      switchPage('riwayat');
-      document.querySelectorAll('.nav').forEach(btn=>btn.classList.toggle('active', btn.dataset.pageTarget === 'riwayat'));
-    }
-
-    function saveDraft(){
-      state.draft = {
-        cart: state.cart.map(item=>({...item})),
-        savedAt: new Date().toLocaleString('id-ID')
+      updates[`pos_branch_sales/${branchCode}/${saleId}`] = sale;
+      updates[`pos_branch_daily/${branchCode}/${dateKey}`] = {
+        totalSales: Number(daily.totalSales || 0) + sale.total,
+        transactionCount: Number(daily.transactionCount || 0) + 1,
+        itemsSold: Number(daily.itemsSold || 0) + sale.itemCount,
+        cashSales: Number(daily.cashSales || 0) + (paymentMethod === 'cash' ? sale.total : 0),
+        qrisSales: Number(daily.qrisSales || 0) + (paymentMethod === 'qris' ? sale.total : 0),
+        transferSales: Number(daily.transferSales || 0) + (paymentMethod === 'transfer' ? sale.total : 0),
+        branchCode,
+        branchName: branch.name,
+        updatedAt: now
       };
-      saveState();
-      showToast('Draft keranjang berhasil disimpan.');
-    }
+      updates[`pos_branch_latest/${branchCode}`] = {
+        branchCode,
+        branchName: branch.name,
+        lastSyncAt: now,
+        totalTransactions: Object.keys(activeSalesMap() || {}).length + 1,
+        totalSalesAllTime: Object.values(activeSalesMap() || {}).reduce((sum,row)=>sum + Number(row.total || 0), 0) + sale.total,
+        source: 'live_pos'
+      };
+      const logId = push(ref(db, 'audit_logs')).key;
+      updates[`audit_logs/${logId}`] = {
+        title: `POS live ${branchCode}`,
+        note: `${invoice} • ${sale.itemCount} item • ${formatCurrency(sale.total)}`,
+        actorType: 'admin_cabang',
+        actorId: branchCode,
+        createdAt: now
+      };
 
-    function resetDemo(){
-      const fresh = JSON.parse(JSON.stringify(initialState));
-      state.branch = fresh.branch;
-      state.products = fresh.products;
-      state.cart = [];
-      state.sales = [];
-      state.draft = null;
-      saveState();
-      renderAll();
-      showToast('Demo POS cabang direset.');
-    }
-
-    function downloadFile(filename, content, type){
-      const blob = new Blob([content], {type});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function exportJson(){
-      downloadFile(`ej-pos-${state.branch.code}-${nowKey()}.json`, JSON.stringify({
-        exportedAt: new Date().toISOString(),
-        branch: state.branch,
-        sales: state.sales
-      }, null, 2), 'application/json');
-      showToast('JSON transaksi berhasil didownload.');
-    }
-
-    function exportCsv(){
-      const rows = [['invoiceNo','dateKey','time','branchCode','branchName','cashier','customerName','paymentMethod','total','paid','change','note']];
-      state.sales.forEach(sale => rows.push([
-        sale.invoiceNo, sale.dateKey, sale.time, sale.branchCode, sale.branchName, sale.cashier,
-        sale.customerName || '', sale.paymentMethod, sale.total, sale.paid, sale.change, (sale.note || '').replace(/,/g,' ')
-      ]));
-      const csv = rows.map(row => row.join(',')).join('\n');
-      downloadFile(`ej-pos-${state.branch.code}-${nowKey()}.csv`, csv, 'text/csv');
-      showToast('CSV ringkas berhasil didownload.');
+      try{
+        await update(ref(db), updates);
+        state.cart = [];
+        closeSheets();
+        els.customerNameInput.value = '';
+        els.paidAmountInput.value = '';
+        els.saleNoteInput.value = '';
+        showToast(`Transaksi ${invoice} berhasil disimpan live.`);
+        switchPage('riwayat');
+      }catch(err){
+        console.error('CHECKOUT_LIVE_FAILED', err);
+        showToast('Gagal simpan transaksi live.');
+      }
     }
 
     function setupEvents(){
@@ -854,23 +754,17 @@
         const btn = e.target.closest('[data-page-target]');
         if(!btn) return;
         switchPage(btn.dataset.pageTarget);
-        document.querySelectorAll('.nav').forEach(item=>item.classList.toggle('active', item === btn));
       });
-
-      els.productSearch.addEventListener('input', renderProducts);
-      els.categoryFilter.addEventListener('change', renderProducts);
-      els.overlay.addEventListener('click', closeSheets);
-      document.querySelectorAll('[data-close-sheet]').forEach(btn => btn.addEventListener('click', closeSheets));
 
       document.body.addEventListener('click', e => {
         const add = e.target.closest('[data-add]');
-        if(add) return addProduct(add.dataset.add, 1);
+        if(add) return updateCart(add.dataset.add, 1);
 
         const add3 = e.target.closest('[data-add3]');
         if(add3){
-          const product = state.products.find(p=>p.id===add3.dataset.add3);
+          const product = activeProducts().find(p=>p.id===add3.dataset.add3);
           const bundleQty = product?.bundles?.[0]?.qty || 3;
-          return addProduct(add3.dataset.add3, bundleQty);
+          return updateCart(add3.dataset.add3, bundleQty);
         }
 
         const plus = e.target.closest('[data-plus]');
@@ -882,39 +776,65 @@
         const remove = e.target.closest('[data-remove]');
         if(remove){
           state.cart = state.cart.filter(item=>item.productId !== remove.dataset.remove);
-          saveState(); renderCart(); return;
+          renderCart();
         }
       });
 
-      document.getElementById('newSaleBtn').addEventListener('click', () => switchPage('kasir'));
-      document.getElementById('openHistoryBtn').addEventListener('click', () => {
-        switchPage('riwayat');
-        document.querySelectorAll('.nav').forEach(btn=>btn.classList.toggle('active', btn.dataset.pageTarget === 'riwayat'));
+      els.productSearch.addEventListener('input', renderProducts);
+      els.categoryFilter.addEventListener('change', renderProducts);
+      els.overlay.addEventListener('click', closeSheets);
+      document.querySelectorAll('[data-close-sheet]').forEach(btn => btn.addEventListener('click', closeSheets));
+
+      document.getElementById('checkoutBtn').addEventListener('click', () => {
+        els.checkoutBranchText.textContent = `${activeBranch().name} • ${state.settings.branchCode}`;
+        const totals = getCartTotals();
+        els.paidAmountInput.value = totals.total || '';
+        openSheet('checkoutSheet');
       });
-      document.getElementById('checkoutBtn').addEventListener('click', () => openSheet('checkoutSheet'));
-      document.getElementById('confirmCheckoutBtn').addEventListener('click', checkoutSale);
-      document.getElementById('saveDraftBtn').addEventListener('click', saveDraft);
+
+      document.getElementById('confirmCheckoutBtn').addEventListener('click', checkoutLive);
       document.getElementById('clearCartBtn').addEventListener('click', () => {
-        state.cart = []; saveState(); renderCart(); showToast('Keranjang dikosongkan.');
+        state.cart = [];
+        renderCart();
+        showToast('Keranjang dikosongkan.');
       });
-      document.getElementById('seedDataBtn').addEventListener('click', resetDemo);
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-        state.sales = []; saveState(); renderAll(); showToast('Riwayat demo dihapus.');
+      document.getElementById('refreshStockBtn').addEventListener('click', () => {
+        renderAll();
+        showToast('Stok cabang direfresh.');
       });
+      document.getElementById('openSettingsBtn').addEventListener('click', () => switchPage('setting'));
       document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-        state.branch.name = els.branchNameInput.value.trim() || state.branch.name;
-        state.branch.code = els.branchCodeInput.value.trim() || state.branch.code;
-        state.branch.cashier = els.cashierNameInput.value.trim() || state.branch.cashier;
-        saveState(); renderHeader(); showToast('Pengaturan cabang disimpan.');
+        state.settings.branchCode = els.branchSelect.value || state.settings.branchCode;
+        state.settings.cashier = els.cashierNameInput.value.trim() || 'Admin Cabang';
+        state.cart = [];
+        saveSettingsLocal();
+        renderAll();
+        showToast('Pengaturan cabang live disimpan.');
       });
-      document.getElementById('openSettingsBtn').addEventListener('click', () => switchPage('pengaturan'));
-      document.getElementById('exportBtn').addEventListener('click', () => openSheet('settingsSheet'));
-      document.getElementById('downloadJsonBtn').addEventListener('click', exportJson);
-      document.getElementById('downloadCsvBtn').addEventListener('click', exportCsv);
     }
 
-    renderAll();
+    onValue(ref(db, 'branch_profiles'), snap => {
+      state.branchProfilesRaw = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'products'), snap => {
+      state.productsRaw = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'branch_stock'), snap => {
+      state.branchStockRaw = snap.val() || {};
+      renderAll();
+    });
+
+    onValue(ref(db, 'pos_branch_sales'), snap => {
+      state.salesRaw = snap.val() || {};
+      renderAll();
+    });
+
     setupEvents();
+    renderAll();
   </script>
 </body>
 </html>
