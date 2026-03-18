@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script>
-document.documentElement.style.visibility = 'hidden';
-window.EJ_ROLE_GUARD = { allowedRoles: ['kurir', 'admin_pusat'], loginUrl: '../portal/', fallbackHome: '../' };
-</script>
-<script type="module" src="../assets/ej_role_guard.js"></script>
-<script>window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };</script>
-<script type="module" src="../assets/ej_session_badge.js"></script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>EJ Kurir Pickup V2</title>
+
+  <script>
+  document.documentElement.style.visibility = 'hidden';
+  window.EJ_ROLE_GUARD = {
+    allowedRoles: ['kurir', 'admin_pusat'],
+    loginUrl: '../portal/',
+    fallbackHome: '../'
+  };
+  </script>
+  <script type="module" src="../assets/ej_role_guard.js"></script>
+
+  <script>
+  window.EJ_SESSION_BADGE = {
+    loginUrl: '../portal/'
+  };
+  </script>
+  <script src="../assets/ej_session_badge.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -168,23 +178,6 @@ window.EJ_ROLE_GUARD = { allowedRoles: ['kurir', 'admin_pusat'], loginUrl: '../p
       .badge-stack{justify-content:flex-start}.order-top{flex-direction:column}
     }
   </style>
-
-<script>
-document.documentElement.style.visibility = 'hidden';
-window.EJ_ROLE_GUARD = {
-  allowedRoles: ['kurir', 'admin_pusat'],
-  loginUrl: '../portal/',
-  fallbackHome: '../'
-};
-</script>
-<script type="module" src="../assets/ej_role_guard.js"></script>
-
-<script>
-window.EJ_SESSION_BADGE = {
-  loginUrl: '../portal/'
-};
-</script>
-<script src="../assets/ej_session_badge.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -617,6 +610,56 @@ window.EJ_SESSION_BADGE = {
       }
     };
 
+    const roleSession = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('ej_role_session_v1') || 'null');
+      } catch (e) {
+        return null;
+      }
+    })();
+
+    function normalizeText(value = '') {
+      return String(value).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function isAdminPusatMode() {
+      return roleSession?.role === 'admin_pusat';
+    }
+
+    function getDisplayCourierName() {
+      if (isAdminPusatMode()) return 'Admin Pusat';
+      return state.currentCourierName || roleSession?.name || 'Belum pilih kurir';
+    }
+
+    function syncCourierFromRoleSession() {
+      if (roleSession?.role !== 'kurir') return;
+      if (state.currentCourierId && state.couriers[state.currentCourierId]) return;
+
+      const sessionName = normalizeText(roleSession?.name || '');
+      const sessionId = normalizeText(roleSession?.id || '');
+      const sessionUsername = normalizeText(roleSession?.username || '');
+
+      const found = Object.entries(state.couriers || {}).find(([id, courier]) => {
+        const key = normalizeText(id);
+        const name = normalizeText(courier?.name || '');
+        return (
+          (sessionName && name === sessionName) ||
+          (sessionId && key.includes(sessionId)) ||
+          (sessionUsername && (key.includes(sessionUsername) || name.includes(sessionUsername)))
+        );
+      });
+
+      if (found) {
+        state.currentCourierId = found[0];
+        state.currentCourierName = found[1]?.name || roleSession?.name || '';
+        localStorage.setItem('ej_active_courier_id', state.currentCourierId);
+        localStorage.setItem('ej_active_courier_name', state.currentCourierName);
+      } else if (!state.currentCourierName && roleSession?.name) {
+        state.currentCourierName = roleSession.name;
+        localStorage.setItem('ej_active_courier_name', state.currentCourierName);
+      }
+    }
+
     const els = {
       orderList: document.getElementById('orderList'),
       routeList: document.getElementById('routeList'),
@@ -643,9 +686,9 @@ window.EJ_SESSION_BADGE = {
       routeStopCount: document.getElementById('routeStopCount'),
       topArea: document.getElementById('topArea'),
       zonaUtama: document.getElementById('zonaUtama'),
+      courierNameCard: document.getElementById('courierNameCard'),
       shiftStatusText: document.getElementById('shiftStatusText'),
       courierSelect: document.getElementById('courierSelect'),
-      courierNameCard: document.getElementById('courierNameCard'),
       pickupReadyCard: document.getElementById('pickupReadyCard'),
       listTitle: document.getElementById('listTitle'),
       listSub: document.getElementById('listSub'),
@@ -774,19 +817,24 @@ window.EJ_SESSION_BADGE = {
     }
 
     function ensureCourierSelection() {
+      syncCourierFromRoleSession();
+
       const entries = Object.entries(state.couriers || {}).filter(([, courier]) => courier.isActive !== false);
+
       if (!entries.length) {
         els.courierSelect.innerHTML = '<option value="">Belum ada kurir aktif</option>';
         state.currentCourierId = '';
-        state.currentCourierName = '';
+        state.currentCourierName = roleSession?.role === 'kurir' ? (roleSession.name || '') : '';
         localStorage.removeItem('ej_active_courier_id');
-        localStorage.removeItem('ej_active_courier_name');
+        localStorage.setItem('ej_active_courier_name', state.currentCourierName || '');
         return;
       }
+
       if (!state.currentCourierId || !state.couriers[state.currentCourierId]) {
         state.currentCourierId = entries[0][0];
         state.currentCourierName = entries[0][1].name || '';
       }
+
       els.courierSelect.innerHTML = entries.map(([id, courier]) => `<option value="${id}">${courier.name} • ${courier.phone || '-'}</option>`).join('');
       els.courierSelect.value = state.currentCourierId;
       state.currentCourierName = state.couriers[state.currentCourierId]?.name || '';
@@ -1211,10 +1259,17 @@ window.EJ_SESSION_BADGE = {
       els.totalCOD.textContent = formatCurrency(summary.cod);
       els.totalPengeluaran.textContent = formatCurrency(summary.expense);
       els.setoranHariIni.textContent = formatCurrency(summary.sisa);
-      els.heroSub.textContent = state.currentCourierId
-        ? 'Pickup dari gudang, antar ke customer, dan closing kas realtime.'
-        : 'Pilih kurir aktif di menu akun agar tugas pickup muncul.';
-      els.courierNameCard.textContent = state.currentCourierName || '-';
+
+      if (isAdminPusatMode()) {
+        els.heroSub.textContent = 'Mode pantau admin pusat untuk operasional pickup gudang.';
+      } else {
+        els.heroSub.textContent = state.currentCourierId
+          ? 'Pickup dari gudang, antar ke customer, dan closing kas realtime.'
+          : 'Pilih kurir aktif di menu akun agar tugas pickup muncul.';
+      }
+
+      els.courierNameCard.textContent = getDisplayCourierName();
+      els.shiftStatusText.textContent = isAdminPusatMode() ? 'Mode Pantau' : 'On Duty';
       els.pickupReadyCard.textContent = `${counts.pickup} order`;
     }
 
@@ -1251,9 +1306,17 @@ window.EJ_SESSION_BADGE = {
 
     function updateNetworkUI() {
       const online = state.online && navigator.onLine;
+      const displayName = getDisplayCourierName();
+
       els.networkDot.classList.toggle('offline', !online);
       els.networkLabel.textContent = online ? 'Sistem online' : 'Mode offline';
-      els.brandSub.textContent = `${state.currentCourierName || 'Belum pilih kurir'} • ${online ? 'Sistem online' : 'Mode offline'} • Gudang pickup aktif`;
+
+      if (isAdminPusatMode()) {
+        els.brandSub.textContent = `Admin Pusat • Mode pantau • ${online ? 'Sistem online' : 'Mode offline'}`;
+      } else {
+        els.brandSub.textContent = `${displayName} • ${online ? 'Sistem online' : 'Mode offline'} • Gudang pickup aktif`;
+      }
+
       els.onlineSwitch.classList.toggle('active', state.online);
       els.waSwitch.classList.toggle('active', state.waAuto);
       els.gpsSwitch.classList.toggle('active', state.gpsOn);
@@ -1506,7 +1569,8 @@ window.EJ_SESSION_BADGE = {
 
     function renderCourierSelect() {
       ensureCourierSelection();
-      els.courierNameCard.textContent = state.currentCourierName || '-';
+      els.courierNameCard.textContent = getDisplayCourierName();
+      els.shiftStatusText.textContent = isAdminPusatMode() ? 'Mode Pantau' : 'On Duty';
       renderSummary();
       updateNetworkUI();
     }
@@ -1547,6 +1611,10 @@ window.EJ_SESSION_BADGE = {
     }
 
     function renderAll() {
+      syncCourierFromRoleSession();
+      if (els.courierNameCard) {
+        els.courierNameCard.textContent = getDisplayCourierName();
+      }
       renderTabs();
       renderOrders();
       renderRoutePage();
