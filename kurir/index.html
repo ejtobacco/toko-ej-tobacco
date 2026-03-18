@@ -160,6 +160,15 @@
       .badge-stack{justify-content:flex-start}.order-top{flex-direction:column}
     }
   </style>
+<script>
+document.documentElement.style.visibility = 'hidden';
+window.EJ_ROLE_GUARD = {
+  allowedRoles: ['kurir', 'admin_pusat'],
+  loginUrl: '../portal/',
+  fallbackHome: '../'
+};
+</script>
+<script type="module" src="../assets/ej_role_guard.js"></script>
 </head>
 <body>
   <div class="app-shell">
