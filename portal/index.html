@@ -209,11 +209,11 @@
 
     const SESSION_KEY = 'ej_role_session_v1';
     const ROLE_TARGETS = {
-      admin_pusat: './',
-      admin_cabang: './pos-cabang/',
-      kurir: './kurir/',
-      customer: './customer/'
-    };
+  admin_pusat: '../',
+  admin_cabang: '../pos-cabang/',
+  kurir: '../kurir/',
+  customer: '../customer/'
+};
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
