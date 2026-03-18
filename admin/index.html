@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script>
+document.documentElement.style.visibility = 'hidden';
+window.EJ_ROLE_GUARD = { allowedRoles: ['admin_pusat'], loginUrl: '../portal/', fallbackHome: '../' };
+</script>
+<script type="module" src="../assets/ej_role_guard.js"></script>
+<script>window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };</script>
+<script type="module" src="../assets/ej_session_badge.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
   <title>EJ Admin Realtime Timeline Final</title>
@@ -111,15 +119,6 @@
     .nav.active{background:rgba(212,175,55,.12);color:var(--gold2)}
     @media (max-width:390px){body{padding:14px}.stats,.grid2,.actions,.mini-grid,.search-grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.row-top{flex-direction:column}.badges{justify-content:flex-start}.bottom-nav{grid-template-columns:repeat(3,1fr)}}
   </style>
-<script>
-document.documentElement.style.visibility = 'hidden';
-window.EJ_ROLE_GUARD = {
-  allowedRoles: ['admin_pusat'],
-  loginUrl: '../portal/',
-  fallbackHome: '../'
-};
-</script>
-<script type="module" src="../assets/ej_role_guard.js"></script>
 </head>
 <body>
   <div class="app">
