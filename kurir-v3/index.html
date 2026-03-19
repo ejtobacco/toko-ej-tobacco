@@ -453,7 +453,7 @@
       setoranRaw: {},
       logsRaw: {},
       reasonTemplates: {
-        Proses: ['Kurir menuju lokasi', 'Paket sudah dibawa', 'Sedang antri kirim', 'Sudah konfirmasi pelanggan'],
+        Proses: ['Kurir menuju lokasi', 'Paket sudah dibawa', 'Sudah mulai antar', 'Sudah konfirmasi customer'],
         Tunda: ['Rumah kosong', 'Pelanggan minta sore', 'Akses jalan tertutup', 'Cuaca tidak mendukung'],
         Gagal: ['Alamat tidak ditemukan', 'Nomor tidak aktif', 'Pelanggan batal', 'Pembayaran kurang'],
         Selesai: ['Diterima keluarga', 'Diterima security', 'COD lunas', 'Paket sesuai pesanan'],
@@ -517,6 +517,7 @@
       recipientInput: document.getElementById('recipientInput'),
       receivedInput: document.getElementById('receivedInput'),
       proofNote: document.getElementById('proofNote'),
+      proofPhotoInput: document.getElementById('proofPhotoInput'),
       expenseType: document.getElementById('expenseType'),
       expenseAmount: document.getElementById('expenseAmount'),
       expenseNote: document.getElementById('expenseNote'),
@@ -708,10 +709,9 @@
     }
 
     function mapUiStatus(status) {
-      if (status === 'ready_in_warehouse') return 'Siap di Gudang';
+      if (status === 'ready_in_warehouse') return 'Gudang';
       if (['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(status)) return 'Proses';
-      if (status === 'delivered') return 'Terkirim';
-      if (status === 'returned_to_warehouse') return 'Kembali ke Gudang';
+      if (['delivered', 'failed_delivery', 'returned_to_warehouse'].includes(status)) return 'Selesai';
       return 'Gagal';
     }
 
@@ -753,13 +753,18 @@
           eta: shipment.etaMinutes || Math.max(12, Math.round(Math.max(distanceKm || 1, 1) * 4)),
           area: areaFromAddress(order.fullAddress || ''),
           address: order.fullAddress || '-',
+          mapLink: order.mapLink || order.customerMapLink || shipment.mapLink || '',
+          mapPoint: order.mapPoint || shipment.mapPoint || null,
           proof: shipment.proofDelivery ? {
             recipient: shipment.proofDelivery.recipientName || '-',
             note: shipment.proofDelivery.note || '-',
             location: shipment.proofDelivery.gps ? 'GPS tersimpan' : 'GPS tidak tersedia',
-            time: shipment.proofDelivery.deliveredAtLabel || '-'
+            time: shipment.proofDelivery.deliveredAtLabel || '-',
+            photoName: shipment.proofDelivery.photoName || '',
+            photoDataUrl: shipment.proofDelivery.photoDataUrl || ''
           } : null,
-          archived: order.status === 'returned_to_warehouse',
+          trackingEnabled: !!shipment.trackingEnabled,
+          archived: ['returned_to_warehouse','delivered','failed_delivery'].includes(order.status),
           pickupCode,
           courierId: order.courierId || shipment.courierId || '',
           courierName: order.courierName || shipment.courierName || '',
@@ -768,7 +773,7 @@
           createdAt: Number(order.createdAt || 0),
           raw: order
         };
-      }).filter(order => order.raw.shippingType === 'internal');
+      }).filter(order => ['internal', 'internal_courier', 'kurir_toko'].includes(order.raw.shippingType || 'internal'));
     }
 
     function getScopedOrders() {
@@ -790,15 +795,15 @@
       return orders;
     }
 
-    function getActiveOrders() { return getScopedOrders().filter(order => ['Gudang', 'Proses'].includes(order.uiStatus)); }
+    function getActiveOrders() { return getScopedOrders().filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)); }
 
     function getCounts() {
       const activeOrders = getScopedOrders().filter(order => !order.archived);
       return {
         all: activeOrders.length,
-        Gudang: activeOrders.filter(order => order.uiStatus === 'Gudang').length,
-        Proses: activeOrders.filter(order => order.uiStatus === 'Proses').length,
-        Selesai: activeOrders.filter(order => order.uiStatus === 'Selesai').length
+        Gudang: activeOrders.filter(order => order.status === 'ready_in_warehouse').length,
+        Proses: activeOrders.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)).length,
+        Selesai: getScopedOrders().filter(order => ['delivered', 'failed_delivery', 'returned_to_warehouse'].includes(order.status)).length
       };
     }
 
@@ -809,7 +814,7 @@
       const expense = expenseItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const todayClosing = state.currentCourierId && state.currentCourierId !== '__all__' ? ((state.setoranRaw[state.currentCourierId] || {})[todayKey()] || {}) : {};
       const setor = Number(todayClosing.amountSetor || 0);
-      return { cod, expense, setor, sisa: Math.max(cod - expense, 0), expenseItems };
+      return { cod, expense, setor, sisa: Math.max(cod - expense - setor, 0), expenseItems };
     }
 
     function addTimelinePreview(orderId) {
@@ -862,11 +867,12 @@
       els.orderList.innerHTML = orders.map((order, index) => {
         const timelinePreview = addTimelinePreview(order.id);
         const paymentGap = getPaymentGap(order);
-        const proofBlock = order.proof ? `<div class="proof-highlight"><strong><i class="fa-solid fa-badge-check"></i> Bukti tersimpan • ${order.proof.recipient}</strong><p>${order.proof.note} • ${order.proof.location} • ${order.proof.time}</p></div>` : '';
+        const proofBlock = order.proof ? `<div class="proof-highlight"><strong><i class="fa-solid fa-badge-check"></i> Bukti tersimpan • ${order.proof.recipient}</strong><p>${order.proof.note} • ${order.proof.location} • ${order.proof.time}${order.proof.photoName ? ` • ${order.proof.photoName}` : ''}</p></div>` : '';
         let proofButton = `<button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-receipt"></i> Lihat bukti</button>`;
-        if (['picked_by_courier', 'on_the_way', 'delivery_delayed', 'failed_delivery'].includes(order.status)) proofButton = `<button class="action-btn action-green" data-proof="${order.id}"><i class="fa-solid fa-camera"></i> Selesai</button>`;
-        if (order.status === 'ready_in_warehouse') proofButton = `<button class="action-btn action-purple" data-claim="${order.id}"><i class="fa-solid fa-box-open"></i> Pickup</button>`;
-        return `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-grip-lines"></i> Stop ${index + 1} • ${order.area}</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-box"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>#${order.code} • ${order.payment === 'COD' ? 'COD ' + formatCurrency(order.cod) : 'Transfer'} • ${order.time}</p></div></div><div class="badge-stack"><span class="badge ${statusBadgeClass(order.statusText)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusText}</span><span class="badge ${order.payment === 'COD' ? 'cod' : 'transfer'}"><i class="fa-solid fa-wallet"></i> ${order.payment}</span>${order.urgent ? '<span class="badge urgent"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}</div></div><div class="eta-row"><span class="eta-chip"><i class="fa-solid fa-location-dot"></i> ${order.area}</span><span class="eta-chip"><i class="fa-solid fa-clock"></i> ETA ${order.eta} menit</span><span class="eta-chip"><i class="fa-solid fa-phone"></i> ${order.phone || '-'}</span>${order.pickupCode ? `<span class="eta-chip"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span>` : ''}${order.bagLabel ? `<span class="eta-chip"><i class="fa-solid fa-briefcase"></i> ${order.bagLabel}</span>` : ''}${paymentGap ? `<span class="eta-chip"><i class="fa-solid fa-money-bill-wave"></i> Kurang ${formatCurrency(paymentGap)}</span>` : ''}</div><div class="premium-progress"><div class="progress-label"><span>Progress operasional</span><span>${getOrderProgress(order)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${getOrderProgress(order)}%"></div></div></div>${order.pickupCode ? `<div class="pickup-box"><label>Pickup code</label><p><span class="pickup-code"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span></p></div>` : ''}<div class="address-box"><label>Alamat pengiriman</label><p>${order.address}</p></div>${proofBlock}<div class="timeline-summary"><label>Timeline terakhir</label><div class="timeline-preview">${timelinePreview || '<p class="muted-line">Belum ada preview timeline.</p>'}</div></div><div class="order-actions"><button class="action-btn action-blue" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> WA Customer</button><button class="action-btn action-green" data-map="${order.id}"><i class="fa-solid fa-map-location-dot"></i> Buka Map</button>${proofButton}<button class="action-btn action-amber" data-status="${order.id}"><i class="fa-solid fa-pen-to-square"></i> Update</button></div><div class="action-row-full"><button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button><button class="action-btn action-danger" data-archive="${order.id}"><i class="fa-solid fa-box-archive"></i> ${order.archived ? 'Pulihkan' : 'Arsipkan'}</button></div></div></article>`;
+        if (['on_the_way', 'delivery_delayed', 'failed_delivery'].includes(order.status)) proofButton = `<button class="action-btn action-green" data-proof="${order.id}"><i class="fa-solid fa-camera"></i> Upload Bukti</button>`;
+        if (order.status === 'picked_by_courier') proofButton = `<button class="action-btn action-purple" data-start="${order.id}"><i class="fa-solid fa-motorcycle"></i> Mulai Antar</button>`;
+        if (order.status === 'ready_in_warehouse') proofButton = `<button class="action-btn action-purple" data-claim="${order.id}"><i class="fa-solid fa-box-open"></i> Ambil ke Tas</button>`;
+        return `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-grip-lines"></i> Stop ${index + 1} • ${order.area}</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-box"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>#${order.code} • ${order.payment === 'COD' ? 'COD ' + formatCurrency(order.cod) : 'Transfer'} • ${order.time}</p></div></div><div class="badge-stack"><span class="badge ${statusBadgeClass(order.statusText)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusText}</span><span class="badge ${order.payment === 'COD' ? 'cod' : 'transfer'}"><i class="fa-solid fa-wallet"></i> ${order.payment}</span>${order.urgent ? '<span class="badge urgent"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}</div></div><div class="eta-row"><span class="eta-chip"><i class="fa-solid fa-location-dot"></i> ${order.area}</span><span class="eta-chip"><i class="fa-solid fa-clock"></i> ETA ${order.eta} menit</span><span class="eta-chip"><i class="fa-solid fa-phone"></i> ${order.phone || '-'}</span>${order.pickupCode ? `<span class="eta-chip"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span>` : ''}${order.bagLabel ? `<span class="eta-chip"><i class="fa-solid fa-briefcase"></i> ${order.bagLabel}</span>` : ''}${paymentGap ? `<span class="eta-chip"><i class="fa-solid fa-money-bill-wave"></i> Kurang ${formatCurrency(paymentGap)}</span>` : ''}</div><div class="premium-progress"><div class="progress-label"><span>Progress operasional</span><span>${getOrderProgress(order)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${getOrderProgress(order)}%"></div></div></div>${order.pickupCode ? `<div class="pickup-box"><label>Pickup code</label><p><span class="pickup-code"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span></p></div>` : ''}<div class="address-box"><label>Alamat pengiriman</label><p>${order.address}</p></div>${proofBlock}<div class="timeline-summary"><label>Timeline terakhir</label><div class="timeline-preview">${timelinePreview || '<p class="muted-line">Belum ada preview timeline.</p>'}</div></div><div class="order-actions"><button class="action-btn action-blue" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> WA Customer</button><button class="action-btn action-green" data-map="${order.id}"><i class="fa-solid fa-map-location-dot"></i> Buka Map</button>${proofButton}<button class="action-btn action-amber" data-status="${order.id}"><i class="fa-solid fa-pen-to-square"></i> Update Status</button></div><div class="action-row-full"><button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button><button class="action-btn action-danger" data-archive="${order.id}"><i class="fa-solid fa-box-archive"></i> ${order.archived ? 'Pulihkan' : 'Arsipkan'}</button></div></div></article>`;
       }).join('');
     }
 
@@ -878,7 +884,7 @@
       const topArea = Object.entries(areas).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
       els.topArea.textContent = topArea;
       if (!active.length) { els.routeList.innerHTML = '<div class="empty-state">Belum ada tugas aktif. Lakukan pickup dari gudang agar order masuk ke daftar pengantaran.</div>'; return; }
-      els.routeList.innerHTML = active.map((order, index) => `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-route"></i> Prioritas rute • ${order.eta} menit</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-location-arrow"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>${order.area} • ${order.statusText} • ${order.code}</p></div></div><button class="mini-btn" data-map="${order.id}">Buka Buka Map</button></div><div class="address-box"><label>Catatan rute</label><p>${order.address}</p></div></div></article>`).join('');
+      els.routeList.innerHTML = active.map((order, index) => `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-route"></i> Prioritas rute • ${order.eta} menit</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-location-arrow"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>${order.area} • ${order.statusText} • ${order.code}</p></div></div><button class="mini-btn" data-map="${order.id}">Buka Map</button></div><div class="address-box"><label>Catatan rute</label><p>${order.address}</p></div></div></article>`).join('');
     }
 
     function renderWalletPage() {
@@ -909,21 +915,20 @@
     }
 
     function renderSummary() {
-      const active = getActiveOrders();
-      const urgent = active.filter(order => order.urgent).length;
-      const etaValues = active.map(order => order.eta).filter(Boolean);
-      const avgEta = etaValues.length ? Math.round(etaValues.reduce((sum, val) => sum + val, 0) / etaValues.length) : 0;
-      const success = getScopedOrders().filter(order => order.status === 'delivered').length;
-      const processed = getScopedOrders().filter(order => ['delivered', 'failed_delivery', 'delivery_delayed', 'returned_to_warehouse'].includes(order.status)).length;
+      const scoped = getScopedOrders();
+      const readyPickup = scoped.filter(order => order.status === 'ready_in_warehouse').length;
+      const activeTask = scoped.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)).length;
+      const onTheWay = scoped.filter(order => order.status === 'on_the_way').length;
+      const deliveredToday = scoped.filter(order => order.status === 'delivered').length;
       const summary = getFinancialSummary();
-      els.aktifCount.textContent = `${active.length} order`;
-      els.urgentCount.textContent = `${urgent} order`;
-      els.etaAverage.textContent = `${avgEta} menit`;
-      els.successRate.textContent = `${processed ? Math.round((success / processed) * 100) : 0}%`;
+      els.aktifCount.textContent = `${readyPickup} order`;
+      els.urgentCount.textContent = `${activeTask} order`;
+      els.etaAverage.textContent = `${onTheWay} order`;
+      els.successRate.textContent = `${deliveredToday} order`;
       els.totalCOD.textContent = formatCurrency(summary.cod);
       els.totalPengeluaran.textContent = formatCurrency(summary.expense);
       els.setoranHariIni.textContent = formatCurrency(summary.sisa);
-      els.heroSub.textContent = isAdminPusatMode() ? 'Mode pantau pusat aktif. Anda bisa memonitor kurir dan performa realtime.' : (state.closingLocked ? 'Kas harian sudah dikunci dan siap diverifikasi admin.' : 'Pickup dari gudang, antar ke customer, live tracking saat perjalanan, dan closing kas realtime.');
+      els.heroSub.textContent = isAdminPusatMode() ? 'Mode pantau pusat aktif. Anda bisa memonitor kurir, tracking, dan performa realtime.' : (state.closingLocked ? 'Kas harian sudah dikunci dan siap diverifikasi admin.' : 'Pickup dari gudang, antar ke customer, live tracking saat perjalanan, dan closing kas realtime.');
       els.shiftStatusText.textContent = isAdminPusatMode() ? 'Mode Pantau' : 'On Duty';
       els.zonaUtama.textContent = state.currentCourierProfile?.zone || els.topArea.textContent || '-';
       els.closingStatus.textContent = state.closingLocked ? 'Locked' : 'Open';
@@ -951,6 +956,25 @@
       els.reasonGrid.innerHTML = reasons.map(reason => `<button class="reason-btn" data-reason="${reason}">${reason}</button>`).join('');
     }
 
+
+    function buildCustomerMapUrl(order) {
+      if (order.mapLink) return order.mapLink;
+      if (order.mapPoint && order.mapPoint.lat && order.mapPoint.lng) {
+        return `https://www.google.com/maps/search/?api=1&query=${order.mapPoint.lat},${order.mapPoint.lng}`;
+      }
+      const q = encodeURIComponent(order.address || order.customer);
+      return `https://www.google.com/maps/search/?api=1&query=${q}`;
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
     async function getGpsPosition() {
       if (!navigator.geolocation) return null;
       return new Promise(resolve => {
@@ -967,6 +991,7 @@
       if (!typedCode) return showToast('Masukkan pickup code dulu.');
       if (order.pickupCode && typedCode !== order.pickupCode) return showToast('Pickup code tidak cocok.');
       const now = Date.now();
+      const gps = state.gpsOn ? await getGpsPosition() : null;
       const eventId = push(ref(db, `order_timeline/${order.id}`)).key;
       const updates = {};
       updates[`orders/${order.id}/status`] = 'picked_by_courier';
@@ -984,11 +1009,15 @@
       updates[`shipments_internal/${order.id}/courierName`] = state.currentCourierName;
       updates[`shipments_internal/${order.id}/bagLabel`] = bagLabel;
       updates[`shipments_internal/${order.id}/pickedByCourierAt`] = now;
+      updates[`shipments_internal/${order.id}/trackingEnabled`] = !!state.trackingOn;
+      updates[`shipments_internal/${order.id}/customerCanTrack`] = !!state.trackingOn;
+      updates[`shipments_internal/${order.id}/trackingStartedAt`] = now;
+      if (gps) updates[`shipments_internal/${order.id}/lastCourierLocation`] = { lat: gps.lat, lng: gps.lng, updatedAt: now };
       updates[`courier_assignments/${state.currentCourierId}/${order.id}`] = { orderId: order.id, orderNo: order.code, customerName: order.customer, customerPhone: order.phone, status: 'picked_by_courier', bagLabel, pickedByCourierAt: now };
       updates[`order_timeline/${order.id}/${eventId}`] = { title: 'Kurir ambil paket', description: `${state.currentCourierName} mengambil order ke ${bagLabel}.`, status: 'picked_by_courier', actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
       try {
         await update(ref(db), updates);
-        await safeWriteAudit(`Pickup ${order.code}`, `${state.currentCourierName} ambil order ke ${bagLabel}.`);
+        await safeWriteAudit(`Pickup ${order.code}`, `${state.currentCourierName} ambil order ke ${bagLabel}.`, { orderId: order.id });
         closeSheets(); els.pickupCodeInput.value = ''; els.bagLabelInput.value = ''; showToast('Pickup berhasil. Order masuk ke tugas saya.');
       } catch (err) { console.error(err); showToast('Gagal scan pickup.'); }
     }
@@ -1001,6 +1030,7 @@
       const finalNote = [state.selectedReason, note].filter(Boolean).join(' • ') || 'Status diperbarui dari panel kurir.';
       const now = Date.now();
       const eventId = push(ref(db, `order_timeline/${order.id}`)).key;
+      const gps = (state.gpsOn && ['Proses'].includes(newStatus)) ? await getGpsPosition() : null;
       const updates = {};
       updates[`orders/${order.id}/status`] = map.status;
       updates[`orders/${order.id}/statusLabel`] = map.label;
@@ -1008,6 +1038,15 @@
       updates[`shipments_internal/${order.id}/status`] = map.status;
       updates[`shipments_internal/${order.id}/statusLabel`] = map.label;
       updates[`shipments_internal/${order.id}/lastUpdateAt`] = now;
+      if (newStatus === 'Proses') {
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = !!state.trackingOn;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = !!state.trackingOn;
+        updates[`shipments_internal/${order.id}/trackingStartedAt`] = now;
+        if (gps) updates[`shipments_internal/${order.id}/lastCourierLocation`] = { lat: gps.lat, lng: gps.lng, updatedAt: now };
+      } else {
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = false;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = false;
+      }
       if (newStatus === 'Gudang') {
         updates[`orders/${order.id}/courierId`] = '';
         updates[`orders/${order.id}/courierName`] = '';
@@ -1022,9 +1061,9 @@
       updates[`order_timeline/${order.id}/${eventId}`] = { title: `Status ${map.label}`, description: finalNote, status: map.status, actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
       try {
         await update(ref(db), updates);
-        await safeWriteAudit(`Status ${order.code}`, `${map.label} • ${finalNote}`);
-        if (state.waAuto) await safeWriteAudit(`WA ${order.code}`, `Template status ${map.label} disiapkan untuk ${order.customer}.`);
-        renderAll(); closeSheets(); showToast(`Status ${order.customer} berhasil diubah.`);
+        await safeWriteAudit(`Status ${order.code}`, `${map.label} • ${finalNote}`, { orderId: order.id });
+        if (state.waAuto) await safeWriteAudit(`WA ${order.code}`, `Template status ${map.label} disiapkan untuk ${order.customer}.`, { orderId: order.id });
+        renderAll(); closeSheets(); showToast(newStatus === 'Proses' ? `Kurir mulai antar ke ${order.customer}.` : `Status ${order.customer} berhasil diubah.`);
       } catch (err) { console.error(err); showToast('Gagal memperbarui status order.'); }
     }
 
@@ -1032,10 +1071,14 @@
       if (!requireCourierAction()) return;
       const order = getScopedOrders().find(item => item.id === state.activeOrderId && item.courierId === state.currentCourierId);
       if (!order) return showToast('Order tidak ditemukan untuk bukti kirim.');
+      const photoFile = els.proofPhotoInput.files?.[0];
+      if (!photoFile) return showToast('Foto bukti kirim wajib diunggah sebelum order diselesaikan.');
+      if (photoFile.size > 1600 * 1024) return showToast('Ukuran foto terlalu besar. Maksimal 1.6MB.');
       const recipient = els.recipientInput.value.trim() || 'Penerima';
       const received = Number(els.receivedInput.value || 0);
       const note = els.proofNote.value.trim() || 'Bukti kirim berhasil disimpan.';
       const gps = state.proofGpsOn ? await getGpsPosition() : null;
+      const photoDataUrl = await fileToDataUrl(photoFile);
       const now = Date.now();
       const eventId = push(ref(db, `order_timeline/${order.id}`)).key;
       const updates = {};
@@ -1045,7 +1088,9 @@
       updates[`shipments_internal/${order.id}/status`] = 'delivered';
       updates[`shipments_internal/${order.id}/statusLabel`] = 'Terkirim';
       updates[`shipments_internal/${order.id}/deliveredAt`] = now;
-      updates[`shipments_internal/${order.id}/proofDelivery`] = { recipientName: recipient, note, deliveredAt: now, deliveredAtLabel: new Date(now).toLocaleString('id-ID'), gps };
+      updates[`shipments_internal/${order.id}/trackingEnabled`] = false;
+      updates[`shipments_internal/${order.id}/customerCanTrack`] = false;
+      updates[`shipments_internal/${order.id}/proofDelivery`] = { recipientName: recipient, note, deliveredAt: now, deliveredAtLabel: new Date(now).toLocaleString('id-ID'), gps, photoName: photoFile.name, photoType: photoFile.type || 'image/*', photoSize: photoFile.size, photoDataUrl };
       updates[`courier_assignments/${state.currentCourierId}/${order.id}/status`] = 'delivered';
       if (order.payment === 'COD') {
         updates[`payments/${order.id}/paymentStatus`] = 'paid';
@@ -1056,8 +1101,8 @@
       updates[`order_timeline/${order.id}/${eventId}`] = { title: 'Pesanan selesai', description: `${recipient} menerima paket. ${note}`, status: 'delivered', actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
       try {
         await update(ref(db), updates);
-        await safeWriteAudit(`Bukti kirim ${order.code}`, `${recipient} • ${note}`);
-        renderAll(); closeSheets(); els.recipientInput.value = ''; els.receivedInput.value = ''; els.proofNote.value = ''; showToast(`Bukti kirim ${order.customer} berhasil disimpan.`);
+        await safeWriteAudit(`Bukti kirim ${order.code}`, `${recipient} • ${note}`, { orderId: order.id });
+        renderAll(); closeSheets(); els.recipientInput.value = ''; els.receivedInput.value = ''; els.proofNote.value = ''; els.proofPhotoInput.value = ''; showToast(`Bukti kirim ${order.customer} berhasil disimpan.`);
       } catch (err) { console.error(err); showToast('Gagal menyimpan bukti kirim.'); }
     }
 
@@ -1112,6 +1157,8 @@
         updates[`shipments_internal/${order.id}/status`] = 'returned_to_warehouse';
         updates[`shipments_internal/${order.id}/statusLabel`] = 'Kembali ke gudang';
         updates[`shipments_internal/${order.id}/warehouseStatus`] = 'returned';
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = false;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = false;
         updates[`shipments_internal/${order.id}/courierId`] = '';
         updates[`shipments_internal/${order.id}/courierName`] = '';
         updates[`shipments_internal/${order.id}/bagLabel`] = '';
@@ -1194,7 +1241,7 @@
           state.activeOrderId = proofBtn.dataset.proof;
           const order = getScopedOrders().find(item => item.id === state.activeOrderId);
           if (!order) return;
-          els.recipientInput.value = ''; els.receivedInput.value = order.cod || 0; els.proofNote.value = ''; openSheet('proofSheet'); return;
+          els.recipientInput.value = ''; els.receivedInput.value = order.cod || 0; els.proofNote.value = ''; els.proofPhotoInput.value = ''; openSheet('proofSheet'); return;
         }
 
         const claimBtn = e.target.closest('[data-claim]');
@@ -1207,13 +1254,19 @@
           els.pickupCodeInput.value = ''; els.bagLabelInput.value = order.bagLabel || ''; openSheet('pickupSheet'); return;
         }
 
+        const startBtn = e.target.closest('[data-start]');
+        if (startBtn) {
+          updateStatus(startBtn.dataset.start, 'Proses', 'Kurir mulai antar ke lokasi customer.');
+          return;
+        }
+
         const mapBtn = e.target.closest('[data-map]');
         if (mapBtn) {
           const order = allOrders().find(item => item.id === mapBtn.dataset.map);
           if (!order) return;
-          const q = encodeURIComponent(order.address || order.customer);
-          window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
-          safeWriteAudit(`Buka Map ${order.code}`, `Navigasi dibuka untuk ${order.customer}.`); return;
+          const url = buildCustomerMapUrl(order);
+          window.open(url, '_blank');
+          safeWriteAudit(`Buka Map ${order.code}`, `Navigasi dibuka untuk ${order.customer}.`, { orderId: order.id }); return;
         }
 
         const waBtn = e.target.closest('[data-wa]');
@@ -1222,9 +1275,10 @@
           if (!order) return;
           const digits = String(order.phone || '').replace(/\D/g, '');
           const waNumber = digits.startsWith('0') ? '62' + digits.slice(1) : digits;
-          const msg = encodeURIComponent(`Halo ${order.customer}, status pesanan ${order.code} sedang diproses oleh kurir EJ Store.`);
+          const statusText = order.status === 'on_the_way' ? 'kurir sedang menuju lokasi Anda' : (order.status === 'picked_by_courier' ? 'pesanan sudah dibawa kurir kami' : `status pesanan ${order.code} sedang diproses oleh kurir EJ Store`);
+          const msg = encodeURIComponent(`Halo ${order.customer}, ${statusText}.`);
           if (waNumber) window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank');
-          safeWriteAudit(`WA ${order.code}`, `Template WA dibuka untuk ${order.customer}.`); return;
+          safeWriteAudit(`WA ${order.code}`, `Template WA dibuka untuk ${order.customer}.`, { orderId: order.id }); return;
         }
 
         const archiveBtn = e.target.closest('[data-archive]');
