@@ -1,0 +1,238 @@
+<!-- Sprint 3: Customer tracking section for customer/index.html -->
+<section class="card" id="customerTrackingCard" style="margin-top:16px">
+  <div class="section-head">
+    <div>
+      <h3>Live Tracking Kurir</h3>
+      <p style="color:#94a3b8;font-size:13px;line-height:1.5">Customer bisa melihat posisi kurir saat pesanan sudah dibawa dan sedang diantar.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="display:grid;gap:12px;grid-template-columns:1fr 1fr">
+    <div>
+      <label for="trackWa">No. WhatsApp</label>
+      <input id="trackWa" type="tel" placeholder="08xxxxxxxxxx" />
+    </div>
+    <div>
+      <label for="trackOrderNo">Nomor order</label>
+      <input id="trackOrderNo" type="text" placeholder="EJ-INV-0001" />
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+    <button id="btnTrackNow" class="btn btn-primary" type="button">Lacak Pesanan</button>
+    <button id="btnTrackLastOrder" class="btn btn-secondary" type="button">Pakai Order Terakhir</button>
+  </div>
+
+  <div id="trackingStateBox" style="margin-top:16px;display:none">
+    <div class="tracking-status" style="padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+        <div>
+          <div style="font-size:12px;color:#94a3b8">Status order</div>
+          <div id="trackStatusLabel" style="font-size:18px;font-weight:800;margin-top:4px">-</div>
+          <div id="trackStatusHelp" style="font-size:13px;color:#94a3b8;margin-top:6px">-</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:#94a3b8">Kurir</div>
+          <div id="trackCourierName" style="font-size:15px;font-weight:700;margin-top:4px">-</div>
+          <div id="trackCourierUpdated" style="font-size:12px;color:#94a3b8;margin-top:6px">-</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+        <div>
+          <div style="font-size:12px;color:#94a3b8">Nomor order</div>
+          <div id="trackOrderCode" style="font-weight:700;margin-top:4px">-</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#94a3b8">Pengiriman</div>
+          <div id="trackShippingType" style="font-weight:700;margin-top:4px">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="trackingLiveBox" style="display:none;margin-top:14px;padding:14px;border-radius:16px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:12px;color:#bbf7d0">Tracking aktif</div>
+          <div style="font-weight:800;font-size:16px;margin-top:4px">Kurir sedang menuju lokasi</div>
+        </div>
+        <div id="trackDistanceInfo" style="font-size:13px;color:#d1fae5">Posisi terbaru kurir tersedia.</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <a id="btnCustomerCourierMap" class="btn btn-primary" href="#" target="_blank" rel="noopener">Lihat Posisi Kurir</a>
+        <a id="btnCustomerDestinationMap" class="btn btn-secondary" href="#" target="_blank" rel="noopener">Lihat Alamat Tujuan</a>
+        <a id="btnCustomerWaCourier" class="btn btn-secondary" href="#" target="_blank" rel="noopener">WA Kurir / Admin</a>
+      </div>
+    </div>
+
+    <div id="trackingIdleBox" style="display:none;margin-top:14px;padding:14px;border-radius:16px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.22)">
+      <div style="font-weight:800">Tracking belum aktif</div>
+      <div style="font-size:13px;color:#bfdbfe;margin-top:6px">Tracking otomatis aktif setelah kurir pickup dan mulai pengantaran.</div>
+    </div>
+
+    <div id="trackingDeliveredBox" style="display:none;margin-top:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+      <div style="font-weight:800">Pesanan sudah diterima</div>
+      <div id="trackProofSummary" style="font-size:13px;color:#94a3b8;margin-top:6px">-</div>
+      <img id="trackProofImage" alt="Bukti kirim" style="display:none;width:100%;margin-top:12px;border-radius:14px;border:1px solid rgba(255,255,255,.08)" />
+    </div>
+  </div>
+
+  <div id="trackingEmptyState" style="margin-top:16px;color:#94a3b8;font-size:13px;line-height:1.6">
+    Masukkan nomor WhatsApp dan nomor order untuk melihat status pesanan dan live tracking kurir.
+  </div>
+</section>
+
+<script type="module">
+  import { getDatabase, ref, query, orderByChild, equalTo, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+  const db = getDatabase();
+
+  const trackingEls = {
+    wa: document.getElementById('trackWa'),
+    orderNo: document.getElementById('trackOrderNo'),
+    btnNow: document.getElementById('btnTrackNow'),
+    btnLast: document.getElementById('btnTrackLastOrder'),
+    stateBox: document.getElementById('trackingStateBox'),
+    empty: document.getElementById('trackingEmptyState'),
+    status: document.getElementById('trackStatusLabel'),
+    statusHelp: document.getElementById('trackStatusHelp'),
+    courier: document.getElementById('trackCourierName'),
+    updated: document.getElementById('trackCourierUpdated'),
+    orderCode: document.getElementById('trackOrderCode'),
+    shippingType: document.getElementById('trackShippingType'),
+    liveBox: document.getElementById('trackingLiveBox'),
+    idleBox: document.getElementById('trackingIdleBox'),
+    deliveredBox: document.getElementById('trackingDeliveredBox'),
+    proofSummary: document.getElementById('trackProofSummary'),
+    proofImage: document.getElementById('trackProofImage'),
+    mapCourier: document.getElementById('btnCustomerCourierMap'),
+    mapDest: document.getElementById('btnCustomerDestinationMap'),
+    waCourier: document.getElementById('btnCustomerWaCourier'),
+    distanceInfo: document.getElementById('trackDistanceInfo')
+  };
+
+  function normalizePhone(phone = '') {
+    return String(phone).replace(/\D+/g, '').replace(/^62/, '0');
+  }
+
+  function toWaLink(phone = '', message = '') {
+    const normalized = String(phone).replace(/\D+/g, '').replace(/^0/, '62');
+    return `https://wa.me/${normalized}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
+  }
+
+  function buildMapUrl(lat, lng, label = 'Kurir Toko EJ') {
+    if (typeof lat === 'number' && typeof lng === 'number' && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+      return `https://www.google.com/maps?q=${lat},${lng}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label)}`;
+  }
+
+  function formatDateTime(ts) {
+    if (!ts) return '-';
+    return new Date(ts).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  function statusLabel(status = '') {
+    const map = {
+      baru: 'Baru',
+      dipacking: 'Dipacking',
+      siap_di_gudang: 'Siap di Gudang',
+      picked_by_courier: 'Sudah Dipickup',
+      on_the_way: 'Kurir Menuju Lokasi',
+      delivery_delayed: 'Tertunda',
+      failed_delivery: 'Gagal Antar',
+      delivered: 'Terkirim',
+      returned_to_warehouse: 'Kembali ke Gudang',
+      archived: 'Diarsipkan'
+    };
+    return map[status] || status || '-';
+  }
+
+  function statusHelpText(status = '') {
+    if (status === 'picked_by_courier') return 'Kurir sudah mengambil pesanan dari gudang.';
+    if (status === 'on_the_way') return 'Kurir sedang menuju alamat customer.';
+    if (status === 'delivered') return 'Pesanan sudah diterima customer.';
+    if (status === 'delivery_delayed') return 'Pengantaran tertunda. Silakan hubungi admin jika diperlukan.';
+    if (status === 'failed_delivery') return 'Kurir belum berhasil menyelesaikan pengantaran.';
+    if (status === 'returned_to_warehouse') return 'Pesanan dikembalikan ke gudang.';
+    if (status === 'siap_di_gudang') return 'Pesanan sudah siap di gudang dan menunggu pickup kurir.';
+    return 'Status pesanan sedang diperbarui.';
+  }
+
+  async function findOrderByOrderNo(orderNo) {
+    const q = query(ref(db, 'orders'), orderByChild('orderNo'), equalTo(orderNo));
+    const snap = await get(q);
+    if (!snap.exists()) return null;
+    const entries = Object.entries(snap.val() || {});
+    return entries.length ? { id: entries[0][0], ...entries[0][1] } : null;
+  }
+
+  async function loadTracking() {
+    const phone = normalizePhone(trackingEls.wa.value);
+    const orderNo = String(trackingEls.orderNo.value || '').trim();
+    if (!phone || !orderNo) {
+      alert('Masukkan nomor WhatsApp dan nomor order dulu.');
+      return;
+    }
+
+    const order = await findOrderByOrderNo(orderNo);
+    if (!order) {
+      alert('Pesanan tidak ditemukan.');
+      return;
+    }
+
+    const orderPhone = normalizePhone(order.customerPhone || order.whatsapp || order.phone || '');
+    if (orderPhone !== phone) {
+      alert('Nomor WhatsApp tidak cocok dengan pesanan ini.');
+      return;
+    }
+
+    const shipmentSnap = await get(ref(db, `shipments_internal/${order.id}`));
+    const shipment = shipmentSnap.exists() ? shipmentSnap.val() : {};
+    const status = shipment.status || order.status || '-';
+    const trackingAllowed = !!shipment.customerCanTrack && ['picked_by_courier', 'on_the_way'].includes(status);
+    const courierPhone = shipment.courierPhone || order.courierPhone || order.adminPhone || '';
+    const customerMapUrl = order.mapLink || buildMapUrl(order.mapPoint?.lat, order.mapPoint?.lng, order.fullAddress || 'Alamat customer');
+    const courierMapUrl = buildMapUrl(shipment.lastCourierLocation?.lat, shipment.lastCourierLocation?.lng, 'Posisi kurir');
+    const proof = shipment.proofDelivery || {};
+
+    trackingEls.empty.style.display = 'none';
+    trackingEls.stateBox.style.display = 'block';
+    trackingEls.status.textContent = statusLabel(status);
+    trackingEls.statusHelp.textContent = statusHelpText(status);
+    trackingEls.courier.textContent = shipment.courierName || order.courierName || 'Kurir Toko EJ';
+    trackingEls.updated.textContent = shipment.lastCourierLocation?.updatedAt ? `Update posisi: ${formatDateTime(shipment.lastCourierLocation.updatedAt)}` : 'Posisi kurir belum tersedia';
+    trackingEls.orderCode.textContent = order.orderNo || orderNo;
+    trackingEls.shippingType.textContent = order.shippingType || 'internal_courier';
+    trackingEls.mapDest.href = customerMapUrl;
+    trackingEls.mapCourier.href = courierMapUrl;
+    trackingEls.waCourier.href = toWaLink(courierPhone, `Halo, saya customer order ${order.orderNo}. Mau tanya posisi pesanan saya.`);
+    trackingEls.distanceInfo.textContent = shipment.lastCourierLocation?.updatedAt ? 'Posisi kurir terakhir berhasil dimuat.' : 'Tracking aktif, menunggu update posisi berikutnya.';
+
+    trackingEls.liveBox.style.display = trackingAllowed ? 'block' : 'none';
+    trackingEls.idleBox.style.display = !trackingAllowed && status !== 'delivered' ? 'block' : 'none';
+    trackingEls.deliveredBox.style.display = status === 'delivered' ? 'block' : 'none';
+
+    if (status === 'delivered') {
+      const recipient = proof.recipientName || '-';
+      const deliveredAt = proof.deliveredAt || shipment.deliveredAt || 0;
+      trackingEls.proofSummary.textContent = `Diterima oleh ${recipient} pada ${formatDateTime(deliveredAt)}.`;
+      if (proof.photoDataUrl) {
+        trackingEls.proofImage.src = proof.photoDataUrl;
+        trackingEls.proofImage.style.display = 'block';
+      } else {
+        trackingEls.proofImage.style.display = 'none';
+      }
+    }
+
+    localStorage.setItem('ej_last_track_phone', trackingEls.wa.value);
+    localStorage.setItem('ej_last_track_order', orderNo);
+  }
+
+  trackingEls.btnNow?.addEventListener('click', loadTracking);
+  trackingEls.btnLast?.addEventListener('click', () => {
+    trackingEls.wa.value = localStorage.getItem('ej_last_track_phone') || trackingEls.wa.value;
+    trackingEls.orderNo.value = localStorage.getItem('ej_last_track_order') || trackingEls.orderNo.value;
+    if (trackingEls.wa.value && trackingEls.orderNo.value) loadTracking();
+  });
+</script>
