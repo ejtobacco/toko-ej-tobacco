@@ -1,0 +1,223 @@
+<!-- Sprint 3: Admin panel for reading Kurir V3 status in admin/index.html -->
+<section class="admin-card" id="adminKurirV3Panel" style="margin-top:18px">
+  <div class="section-head">
+    <div>
+      <h3>Monitoring Kurir V3</h3>
+      <p style="color:#94a3b8;font-size:13px;line-height:1.5">Pantau pickup gudang, status perjalanan, live tracking customer, dan bukti kirim dari alur Kurir V3.</p>
+    </div>
+    <button id="btnRefreshKurirV3Panel" class="btn btn-secondary" type="button">Refresh</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px">
+    <div class="stat-box"><small>Siap gudang</small><strong id="adminK3Ready">0</strong></div>
+    <div class="stat-box"><small>Sudah pickup</small><strong id="adminK3Picked">0</strong></div>
+    <div class="stat-box"><small>Menuju lokasi</small><strong id="adminK3OnWay">0</strong></div>
+    <div class="stat-box"><small>Selesai hari ini</small><strong id="adminK3Done">0</strong></div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+    <select id="adminKurirV3FilterStatus">
+      <option value="all">Semua status</option>
+      <option value="siap_di_gudang">Siap di Gudang</option>
+      <option value="picked_by_courier">Sudah Dipickup</option>
+      <option value="on_the_way">Menuju Lokasi</option>
+      <option value="delivery_delayed">Tertunda</option>
+      <option value="failed_delivery">Gagal Antar</option>
+      <option value="delivered">Terkirim</option>
+      <option value="returned_to_warehouse">Kembali ke Gudang</option>
+    </select>
+    <input id="adminKurirV3Search" type="text" placeholder="Cari order, customer, kurir, pickup code" />
+  </div>
+
+  <div id="adminKurirV3List" style="display:flex;flex-direction:column;gap:12px;margin-top:16px"></div>
+  <div id="adminKurirV3Empty" style="display:none;margin-top:14px;color:#94a3b8">Belum ada data kurir v3 yang cocok.</div>
+</section>
+
+<template id="tplAdminKurirV3Card">
+  <article class="order-card" style="padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+      <div>
+        <div class="row-order" style="font-weight:800;font-size:15px"></div>
+        <div class="row-meta" style="font-size:13px;color:#94a3b8;margin-top:4px"></div>
+      </div>
+      <div class="row-status" style="font-size:12px;font-weight:800;padding:6px 10px;border-radius:999px;background:rgba(212,175,55,.12);color:#f6dd82"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+      <div>
+        <div style="font-size:12px;color:#94a3b8">Kurir</div>
+        <div class="row-courier" style="font-weight:700;margin-top:4px"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#94a3b8">Pickup code</div>
+        <div class="row-pickup" style="font-weight:700;margin-top:4px"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#94a3b8">Tracking customer</div>
+        <div class="row-track" style="font-weight:700;margin-top:4px"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#94a3b8">Update lokasi</div>
+        <div class="row-update" style="font-weight:700;margin-top:4px"></div>
+      </div>
+    </div>
+    <div class="row-proof" style="display:none;margin-top:14px;padding:12px;border-radius:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18)">
+      <div style="font-weight:800">Bukti kirim tersedia</div>
+      <div class="row-proof-text" style="font-size:13px;color:#d1fae5;margin-top:6px"></div>
+      <img class="row-proof-img" alt="Bukti kirim" style="display:none;width:100%;margin-top:10px;border-radius:12px;border:1px solid rgba(255,255,255,.08)" />
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <a class="btn btn-secondary row-map" href="#" target="_blank" rel="noopener">Map Kurir</a>
+      <a class="btn btn-secondary row-dest" href="#" target="_blank" rel="noopener">Map Customer</a>
+      <button class="btn btn-secondary row-timeline" type="button">Lihat Timeline</button>
+    </div>
+  </article>
+</template>
+
+<script type="module">
+  import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+  const db = getDatabase();
+  const adminEls = {
+    ready: document.getElementById('adminK3Ready'),
+    picked: document.getElementById('adminK3Picked'),
+    onWay: document.getElementById('adminK3OnWay'),
+    done: document.getElementById('adminK3Done'),
+    status: document.getElementById('adminKurirV3FilterStatus'),
+    search: document.getElementById('adminKurirV3Search'),
+    list: document.getElementById('adminKurirV3List'),
+    empty: document.getElementById('adminKurirV3Empty'),
+    refresh: document.getElementById('btnRefreshKurirV3Panel'),
+    tpl: document.getElementById('tplAdminKurirV3Card')
+  };
+
+  let ordersRaw = {};
+  let shipmentsRaw = {};
+
+  function statusLabel(status = '') {
+    const map = {
+      siap_di_gudang: 'Siap di Gudang',
+      picked_by_courier: 'Sudah Dipickup',
+      on_the_way: 'Menuju Lokasi',
+      delivery_delayed: 'Tertunda',
+      failed_delivery: 'Gagal Antar',
+      delivered: 'Terkirim',
+      returned_to_warehouse: 'Kembali ke Gudang'
+    };
+    return map[status] || status || '-';
+  }
+
+  function buildMapUrl(lat, lng, label = 'Lokasi') {
+    if (typeof lat === 'number' && typeof lng === 'number' && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+      return `https://www.google.com/maps?q=${lat},${lng}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label)}`;
+  }
+
+  function formatDateTime(ts) {
+    if (!ts) return '-';
+    return new Date(ts).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  function collectRows() {
+    return Object.entries(ordersRaw || {}).map(([id, order]) => {
+      const shipment = shipmentsRaw?.[id] || {};
+      return {
+        id,
+        orderNo: order.orderNo || id,
+        customerName: order.customerName || '-',
+        customerPhone: order.customerPhone || '-',
+        fullAddress: order.fullAddress || '-',
+        mapLink: order.mapLink || '',
+        mapPoint: order.mapPoint || null,
+        courierName: shipment.courierName || order.courierName || '-',
+        pickupCode: shipment.pickupCode || order.pickupCode || '-',
+        status: shipment.status || order.status || '-',
+        shippingType: order.shippingType || '-',
+        trackingEnabled: !!shipment.trackingEnabled,
+        customerCanTrack: !!shipment.customerCanTrack,
+        lastLocation: shipment.lastCourierLocation || null,
+        proof: shipment.proofDelivery || null
+      };
+    }).filter(row => ['internal', 'internal_courier', 'kurir_toko'].includes(row.shippingType));
+  }
+
+  function renderAdminKurirV3Panel() {
+    const statusFilter = adminEls.status.value;
+    const search = String(adminEls.search.value || '').trim().toLowerCase();
+    const rows = collectRows();
+
+    adminEls.ready.textContent = rows.filter(r => r.status === 'siap_di_gudang').length;
+    adminEls.picked.textContent = rows.filter(r => r.status === 'picked_by_courier').length;
+    adminEls.onWay.textContent = rows.filter(r => r.status === 'on_the_way').length;
+    adminEls.done.textContent = rows.filter(r => r.status === 'delivered').length;
+
+    const filtered = rows.filter(row => {
+      if (statusFilter !== 'all' && row.status !== statusFilter) return false;
+      if (!search) return true;
+      const haystack = [row.orderNo, row.customerName, row.customerPhone, row.courierName, row.pickupCode, row.fullAddress].join(' ').toLowerCase();
+      return haystack.includes(search);
+    });
+
+    adminEls.list.innerHTML = '';
+    adminEls.empty.style.display = filtered.length ? 'none' : 'block';
+
+    filtered.forEach(row => {
+      const node = adminEls.tpl.content.cloneNode(true);
+      node.querySelector('.row-order').textContent = `${row.orderNo} • ${row.customerName}`;
+      node.querySelector('.row-meta').textContent = `${row.customerPhone} • ${row.fullAddress}`;
+      node.querySelector('.row-status').textContent = statusLabel(row.status);
+      node.querySelector('.row-courier').textContent = row.courierName;
+      node.querySelector('.row-pickup').textContent = row.pickupCode;
+      node.querySelector('.row-track').textContent = row.customerCanTrack ? 'Aktif' : 'Mati';
+      node.querySelector('.row-update').textContent = row.lastLocation?.updatedAt ? formatDateTime(row.lastLocation.updatedAt) : '-';
+
+      const courierMapBtn = node.querySelector('.row-map');
+      courierMapBtn.href = buildMapUrl(row.lastLocation?.lat, row.lastLocation?.lng, `Kurir ${row.courierName}`);
+      const customerMapBtn = node.querySelector('.row-dest');
+      customerMapBtn.href = row.mapLink || buildMapUrl(row.mapPoint?.lat, row.mapPoint?.lng, row.fullAddress);
+
+      const proofBox = node.querySelector('.row-proof');
+      if (row.proof) {
+        proofBox.style.display = 'block';
+        node.querySelector('.row-proof-text').textContent = `Penerima: ${row.proof.recipientName || '-'} • ${formatDateTime(row.proof.deliveredAt || 0)}`;
+        if (row.proof.photoDataUrl) {
+          const img = node.querySelector('.row-proof-img');
+          img.src = row.proof.photoDataUrl;
+          img.style.display = 'block';
+        }
+      }
+
+      node.querySelector('.row-timeline').addEventListener('click', async () => {
+        const snap = await get(ref(db, `order_timeline/${row.id}`));
+        if (!snap.exists()) {
+          alert('Timeline order belum tersedia.');
+          return;
+        }
+        const timeline = Object.values(snap.val() || {})
+          .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+          .map(item => `• ${item.title || item.status || '-'} — ${item.note || item.description || ''}`)
+          .join('\n');
+        alert(`Timeline ${row.orderNo}\n\n${timeline}`);
+      });
+
+      adminEls.list.appendChild(node);
+    });
+  }
+
+  function bindAdminKurirV3Panel() {
+    onValue(ref(db, 'orders'), snap => {
+      ordersRaw = snap.val() || {};
+      renderAdminKurirV3Panel();
+    });
+    onValue(ref(db, 'shipments_internal'), snap => {
+      shipmentsRaw = snap.val() || {};
+      renderAdminKurirV3Panel();
+    });
+  }
+
+  adminEls.status?.addEventListener('change', renderAdminKurirV3Panel);
+  adminEls.search?.addEventListener('input', renderAdminKurirV3Panel);
+  adminEls.refresh?.addEventListener('click', renderAdminKurirV3Panel);
+  bindAdminKurirV3Panel();
+</script>
+
