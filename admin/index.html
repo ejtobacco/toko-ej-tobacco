@@ -604,6 +604,14 @@
       const d = String(now.getDate()).padStart(2,'0');
       return { y, m, d, key: `${y}-${m}-${d}` };
     }
+    function normalizeDateKey(value) {
+      if (!value) return todayParts().key;
+      const raw = String(value).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      const parts = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (parts) return `${parts[3]}-${parts[2]}-${parts[1]}`;
+      return todayParts().key;
+    }
     function isRealCourierId(id) {
       return !!id && id !== 'courierId' && id !== 'tanggal' && id !== 'date';
     }
@@ -1065,7 +1073,11 @@
       renderCourierFilter();
       const walletRows = getWalletRows(todayParts().key);
       renderWallet(walletRows);
-      const reportDateKey = state.reportDateKey || todayParts().key;
+      const reportDateKey = normalizeDateKey(state.reportDateKey || el.reportDateInput.value || todayParts().key);
+      state.reportDateKey = reportDateKey;
+      if (el.reportDateInput && el.reportDateInput.value !== reportDateKey) {
+        el.reportDateInput.value = reportDateKey;
+      }
       renderDailyReport(getWalletRows(reportDateKey), reportDateKey);
       const rows = getCombinedRows();
       renderKpi(rows);
@@ -1086,6 +1098,14 @@
     el.searchInput.addEventListener('input', e => { state.filters.search = e.target.value || ''; rerender(); });
     el.statusFilter.addEventListener('change', e => { state.filters.status = e.target.value || ''; rerender(); });
     el.courierFilter.addEventListener('change', e => { state.filters.courier = e.target.value || ''; rerender(); });
+    el.reportDateInput.addEventListener('change', e => {
+      state.reportDateKey = normalizeDateKey(e.target.value || '');
+      rerender();
+    });
+    el.reportClosingFilter.addEventListener('change', e => {
+      state.filters.reportClosing = String(e.target.value || '').trim().toLowerCase();
+      rerender();
+    });
     el.btnTimelineTop.addEventListener('click', () => {
       document.querySelector('section.panel:last-of-type')?.scrollIntoView({ behavior:'smooth', block:'start' });
     });
@@ -1095,6 +1115,10 @@
     el.verifyCancelBtn.addEventListener('click', closeVerifyModal);
     el.verifyConfirmBtn.addEventListener('click', () => saveVerifySetoran().catch(err => { console.error(err); alert('Gagal memverifikasi setoran.'); }));
     el.verifyModal.addEventListener('click', e => { if (e.target === el.verifyModal) closeVerifyModal(); });
+
+    state.reportDateKey = todayParts().key;
+    if (el.reportDateInput) el.reportDateInput.value = state.reportDateKey;
+    if (el.reportClosingFilter) el.reportClosingFilter.value = state.filters.reportClosing || '';
 
     bindRealtime();
   </script>
