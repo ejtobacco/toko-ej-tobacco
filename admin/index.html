@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EJ Tobacco - Admin Monitor Kurir V3</title>
+  <style>
+    :root {
+      --bg: #07090f;
+      --panel: rgba(255,255,255,.06);
+      --panel-2: rgba(255,255,255,.04);
+      --stroke: rgba(255,255,255,.10);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --gold-1: #f3d46d;
+      --gold-2: #d4a618;
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(212,166,24,.13), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(59,130,246,.08), transparent 26%),
+        linear-gradient(180deg, #0a0d14 0%, #06070c 100%);
+      min-height: 100vh;
+    }
+    .wrap { width: min(1220px, calc(100% - 24px)); margin: 20px auto 48px; }
+    .hero, .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid var(--stroke);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+    .hero {
+      display: flex; gap: 16px; align-items: center; padding: 22px;
+    }
+    .logo {
+      width: 80px; height: 80px; border-radius: 24px;
+      background: linear-gradient(180deg, var(--gold-1), var(--gold-2));
+      color: #0b0b0b; display: grid; place-items: center; font-size: 34px; font-weight: 900;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,.35), 0 12px 30px rgba(212,166,24,.25);
+      flex: 0 0 auto;
+    }
+    h1 { margin: 0; font-size: 42px; line-height: 1.05; }
+    .sub { color: var(--muted); font-size: 17px; line-height: 1.6; }
+    .row { display: grid; gap: 16px; }
+    .row-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .panel { padding: 22px; margin-top: 18px; }
+    .kpi {
+      background: var(--panel-2); border: 1px solid var(--stroke); border-radius: 22px; padding: 18px;
+    }
+    .kpi .label { color: var(--muted); font-size: 14px; }
+    .kpi .value { margin-top: 8px; font-size: 34px; font-weight: 900; }
+    .toolbar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .input, select {
+      width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.04); color: var(--text); outline: none;
+    }
+    .btn {
+      border: 0; cursor: pointer; border-radius: 16px; padding: 14px 18px; font-weight: 800;
+      text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary { background: linear-gradient(180deg, var(--gold-1), var(--gold-2)); color: #101010; }
+    .btn-secondary { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--stroke); }
+    .btn-small { padding: 10px 12px; border-radius: 12px; font-size: 13px; }
+    .title { font-size: 30px; margin: 0 0 6px; }
+    .muted { color: var(--muted); }
+    .table-wrap { overflow:auto; margin-top: 16px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { text-align:left; padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.08); vertical-align: top; }
+    th { color: var(--muted); font-size: 13px; font-weight: 700; }
+    td { font-size: 14px; }
+    .badge {
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; font-size:13px; font-weight:800; border:1px solid transparent;
+    }
+    .s-ready { background: rgba(245,158,11,.12); color: #fbbf24; border-color: rgba(245,158,11,.28); }
+    .s-picked { background: rgba(59,130,246,.12); color: #93c5fd; border-color: rgba(59,130,246,.28); }
+    .s-way { background: rgba(239,68,68,.12); color: #fda4af; border-color: rgba(239,68,68,.28); }
+    .s-done { background: rgba(34,197,94,.12); color: #86efac; border-color: rgba(34,197,94,.28); }
+    .s-other { background: rgba(255,255,255,.08); color: var(--text); border-color: rgba(255,255,255,.16); }
+    .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; background: currentColor; }
+    .card-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .detail-box {
+      background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 18px;
+    }
+    .detail-box .label { color: var(--muted); font-size: 13px; }
+    .detail-box .value { margin-top: 8px; font-size: 18px; font-weight: 800; }
+    .proof-img { width:100%; display:none; margin-top: 12px; border-radius: 18px; border:1px solid rgba(255,255,255,.08); }
+    .timeline-item { padding: 14px 0; border-bottom:1px solid rgba(255,255,255,.08); }
+    .timeline-item:last-child { border-bottom:0; }
+    .empty { padding: 24px; border-radius: 18px; border: 1px dashed rgba(255,255,255,.12); color: var(--muted); text-align: center; }
+    .mini { font-size: 12px; color: var(--muted); }
+
+    .overlay { position: fixed; inset: 0; background: rgba(2,6,23,.68); display:none; align-items:center; justify-content:center; padding: 18px; z-index: 60; }
+    .overlay.show { display:flex; }
+    .modal-card { width:min(680px, 100%); background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04)); border:1px solid var(--stroke); border-radius:28px; box-shadow: var(--shadow); padding:22px; }
+    .modal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+    .modal-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap; }
+    textarea.input { min-height: 110px; resize: vertical; }
+    @media (max-width: 920px) {
+      .row-4, .row-3, .row-2, .card-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 32px; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      th:nth-child(5), td:nth-child(5), th:nth-child(6), td:nth-child(6) { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="logo">🛡️</div>
+      <div>
+        <h1>Monitoring Kurir V3</h1>
+        <div class="sub">Pantau pickup gudang, status perjalanan, live tracking customer, dan bukti kirim dari alur Kurir V3.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar" style="justify-content:space-between;">
+        <div>
+          <h2 class="title" style="margin:0;">Dashboard realtime</h2>
+          <div class="muted">Membaca data dari orders, shipments_internal, payments, dan order_timeline.</div>
+        </div>
+        <button id="btnRefresh" class="btn btn-primary">Refresh</button>
+      </div>
+      <div class="row row-4" style="margin-top:18px;">
+        <div class="kpi"><div class="label">Siap gudang</div><div id="kpiReady" class="value">0</div></div>
+        <div class="kpi"><div class="label">Sudah pickup</div><div id="kpiPicked" class="value">0</div></div>
+        <div class="kpi"><div class="label">Menuju lokasi</div><div id="kpiOnWay" class="value">0</div></div>
+        <div class="kpi"><div class="label">Selesai hari ini</div><div id="kpiDone" class="value">0</div></div>
+      </div>
+    </section>
+
+
+
+    <section class="panel">
+      <div class="toolbar" style="justify-content:space-between;">
+        <div>
+          <h2 class="title" style="margin:0;">Dompet & setoran kurir</h2>
+          <div class="muted">Ringkasan COD delivered, pengeluaran, setoran, dan outstanding kurir hari ini.</div>
+        </div>
+        <div class="mini" id="walletDateBadge">-</div>
+      </div>
+      <div class="row row-4" style="margin-top:18px;">
+        <div class="kpi"><div class="label">COD hari ini</div><div id="walletKpiCod" class="value">Rp0</div></div>
+        <div class="kpi"><div class="label">Pengeluaran kurir</div><div id="walletKpiExpense" class="value">Rp0</div></div>
+        <div class="kpi"><div class="label">Sudah disetor</div><div id="walletKpiSetor" class="value">Rp0</div></div>
+        <div class="kpi"><div class="label">Outstanding</div><div id="walletKpiOutstanding" class="value">Rp0</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Kurir</th>
+              <th>COD</th>
+              <th>Pengeluaran</th>
+              <th>Setor</th>
+              <th>Outstanding</th>
+              <th>Status closing</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="walletBody"></tbody>
+        </table>
+      </div>
+      <div id="walletEmpty" class="empty" style="display:none; margin-top:16px;">Belum ada data dompet kurir hari ini.</div>
+
+      <div class="card-grid" style="margin-top:18px;">
+        <div class="detail-box">
+          <div class="label">Kurir</div>
+          <div id="walletDetailCourier" class="value">-</div>
+          <div class="mini" id="walletDetailCourierMeta" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Closing</div>
+          <div id="walletDetailClosing" class="value">-</div>
+          <div class="mini" id="walletDetailClosingMeta" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">COD terkumpul</div>
+          <div id="walletDetailCod" class="value">Rp0</div>
+          <div class="mini" id="walletDetailCodMeta" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Pengeluaran</div>
+          <div id="walletDetailExpense" class="value">Rp0</div>
+          <div class="mini" id="walletDetailExpenseMeta" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Sudah disetor</div>
+          <div id="walletDetailSetor" class="value">Rp0</div>
+          <div class="mini" id="walletDetailSetorMeta" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Outstanding</div>
+          <div id="walletDetailOutstanding" class="value">Rp0</div>
+          <div class="mini" id="walletDetailOutstandingMeta" style="margin-top:8px;">-</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div class="muted" style="margin-bottom:10px;">Log dompet kurir terpilih</div>
+        <div id="walletLogBox"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="row row-3">
+        <div>
+          <label class="muted">Cari order / customer / kurir</label>
+          <input id="searchInput" class="input" placeholder="Contoh: INV-TEST-001 / Budi / Kurir A" />
+        </div>
+        <div>
+          <label class="muted">Filter status</label>
+          <select id="statusFilter">
+            <option value="">Semua status</option>
+            <option value="ready_in_warehouse">Siap di Gudang</option>
+            <option value="picked_by_courier">Sudah Dipickup</option>
+            <option value="on_the_way">Menuju Lokasi</option>
+            <option value="delivery_delayed">Tertunda</option>
+            <option value="failed_delivery">Gagal Antar</option>
+            <option value="delivered">Terkirim</option>
+            <option value="returned_to_warehouse">Kembali ke Gudang</option>
+          </select>
+        </div>
+        <div>
+          <label class="muted">Kurir</label>
+          <select id="courierFilter">
+            <option value="">Semua kurir</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Status</th>
+              <th>Kurir</th>
+              <th>Pickup code</th>
+              <th>Tracking customer</th>
+              <th>Update lokasi</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="monitorBody"></tbody>
+        </table>
+      </div>
+      <div id="monitorEmpty" class="empty" style="display:none; margin-top:16px;">Belum ada data kurir v3 yang cocok.</div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar" style="justify-content:space-between;">
+        <div>
+          <h2 class="title" style="margin:0;">Detail monitor</h2>
+          <div class="muted">Klik salah satu order pada tabel untuk melihat bukti kirim, map, dan timeline.</div>
+        </div>
+      </div>
+
+      <div class="card-grid" style="margin-top:18px;">
+        <div class="detail-box">
+          <div class="label">Order</div>
+          <div id="detailOrder" class="value">-</div>
+          <div class="mini" id="detailCustomer" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Kurir</div>
+          <div id="detailCourier" class="value">-</div>
+          <div class="mini" id="detailCourierPhone" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Status</div>
+          <div id="detailStatus" class="value">-</div>
+          <div class="mini" id="detailTrackingState" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Pembayaran</div>
+          <div id="detailPayment" class="value">-</div>
+          <div class="mini" id="detailAmount" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Alamat customer</div>
+          <div id="detailAddress" class="value">-</div>
+          <div class="mini" id="detailEta" style="margin-top:8px;">-</div>
+        </div>
+        <div class="detail-box">
+          <div class="label">Bukti kirim</div>
+          <div id="detailProof" class="value">Belum ada</div>
+          <img id="proofImage" class="proof-img" alt="Bukti kirim" />
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-top:16px;">
+        <a id="btnMapCourier" class="btn btn-secondary btn-small" href="#" target="_blank" rel="noopener">Map Kurir</a>
+        <a id="btnMapCustomer" class="btn btn-secondary btn-small" href="#" target="_blank" rel="noopener">Map Customer</a>
+        <button id="btnTimelineTop" class="btn btn-primary btn-small">Lihat Timeline</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar" style="justify-content:space-between;">
+        <div>
+          <h2 class="title" style="margin:0;">Timeline order</h2>
+          <div class="muted">Riwayat pickup, map, WA, update status, bukti kirim, dan perubahan pembayaran.</div>
+        </div>
+      </div>
+      <div id="timelineBox" style="margin-top:18px;"></div>
+    </section>
+  </div>
+
+
+
+  <div id="verifyModal" class="overlay" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3 class="title" style="font-size:28px; margin:0;">Verifikasi setoran kurir</h3>
+          <div class="muted" style="margin-top:6px;">Cek closing kas harian, lalu verifikasi setoran kurir agar status menjadi resmi.</div>
+        </div>
+        <button id="verifyCloseBtn" class="btn btn-secondary btn-small">Tutup</button>
+      </div>
+      <div class="card-grid" style="margin-top:18px;">
+        <div class="detail-box"><div class="label">Kurir</div><div id="verifyCourierName" class="value">-</div><div id="verifyCourierMeta" class="mini" style="margin-top:8px;">-</div></div>
+        <div class="detail-box"><div class="label">Status closing</div><div id="verifyClosingStatus" class="value">-</div><div id="verifyClosingMeta" class="mini" style="margin-top:8px;">-</div></div>
+        <div class="detail-box"><div class="label">COD</div><div id="verifyCod" class="value">Rp0</div></div>
+        <div class="detail-box"><div class="label">Pengeluaran</div><div id="verifyExpense" class="value">Rp0</div></div>
+        <div class="detail-box"><div class="label">Setor</div><div id="verifySetor" class="value">Rp0</div></div>
+        <div class="detail-box"><div class="label">Outstanding</div><div id="verifyOutstanding" class="value">Rp0</div></div>
+      </div>
+      <div class="detail-box" style="margin-top:16px;">
+        <div class="label">Catatan closing kurir</div>
+        <div id="verifyClosingNote" class="value" style="font-size:16px; font-weight:700; margin-top:10px;">-</div>
+      </div>
+      <div style="margin-top:16px;">
+        <label class="muted">Catatan verifikasi admin</label>
+        <textarea id="verifyNoteInput" class="input" placeholder="Contoh: Setoran sesuai dan diterima admin pusat."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="verifyCancelBtn" class="btn btn-secondary">Batal</button>
+        <button id="verifyConfirmBtn" class="btn btn-primary">Verifikasi setoran</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, onValue, get, update } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: '<SECRET>',
+      authDomain: 'ej-tobacco-store.firebaseapp.com',
+      databaseURL: 'https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId: 'ej-tobacco-store',
+      storageBucket: 'ej-tobacco-store.firebasestorage.app',
+      messagingSenderId: '229636141008',
+      appId: '1:229636141008:web:7b987df5f23a27967e0f8b',
+      measurementId: 'G-J2CLM4XQZZ'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const state = {
+      orders: {},
+      shipments: {},
+      payments: {},
+      timelines: {},
+      couriers: {},
+      expenses: {},
+      setoran: {},
+      selectedId: '',
+      selectedWalletCourierId: '',
+      selectedVerifyCourierId: '',
+      filters: { search: '', status: '', courier: '' }
+    };
+
+    const el = {
+      kpiReady: document.getElementById('kpiReady'),
+      kpiPicked: document.getElementById('kpiPicked'),
+      kpiOnWay: document.getElementById('kpiOnWay'),
+      kpiDone: document.getElementById('kpiDone'),
+      searchInput: document.getElementById('searchInput'),
+      statusFilter: document.getElementById('statusFilter'),
+      courierFilter: document.getElementById('courierFilter'),
+      monitorBody: document.getElementById('monitorBody'),
+      monitorEmpty: document.getElementById('monitorEmpty'),
+      detailOrder: document.getElementById('detailOrder'),
+      detailCustomer: document.getElementById('detailCustomer'),
+      detailCourier: document.getElementById('detailCourier'),
+      detailCourierPhone: document.getElementById('detailCourierPhone'),
+      detailStatus: document.getElementById('detailStatus'),
+      detailTrackingState: document.getElementById('detailTrackingState'),
+      detailPayment: document.getElementById('detailPayment'),
+      detailAmount: document.getElementById('detailAmount'),
+      detailAddress: document.getElementById('detailAddress'),
+      detailEta: document.getElementById('detailEta'),
+      detailProof: document.getElementById('detailProof'),
+      proofImage: document.getElementById('proofImage'),
+      btnMapCourier: document.getElementById('btnMapCourier'),
+      btnMapCustomer: document.getElementById('btnMapCustomer'),
+      btnTimelineTop: document.getElementById('btnTimelineTop'),
+      timelineBox: document.getElementById('timelineBox'),
+      btnRefresh: document.getElementById('btnRefresh'),
+      walletDateBadge: document.getElementById('walletDateBadge'),
+      walletKpiCod: document.getElementById('walletKpiCod'),
+      walletKpiExpense: document.getElementById('walletKpiExpense'),
+      walletKpiSetor: document.getElementById('walletKpiSetor'),
+      walletKpiOutstanding: document.getElementById('walletKpiOutstanding'),
+      walletBody: document.getElementById('walletBody'),
+      walletEmpty: document.getElementById('walletEmpty'),
+      walletDetailCourier: document.getElementById('walletDetailCourier'),
+      walletDetailCourierMeta: document.getElementById('walletDetailCourierMeta'),
+      walletDetailClosing: document.getElementById('walletDetailClosing'),
+      walletDetailClosingMeta: document.getElementById('walletDetailClosingMeta'),
+      walletDetailCod: document.getElementById('walletDetailCod'),
+      walletDetailCodMeta: document.getElementById('walletDetailCodMeta'),
+      walletDetailExpense: document.getElementById('walletDetailExpense'),
+      walletDetailExpenseMeta: document.getElementById('walletDetailExpenseMeta'),
+      walletDetailSetor: document.getElementById('walletDetailSetor'),
+      walletDetailSetorMeta: document.getElementById('walletDetailSetorMeta'),
+      walletDetailOutstanding: document.getElementById('walletDetailOutstanding'),
+      walletDetailOutstandingMeta: document.getElementById('walletDetailOutstandingMeta'),
+      walletLogBox: document.getElementById('walletLogBox')
+      ,verifyModal: document.getElementById('verifyModal')
+      ,verifyCloseBtn: document.getElementById('verifyCloseBtn')
+      ,verifyCancelBtn: document.getElementById('verifyCancelBtn')
+      ,verifyConfirmBtn: document.getElementById('verifyConfirmBtn')
+      ,verifyCourierName: document.getElementById('verifyCourierName')
+      ,verifyCourierMeta: document.getElementById('verifyCourierMeta')
+      ,verifyClosingStatus: document.getElementById('verifyClosingStatus')
+      ,verifyClosingMeta: document.getElementById('verifyClosingMeta')
+      ,verifyCod: document.getElementById('verifyCod')
+      ,verifyExpense: document.getElementById('verifyExpense')
+      ,verifySetor: document.getElementById('verifySetor')
+      ,verifyOutstanding: document.getElementById('verifyOutstanding')
+      ,verifyClosingNote: document.getElementById('verifyClosingNote')
+      ,verifyNoteInput: document.getElementById('verifyNoteInput')
+    };
+
+    function fmtRupiah(num) {
+      const n = Number(num || 0);
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+    }
+    function fmtDate(ts) {
+      const n = Number(ts || 0);
+      if (!n) return '-';
+      return new Intl.DateTimeFormat('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }).format(new Date(n));
+    }
+    function statusLabel(status, fallback='-') {
+      const map = {
+        ready_in_warehouse: 'Siap di Gudang',
+        picked_by_courier: 'Sudah Dipickup',
+        on_the_way: 'Menuju Lokasi',
+        delivery_delayed: 'Tertunda',
+        failed_delivery: 'Gagal Antar',
+        delivered: 'Terkirim',
+        returned_to_warehouse: 'Kembali ke Gudang'
+      };
+      return map[status] || fallback || status || '-';
+    }
+    function statusClass(status) {
+      if (status === 'ready_in_warehouse') return 's-ready';
+      if (status === 'picked_by_courier') return 's-picked';
+      if (status === 'on_the_way') return 's-way';
+      if (status === 'delivered') return 's-done';
+      return 's-other';
+    }
+    function mapUrlFromPoint(point) {
+      if (!point || point.lat == null || point.lng == null) return '#';
+      return `https://maps.google.com/?q=${point.lat},${point.lng}`;
+    }
+    function normalizePhone(v) {
+      const raw = String(v || '').replace(/[^\d+]/g, '');
+      if (!raw) return '';
+      if (raw.startsWith('62')) return raw;
+      if (raw.startsWith('0')) return `62${raw.slice(1)}`;
+      return raw;
+    }
+    function trackingState(s) {
+      if (s?.customerCanTrack && (s?.status === 'picked_by_courier' || s?.status === 'on_the_way')) return 'Aktif';
+      if (s?.status === 'delivered') return 'Selesai';
+      return 'Nonaktif';
+    }
+
+    function closingState(row) {
+      const raw = row?.setoranRow || null;
+      if (!raw) return 'open';
+      if (raw.status === 'verified' || raw.verified === true) return 'verified';
+      if (raw.status === 'locked' || raw.closed) return 'locked';
+      return raw.status || 'open';
+    }
+    function closingLabel(stateVal) {
+      if (stateVal === 'verified') return 'Verified';
+      if (stateVal === 'locked') return 'Locked';
+      return 'Open';
+    }
+    function closingBadgeClass(stateVal) {
+      if (stateVal === 'verified') return 's-done';
+      if (stateVal === 'locked') return 's-picked';
+      return 's-other';
+    }
+    function getVerifierIdentity() {
+      try {
+        const raw = localStorage.getItem('ej_role_session_v1');
+        const session = raw ? JSON.parse(raw) : null;
+        return session?.id || session?.username || session?.name || 'admin_pusat_1';
+      } catch {
+        return 'admin_pusat_1';
+      }
+    }
+
+    function todayParts() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth()+1).padStart(2,'0');
+      const d = String(now.getDate()).padStart(2,'0');
+      return { y, m, d, key: `${y}-${m}-${d}` };
+    }
+    function isSameLocalDay(ts) {
+      const n = Number(ts || 0);
+      if (!n) return false;
+      const dt = new Date(n);
+      const t = todayParts();
+      return dt.getFullYear() === t.y && String(dt.getMonth()+1).padStart(2,'0') === t.m && String(dt.getDate()).padStart(2,'0') === t.d;
+    }
+    function flattenExpensesToday() {
+      const out = [];
+      Object.entries(state.expenses || {}).forEach(([courierId, items]) => {
+        Object.entries(items || {}).forEach(([expenseId, row]) => {
+          const item = row || {};
+          const ts = Number(item.createdAt || 0);
+          if (ts && isSameLocalDay(ts)) out.push({ courierId, expenseId, ...item });
+        });
+      });
+      return out.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+    }
+    function getWalletRows() {
+      const t = todayParts();
+      const couriers = new Set([...Object.keys(state.couriers||{}), ...Object.keys(state.expenses||{}), ...Object.keys(state.setoran||{})]);
+      const expenseRows = flattenExpensesToday();
+      const byCourierExpense = {};
+      expenseRows.forEach(item => {
+        const id = item.courierId || '';
+        if (!byCourierExpense[id]) byCourierExpense[id] = { total: 0, count: 0, items: [] };
+        byCourierExpense[id].total += Number(item.amount || 0);
+        byCourierExpense[id].count += 1;
+        byCourierExpense[id].items.push(item);
+      });
+      const deliveredRows = Object.entries(state.orders || {}).map(([id, order]) => {
+        const ship = state.shipments[id] || {};
+        return { id, order: order || {}, ship };
+      }).filter(r => {
+        const status = r.ship.status || r.order.status || '';
+        const method = String(r.order.paymentMethod || '').toLowerCase();
+        const deliveredTs = Number(r.ship.deliveredAt || r.order.updatedAt || 0);
+        return status === 'delivered' && method === 'cod' && isSameLocalDay(deliveredTs);
+      });
+      const byCourierCod = {};
+      deliveredRows.forEach(r => {
+        const cid = r.ship.courierId || r.order.courierId || '';
+        if (!cid) return;
+        couriers.add(cid);
+        if (!byCourierCod[cid]) byCourierCod[cid] = { total: 0, count: 0, items: [] };
+        byCourierCod[cid].total += Number(r.order.grandTotal || r.ship.proofDelivery?.cashReceived || 0);
+        byCourierCod[cid].count += 1;
+        byCourierCod[cid].items.push(r);
+      });
+      const rows = [...couriers].map(courierId => {
+        const courier = state.couriers[courierId] || {};
+        const cod = byCourierCod[courierId]?.total || 0;
+        const deliveredCount = byCourierCod[courierId]?.count || 0;
+        const expense = byCourierExpense[courierId]?.total || 0;
+        const expenseCount = byCourierExpense[courierId]?.count || 0;
+        const setoranRow = (state.setoran?.[courierId] || {})[t.key] || null;
+        const setor = Number(setoranRow?.amountSetor || 0);
+        const sisa = Math.max(cod - expense - setor, 0);
+        const outstanding = Number(setoranRow?.amountOutstanding != null ? setoranRow.amountOutstanding : sisa);
+        return {
+          courierId, courier, cod, deliveredCount, expense, expenseCount,
+          setoranRow, setor, outstanding,
+          closingState: closingState({ setoranRow }),
+          verified: !!setoranRow?.verified || setoranRow?.status === 'verified',
+          verifiedBy: setoranRow?.verifiedBy || '',
+          verifiedAt: Number(setoranRow?.verifiedAt || 0),
+          verificationNote: setoranRow?.verificationNote || '',
+          closed: !!setoranRow?.closed,
+          updatedAt: Number(setoranRow?.updatedAt || 0),
+          logItems: [
+            ...(byCourierCod[courierId]?.items || []).map(item => ({ type: 'cod', ts: Number(item.ship.deliveredAt || item.order.updatedAt || 0), label: `COD ${item.order.orderNo}`, note: `${item.order.customerName || '-'} • +${fmtRupiah(item.order.grandTotal || 0)}` })),
+            ...(byCourierExpense[courierId]?.items || []).map(item => ({ type: 'expense', ts: Number(item.createdAt || 0), label: `Biaya ${item.type || 'lainnya'}`, note: `${item.note || 'Tanpa catatan'} • -${fmtRupiah(item.amount || 0)}` })),
+            ...(setoranRow ? [{ type: 'setor', ts: Number(setoranRow.updatedAt || 0), label: 'Closing / Setoran', note: `${fmtRupiah(setor)} • ${setoranRow.note || 'Tanpa catatan'}` }] : []),
+            ...((setoranRow?.verified || setoranRow?.status === 'verified') ? [{ type: 'verify', ts: Number(setoranRow.verifiedAt || setoranRow.updatedAt || 0), label: 'Verifikasi admin', note: `${setoranRow.verifiedBy || '-'} • ${setoranRow.verificationNote || 'Tanpa catatan verifikasi'}` }] : [])
+          ].sort((a,b)=>b.ts-a.ts)
+        };
+      }).filter(r => r.courierId);
+      rows.sort((a,b)=>String(a.courier.name||a.courierId).localeCompare(String(b.courier.name||b.courierId)));
+      return rows;
+    }
+    function renderWallet(rows) {
+      const t = todayParts();
+      el.walletDateBadge.textContent = `Tanggal ${t.key}`;
+      const totalCod = rows.reduce((sum, r)=>sum + Number(r.cod || 0), 0);
+      const totalExpense = rows.reduce((sum, r)=>sum + Number(r.expense || 0), 0);
+      const totalSetor = rows.reduce((sum, r)=>sum + Number(r.setor || 0), 0);
+      const totalOutstanding = rows.reduce((sum, r)=>sum + Number(r.outstanding || 0), 0);
+      el.walletKpiCod.textContent = fmtRupiah(totalCod);
+      el.walletKpiExpense.textContent = fmtRupiah(totalExpense);
+      el.walletKpiSetor.textContent = fmtRupiah(totalSetor);
+      el.walletKpiOutstanding.textContent = fmtRupiah(totalOutstanding);
+      if (!rows.length) {
+        el.walletBody.innerHTML = '';
+        el.walletEmpty.style.display = 'block';
+      } else {
+        el.walletEmpty.style.display = 'none';
+        el.walletBody.innerHTML = rows.map(r => `
+          <tr>
+            <td><div style="font-weight:800;">${r.courier.name || r.courierId}</div><div class="mini">${r.courierId}</div></td>
+            <td>${fmtRupiah(r.cod)}</td>
+            <td>${fmtRupiah(r.expense)}</td>
+            <td>${fmtRupiah(r.setor)}</td>
+            <td>${fmtRupiah(r.outstanding)}</td>
+            <td><span class="badge ${closingBadgeClass(r.closingState)}"><span class="dot"></span>${closingLabel(r.closingState)}</span></td>
+            <td>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-small" data-wallet-pick="${r.courierId}">Pilih dompet</button>
+                ${r.closingState === 'locked' ? `<button class="btn btn-primary btn-small" data-wallet-verify="${r.courierId}">Verifikasi</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `).join('');
+        el.walletBody.querySelectorAll('[data-wallet-pick]').forEach(btn => btn.addEventListener('click', () => selectWalletCourier(btn.dataset.walletPick)));
+        el.walletBody.querySelectorAll('[data-wallet-verify]').forEach(btn => btn.addEventListener('click', () => openVerifyModal(btn.dataset.walletVerify)));
+      }
+      if (!state.selectedWalletCourierId && rows.length) state.selectedWalletCourierId = rows[0].courierId;
+      const selected = rows.find(r => r.courierId === state.selectedWalletCourierId) || null;
+      renderWalletDetail(selected);
+    }
+    function renderWalletDetail(row) {
+      if (!row) {
+        el.walletDetailCourier.textContent = '-';
+        el.walletDetailCourierMeta.textContent = '-';
+        el.walletDetailClosing.textContent = '-';
+        el.walletDetailClosingMeta.textContent = '-';
+        el.walletDetailCod.textContent = fmtRupiah(0);
+        el.walletDetailCodMeta.textContent = '-';
+        el.walletDetailExpense.textContent = fmtRupiah(0);
+        el.walletDetailExpenseMeta.textContent = '-';
+        el.walletDetailSetor.textContent = fmtRupiah(0);
+        el.walletDetailSetorMeta.textContent = '-';
+        el.walletDetailOutstanding.textContent = fmtRupiah(0);
+        el.walletDetailOutstandingMeta.textContent = '-';
+        el.walletLogBox.innerHTML = '<div class="empty">Pilih kurir untuk melihat dompet hari ini.</div>';
+        return;
+      }
+      el.walletDetailCourier.textContent = row.courier.name || row.courierId;
+      el.walletDetailCourierMeta.textContent = `${row.courierId} • ${row.courier.phone || '-'}`;
+      el.walletDetailClosing.textContent = closingLabel(row.closingState);
+      el.walletDetailClosingMeta.textContent = row.setoranRow
+        ? `${fmtDate(row.updatedAt)} • ${row.setoranRow.note || 'Tanpa catatan'}${row.verified ? ` • Diverifikasi ${row.verifiedBy || '-'} ${fmtDate(row.verifiedAt)}` : ''}`
+        : 'Belum ada closing';
+      el.walletDetailCod.textContent = fmtRupiah(row.cod);
+      el.walletDetailCodMeta.textContent = `${row.deliveredCount} order COD delivered`;
+      el.walletDetailExpense.textContent = fmtRupiah(row.expense);
+      el.walletDetailExpenseMeta.textContent = `${row.expenseCount} pengeluaran`;
+      el.walletDetailSetor.textContent = fmtRupiah(row.setor);
+      el.walletDetailSetorMeta.textContent = row.setoranRow ? `Nominal setor • ${fmtDate(row.updatedAt)}` : 'Belum ada setor';
+      el.walletDetailOutstanding.textContent = fmtRupiah(row.outstanding);
+      el.walletDetailOutstandingMeta.textContent = row.closingState === 'verified' ? 'Outstanding setelah verifikasi admin' : (row.closed ? 'Sisa outstanding setelah closing' : 'Outstanding saat ini');
+      if (!row.logItems.length) {
+        el.walletLogBox.innerHTML = '<div class="empty">Belum ada log dompet kurir ini hari ini.</div>';
+      } else {
+        el.walletLogBox.innerHTML = row.logItems.map(item => `
+          <div class="timeline-item">
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+              <div>
+                <div style="font-weight:800;">${item.label}</div>
+                <div class="muted" style="margin-top:6px;line-height:1.6;">${item.note}</div>
+              </div>
+              <div class="mini">${fmtDate(item.ts)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+    function selectWalletCourier(courierId) {
+      state.selectedWalletCourierId = courierId;
+      renderWallet(getWalletRows());
+    }
+    function fillVerifyModal(row) {
+      if (!row) return;
+      el.verifyCourierName.textContent = row.courier.name || row.courierId;
+      el.verifyCourierMeta.textContent = `${row.courierId} • ${row.courier.phone || '-'}`;
+      el.verifyClosingStatus.textContent = closingLabel(row.closingState);
+      el.verifyClosingMeta.textContent = row.setoranRow ? `${fmtDate(row.updatedAt)} • ${row.setoranRow.note || 'Tanpa catatan'}` : 'Belum ada closing';
+      el.verifyCod.textContent = fmtRupiah(row.cod);
+      el.verifyExpense.textContent = fmtRupiah(row.expense);
+      el.verifySetor.textContent = fmtRupiah(row.setor);
+      el.verifyOutstanding.textContent = fmtRupiah(row.outstanding);
+      el.verifyClosingNote.textContent = row.setoranRow?.note || 'Tanpa catatan closing';
+      el.verifyNoteInput.value = row.verificationNote || 'Setoran sesuai.';
+    }
+    function openVerifyModal(courierId) {
+      const row = getWalletRows().find(r => r.courierId === courierId);
+      if (!row) return;
+      state.selectedVerifyCourierId = courierId;
+      fillVerifyModal(row);
+      el.verifyModal.classList.add('show');
+      el.verifyModal.setAttribute('aria-hidden', 'false');
+    }
+    function closeVerifyModal() {
+      state.selectedVerifyCourierId = '';
+      el.verifyModal.classList.remove('show');
+      el.verifyModal.setAttribute('aria-hidden', 'true');
+      el.verifyNoteInput.value = '';
+    }
+    async function saveVerifySetoran() {
+      const courierId = state.selectedVerifyCourierId;
+      if (!courierId) return;
+      const t = todayParts();
+      const row = getWalletRows().find(r => r.courierId === courierId);
+      if (!row || !row.setoranRow) {
+        alert('Data closing belum tersedia.');
+        return;
+      }
+      if (row.closingState !== 'locked') {
+        alert('Hanya closing berstatus Locked yang bisa diverifikasi.');
+        return;
+      }
+      const note = String(el.verifyNoteInput.value || '').trim();
+      const verifier = getVerifierIdentity();
+      const payload = {
+        status: 'verified',
+        verified: true,
+        verifiedBy: verifier,
+        verifiedAt: Date.now(),
+        verificationNote: note || 'Setoran sesuai.'
+      };
+      await update(ref(db, `setoran_kurir/${courierId}/${t.key}`), payload);
+      closeVerifyModal();
+      alert('Setoran berhasil diverifikasi.');
+    }
+
+
+    function getCombinedRows() {
+      const ids = new Set([...Object.keys(state.orders), ...Object.keys(state.shipments)]);
+      let rows = [...ids].map(id => {
+        const order = state.orders[id] || {};
+        const ship = state.shipments[id] || {};
+        const payment = state.payments[id] || {};
+        const courierId = ship.courierId || order.courierId || '';
+        const courier = state.couriers[courierId] || {};
+        const status = ship.status || order.status || '';
+        return {
+          id,
+          order,
+          ship,
+          payment,
+          courier,
+          courierId,
+          status,
+          statusLabel: ship.statusLabel || order.statusLabel || statusLabel(status),
+          customerName: order.customerName || '-',
+          orderNo: order.orderNo || id,
+          searchBlob: `${order.orderNo || ''} ${order.customerName || ''} ${order.fullAddress || ''} ${ship.courierName || order.courierName || courier.name || ''}`.toLowerCase()
+        };
+      });
+      const q = state.filters.search.trim().toLowerCase();
+      if (q) rows = rows.filter(r => r.searchBlob.includes(q));
+      if (state.filters.status) rows = rows.filter(r => r.status === state.filters.status);
+      if (state.filters.courier) rows = rows.filter(r => (r.courierId || '') === state.filters.courier);
+      rows.sort((a,b) => Number(b.ship.lastUpdateAt || b.order.updatedAt || 0) - Number(a.ship.lastUpdateAt || a.order.updatedAt || 0));
+      return rows;
+    }
+    function renderKpi(rows) {
+      el.kpiReady.textContent = rows.filter(r => r.status === 'ready_in_warehouse').length;
+      el.kpiPicked.textContent = rows.filter(r => r.status === 'picked_by_courier').length;
+      el.kpiOnWay.textContent = rows.filter(r => r.status === 'on_the_way').length;
+      const today = new Date();
+      const y = today.getFullYear(), m = today.getMonth(), d = today.getDate();
+      el.kpiDone.textContent = rows.filter(r => {
+        if (r.status !== 'delivered') return false;
+        const ts = Number(r.ship.deliveredAt || r.order.updatedAt || 0);
+        if (!ts) return false;
+        const dt = new Date(ts);
+        return dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d;
+      }).length;
+    }
+    function renderCourierFilter() {
+      const entries = Object.entries(state.couriers).sort((a,b) => String(a[1]?.name||a[0]).localeCompare(String(b[1]?.name||b[0])));
+      const current = state.filters.courier;
+      el.courierFilter.innerHTML = '<option value="">Semua kurir</option>' + entries.map(([id, c]) => `<option value="${id}" ${current===id?'selected':''}>${c.name || id}</option>`).join('');
+    }
+    function renderTable(rows) {
+      if (!rows.length) {
+        el.monitorBody.innerHTML = '';
+        el.monitorEmpty.style.display = 'block';
+        return;
+      }
+      el.monitorEmpty.style.display = 'none';
+      el.monitorBody.innerHTML = rows.map(r => {
+        const lastLoc = r.ship.lastCourierLocation || {};
+        const lastLocText = (lastLoc.lat || lastLoc.lng) ? `${lastLoc.lat}, ${lastLoc.lng}<div class="mini">${fmtDate(lastLoc.updatedAt)}</div>` : '<span class="mini">Belum ada</span>';
+        const mapCourier = (lastLoc.lat || lastLoc.lng) ? mapUrlFromPoint(lastLoc) : '#';
+        const mapCustomer = r.order.mapLink || mapUrlFromPoint(r.order.mapPoint);
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:800;">${r.orderNo}</div>
+              <div class="mini">${r.customerName}</div>
+            </td>
+            <td><span class="badge ${statusClass(r.status)}"><span class="dot"></span>${r.statusLabel}</span></td>
+            <td>
+              <div style="font-weight:700;">${r.ship.courierName || r.order.courierName || r.courier.name || '-'}</div>
+              <div class="mini">${r.courierId || '-'}</div>
+            </td>
+            <td>${r.ship.pickupCode || r.order.pickupCode || '-'}</td>
+            <td>${trackingState(r.ship)}</td>
+            <td>${lastLocText}</td>
+            <td>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-small" data-pick="${r.id}">Pilih</button>
+                <a class="btn btn-secondary btn-small" href="${mapCourier}" target="_blank" rel="noopener">Map Kurir</a>
+                <a class="btn btn-secondary btn-small" href="${mapCustomer || '#'}" target="_blank" rel="noopener">Map Customer</a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      el.monitorBody.querySelectorAll('[data-pick]').forEach(btn => btn.addEventListener('click', () => selectRow(btn.dataset.pick)));
+    }
+    async function ensureTimeline(id) {
+      if (state.timelines[id]) return state.timelines[id];
+      const snap = await get(ref(db, `order_timeline/${id}`));
+      const raw = snap.val() || {};
+      const items = Object.entries(raw).map(([key, val]) => ({ key, ...(val||{}) }))
+        .sort((a,b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+      state.timelines[id] = items;
+      return items;
+    }
+    function renderDetail(row) {
+      if (!row) {
+        el.detailOrder.textContent = '-';
+        el.detailCustomer.textContent = '-';
+        el.detailCourier.textContent = '-';
+        el.detailCourierPhone.textContent = '-';
+        el.detailStatus.textContent = '-';
+        el.detailTrackingState.textContent = '-';
+        el.detailPayment.textContent = '-';
+        el.detailAmount.textContent = '-';
+        el.detailAddress.textContent = '-';
+        el.detailEta.textContent = '-';
+        el.detailProof.textContent = 'Belum ada';
+        el.proofImage.style.display = 'none';
+        el.proofImage.src = '';
+        el.btnMapCourier.href = '#';
+        el.btnMapCustomer.href = '#';
+        el.timelineBox.innerHTML = '<div class="empty">Pilih salah satu order untuk melihat timeline.</div>';
+        return;
+      }
+      const proof = row.ship.proofDelivery || null;
+      const courierPhone = row.courier.phone || row.order.courierPhone || '';
+      const lastLoc = row.ship.lastCourierLocation || {};
+      el.detailOrder.textContent = row.orderNo;
+      el.detailCustomer.textContent = `${row.customerName} • ${row.order.customerPhone || '-'}`;
+      el.detailCourier.textContent = row.ship.courierName || row.order.courierName || row.courier.name || '-';
+      el.detailCourierPhone.textContent = courierPhone || '-';
+      el.detailStatus.textContent = row.statusLabel;
+      el.detailTrackingState.textContent = `Tracking customer: ${trackingState(row.ship)} • Update: ${fmtDate(lastLoc.updatedAt)}`;
+      el.detailPayment.textContent = `${String(row.payment.paymentStatus || row.order.paymentStatus || '-').toUpperCase()} • ${String(row.payment.paymentMethod || row.order.paymentMethod || '-').toUpperCase()}`;
+      const amount = Number(row.payment.amountPaid || row.order.grandTotal || 0);
+      el.detailAmount.textContent = amount ? fmtRupiah(amount) : '-';
+      el.detailAddress.textContent = row.order.fullAddress || '-';
+      el.detailEta.textContent = `${row.order.distanceKm || '-'} km • ETA ${row.ship.etaMinutes || '-'} menit`;
+      if (proof) {
+        const summary = [
+          proof.recipientName ? `Penerima: ${proof.recipientName}` : null,
+          proof.cashReceived != null ? `Cash: ${fmtRupiah(proof.cashReceived)}` : null,
+          proof.note ? `Catatan: ${proof.note}` : null,
+          proof.capturedAt ? `Waktu: ${fmtDate(proof.capturedAt)}` : null
+        ].filter(Boolean).join(' • ');
+        el.detailProof.textContent = summary || 'Bukti tersedia';
+        const imgSrc = proof.photoUrl || proof.photoDataUrl || '';
+        if (imgSrc) {
+          el.proofImage.src = imgSrc;
+          el.proofImage.style.display = 'block';
+        } else {
+          el.proofImage.style.display = 'none';
+          el.proofImage.src = '';
+        }
+      } else {
+        el.detailProof.textContent = 'Belum ada';
+        el.proofImage.style.display = 'none';
+        el.proofImage.src = '';
+      }
+      el.btnMapCourier.href = (lastLoc.lat || lastLoc.lng) ? mapUrlFromPoint(lastLoc) : '#';
+      el.btnMapCustomer.href = row.order.mapLink || mapUrlFromPoint(row.order.mapPoint) || '#';
+      renderTimeline(state.timelines[row.id] || []);
+    }
+    function renderTimeline(items) {
+      if (!items.length) {
+        el.timelineBox.innerHTML = '<div class="empty">Belum ada timeline untuk order ini.</div>';
+        return;
+      }
+      el.timelineBox.innerHTML = items.map(item => `
+        <div class="timeline-item">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+            <div>
+              <div style="font-weight:800;">${item.title || item.status || 'Aktivitas'}</div>
+              <div class="muted" style="margin-top:6px;line-height:1.6;">${item.description || item.note || '-'}</div>
+              <div class="mini" style="margin-top:8px;">${item.actorType || '-'} • ${item.actorId || '-'} • ${item.status || '-'}</div>
+            </div>
+            <div class="mini">${fmtDate(item.createdAt)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    async function selectRow(id) {
+      state.selectedId = id;
+      const rows = getCombinedRows();
+      const row = rows.find(r => r.id === id) || null;
+      if (!row) return;
+      const items = await ensureTimeline(id);
+      renderDetail({ ...row });
+      renderTimeline(items);
+    }
+    function rerender() {
+      renderCourierFilter();
+      const walletRows = getWalletRows();
+      renderWallet(walletRows);
+      const rows = getCombinedRows();
+      renderKpi(rows);
+      renderTable(rows);
+      if (!state.selectedId && rows.length) state.selectedId = rows[0].id;
+      const selected = rows.find(r => r.id === state.selectedId) || null;
+      renderDetail(selected);
+      if (selected) ensureTimeline(selected.id).then(items => renderTimeline(items));
+    }
+    function bindRealtime() {
+      onValue(ref(db, 'orders'), snap => { state.orders = snap.val() || {}; rerender(); });
+      onValue(ref(db, 'shipments_internal'), snap => { state.shipments = snap.val() || {}; rerender(); });
+      onValue(ref(db, 'payments'), snap => { state.payments = snap.val() || {}; rerender(); });
+      onValue(ref(db, 'courier_profiles'), snap => { state.couriers = snap.val() || {}; rerender(); });
+      onValue(ref(db, 'pengeluaran_kurir'), snap => { state.expenses = snap.val() || {}; rerender(); });
+      onValue(ref(db, 'setoran_kurir'), snap => { state.setoran = snap.val() || {}; rerender(); });
+    }
+    el.searchInput.addEventListener('input', e => { state.filters.search = e.target.value || ''; rerender(); });
+    el.statusFilter.addEventListener('change', e => { state.filters.status = e.target.value || ''; rerender(); });
+    el.courierFilter.addEventListener('change', e => { state.filters.courier = e.target.value || ''; rerender(); });
+    el.btnTimelineTop.addEventListener('click', () => {
+      document.querySelector('section.panel:last-of-type')?.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+    el.btnRefresh.addEventListener('click', () => { state.timelines = {}; rerender(); });
+
+    el.verifyCloseBtn.addEventListener('click', closeVerifyModal);
+    el.verifyCancelBtn.addEventListener('click', closeVerifyModal);
+    el.verifyConfirmBtn.addEventListener('click', () => saveVerifySetoran().catch(err => { console.error(err); alert('Gagal memverifikasi setoran.'); }));
+    el.verifyModal.addEventListener('click', e => { if (e.target === el.verifyModal) closeVerifyModal(); });
+
+    bindRealtime();
+  </script>
+</body>
+</html>
