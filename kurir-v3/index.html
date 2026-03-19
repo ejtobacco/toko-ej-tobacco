@@ -14,7 +14,7 @@
   <script src="../assets/ej_session_badge.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>EJ Kurir Modern UI</title>
+  <title>EJ Kurir Pickup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -88,7 +88,7 @@
       <div class="brand-wrap">
         <div class="brand-icon"><i class="fa-solid fa-motorcycle"></i></div>
         <div class="brand-text">
-          <h1>EJ Kurir Delivery</h1>
+          <h1>EJ Kurir Pickup</h1>
           <p id="brandSub">Memuat sesi kurir...</p>
         </div>
       </div>
@@ -114,7 +114,7 @@
 
     <section class="page page-home" data-page="home">
       <section class="hero-card">
-        <div class="hero-badge"><i class="fa-solid fa-sparkles"></i> Premium courier control</div>
+        <div class="hero-badge"><i class="fa-solid fa-sparkles"></i> Pickup warehouse flow</div>
         <div class="status-row">
           <div class="chip"><span class="dot" id="networkDot"></span><button type="button" id="networkLabel">Sistem online</button></div>
           <div class="clock">
@@ -122,16 +122,16 @@
             <div class="date" id="liveDate">Operasional hari ini</div>
           </div>
         </div>
-        <div class="hero-title">Wajib setor hari ini</div>
+        <div class="hero-title">Sisa kas hari ini</div>
         <div class="hero-value" id="setoranHariIni">Rp 0</div>
-        <div class="hero-sub" id="heroSub">Pantau COD, pengeluaran, dan performa kurir real-time.</div>
+        <div class="hero-sub" id="heroSub">Pickup dari gudang, antar ke customer, live tracking saat perjalanan, dan closing kas realtime.</div>
         <div class="hero-grid">
           <div class="mini-stat">
-            <label>Total COD</label>
+            <label>COD hari ini</label>
             <strong id="totalCOD" style="color: var(--green);">Rp 0</strong>
           </div>
           <div class="mini-stat">
-            <label>Pengeluaran</label>
+            <label>Pengeluaran hari ini</label>
             <strong id="totalPengeluaran" style="color: #fda4af;">Rp 0</strong>
           </div>
         </div>
@@ -161,7 +161,7 @@
         <div class="search-grid">
           <div class="search-wrap">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input id="searchInput" class="search-box" placeholder="Cari nama pelanggan atau nomor pesanan..." />
+            <input id="searchInput" class="search-box" placeholder="Cari order, customer, alamat, atau pickup code" />
           </div>
           <select id="filterArea" class="select-box">
             <option value="all">Semua area</option>
@@ -174,23 +174,23 @@
       <section class="panel-card">
         <div class="section-head">
           <div>
-            <h2>Ringkasan performa</h2>
-            <p>Dashboard singkat harian.</p>
+            <h2>Ringkasan operasional</h2>
+            <p>Dashboard singkat pickup dan pengantaran hari ini.</p>
           </div>
         </div>
         <div class="mini-grid">
-          <div class="metric-card"><label>Paket aktif</label><strong id="aktifCount">0 order</strong></div>
-          <div class="metric-card"><label>Prioritas urgent</label><strong id="urgentCount">0 order</strong></div>
-          <div class="metric-card"><label>Rata-rata ETA</label><strong id="etaAverage">0 menit</strong></div>
-          <div class="metric-card"><label>Keberhasilan</label><strong id="successRate">0%</strong></div>
+          <div class="metric-card"><label>Siap pickup</label><strong id="aktifCount">0 order</strong></div>
+          <div class="metric-card"><label>Tugas aktif</label><strong id="urgentCount">0 order</strong></div>
+          <div class="metric-card"><label>Dalam pengantaran</label><strong id="etaAverage">0 menit</strong></div>
+          <div class="metric-card"><label>Selesai hari ini</label><strong id="successRate">0%</strong></div>
         </div>
       </section>
 
       <section class="list-card">
         <div class="section-head">
           <div>
-            <h2 id="listTitle">Rute pengiriman</h2>
-            <p id="listSub">Geser logika rute otomatis, status, dan bukti kirim.</p>
+            <h2 id="listTitle">Tugas pengantaran</h2>
+            <p id="listSub">Pantau tugas kirim setelah pickup gudang, urutkan berdasarkan area dan prioritas.</p>
           </div>
           <div class="inline-actions">
             <button class="pill-btn" id="sortEtaBtn">Urut ETA</button>
@@ -205,13 +205,13 @@
       <section class="panel-card panel-stack">
         <div class="section-head">
           <div>
-            <h2>Pusat rute</h2>
-            <p>Atur urutan kirim dan lihat area pengantaran.</p>
+            <h2>Pusat rute kurir</h2>
+            <p>Atur urutan antar dan lihat area tugas aktif kurir.</p>
           </div>
-          <button class="mini-link" id="sortAreaBtn">Sort area</button>
+          <button class="mini-link" id="sortAreaBtn">Urutkan Rute</button>
         </div>
         <div class="mini-grid">
-          <div class="metric-card"><label>Stop hari ini</label><strong id="routeStopCount">0 titik</strong></div>
+          <div class="metric-card"><label>Stop aktif</label><strong id="routeStopCount">0 titik</strong></div>
           <div class="metric-card"><label>Area dominan</label><strong id="topArea">-</strong></div>
         </div>
         <div id="routeList" class="order-list"></div>
@@ -223,7 +223,7 @@
         <div class="section-head">
           <div>
             <h2>Dompet kurir</h2>
-            <p>COD, pengeluaran, dan closing kas harian.</p>
+            <p>Pantau COD, pengeluaran, setoran, dan closing kas harian.</p>
           </div>
           <button class="mini-link" id="openClosingBtn">Closing kas</button>
         </div>
@@ -249,13 +249,13 @@
         <div class="section-head">
           <div>
             <h2>Akun & operasional</h2>
-            <p>Ringkasan shift, status live, dan mode kerja.</p>
+            <p>Pilih kurir aktif dan atur mode operasional pengiriman.</p>
           </div>
         </div>
 
         <div class="field-stack" id="courierSelectWrap">
           <div>
-            <label class="label">Scope kurir</label>
+            <label class="label">Alur operasional kurir</label>
             <select id="courierSelect" class="select-box"></select>
           </div>
         </div>
@@ -263,16 +263,16 @@
         <div class="profile-grid">
           <div class="profile-card"><label>Kurir aktif</label><strong id="courierNameCard">-</strong></div>
           <div class="profile-card"><label>Status shift</label><strong id="shiftStatusText">On Duty</strong></div>
-          <div class="profile-card"><label>Check-in</label><strong id="checkinText">-</strong></div>
+          <div class="profile-card"><label>Pickup siap ambil</label><strong id="checkinText">-</strong></div>
           <div class="profile-card"><label>Zona utama</label><strong id="zonaUtama">-</strong></div>
         </div>
         <div class="field-stack">
-          <div class="switch-row"><div><strong>Mode online</strong><p>Status jaringan dan sinkronisasi pengiriman otomatis.</p></div><button class="switch active" id="onlineSwitch"></button></div>
-          <div class="switch-row"><div><strong>Live tracking pelanggan</strong><p>Aktifkan link posisi kurir saat sedang menuju lokasi.</p></div><button class="switch active" id="trackingSwitch"></button></div>
-          <div class="switch-row"><div><strong>Notifikasi WA otomatis</strong><p>Kirim template status proses, tunda, gagal, dan selesai.</p></div><button class="switch active" id="waSwitch"></button></div>
-          <div class="switch-row"><div><strong>Simpan titik GPS</strong><p>Gunakan geolokasi perangkat saat bukti kirim disimpan.</p></div><button class="switch active" id="gpsSwitch"></button></div>
+          <div class="switch-row"><div><strong>Mode online</strong><p>Aktifkan agar kurir siap menerima tugas pickup dan pengantaran.</p></div><button class="switch active" id="onlineSwitch"></button></div>
+          <div class="switch-row"><div><strong>Live tracking customer</strong><p>Customer bisa melihat posisi kurir saat order sudah dibawa dan sedang diantar.</p></div><button class="switch active" id="trackingSwitch"></button></div>
+          <div class="switch-row"><div><strong>Link WA otomatis</strong><p>Tampilkan tombol WhatsApp customer di detail tugas.</p></div><button class="switch active" id="waSwitch"></button></div>
+          <div class="switch-row"><div><strong>Simpan titik GPS</strong><p>Gunakan lokasi perangkat untuk bukti kirim dan tracking pengantaran.</p></div><button class="switch active" id="gpsSwitch"></button></div>
         </div>
-        <div class="footer-note">Versi final ini memakai Firebase live, guard role, badge session, dan mode pantau admin pusat.</div>
+        <div class="footer-note">Admin menyiapkan order ke gudang. Kurir scan pickup code, order masuk ke tugas saya, lalu dikirim sampai selesai.</div>
       </section>
     </section>
   </div>
@@ -293,7 +293,7 @@
     <div class="sheet-head">
       <div>
         <h3>Scan pickup gudang</h3>
-        <p id="pickupSheetText">Masukkan pickup code untuk klaim order dari gudang.</p>
+        <p id="pickupSheetText">Masukkan atau scan pickup code untuk mengambil order dari gudang ke tas kurir.</p>
       </div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
@@ -314,14 +314,14 @@
       <div><h3>Timeline pesanan</h3><p id="timelineHeadText">Pilih salah satu order untuk melihat histori lengkap.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="timeline-summary"><label>Ringkasan order</label><p id="timelineSummaryText">Belum ada order dipilih.</p></div>
+    <div class="timeline-summary"><label>Detail order</label><p id="timelineSummaryText">Pilih order untuk melihat detail, aksi, dan histori.</p></div>
     <div class="timeline-list" id="timelineList"></div>
   </section>
 
   <section class="sheet" id="auditSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div><h3>Audit log</h3><p>Semua aksi penting tercatat agar aman dan mudah ditelusuri.</p></div>
+      <div><h3>Audit log</h3><p>Jejak semua aksi penting: pickup, WA, map, status, bukti kirim, pengeluaran, dan closing.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="log-list" id="auditList"></div>
@@ -330,28 +330,32 @@
   <section class="sheet" id="statusSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div><h3>Update status</h3><p id="statusSheetText">Pilih aksi cepat untuk pesanan aktif.</p></div>
+      <div><h3>Update status</h3><p id="statusSheetText">Pilih aksi cepat untuk order yang sedang dibawa kurir.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="field-stack">
-      <div><label class="label">Pilih status baru</label><select class="select-box" id="statusSelect"><option value="Proses">Proses</option><option value="Tunda">Tunda</option><option value="Gagal">Gagal</option><option value="Selesai">Selesai</option><option value="Gudang">Kembali ke Gudang</option></select></div>
+      <div><label class="label">Pilih aksi</label><select class="select-box" id="statusSelect"><option value="Proses">Menuju lokasi</option><option value="Tunda">Tunda</option><option value="Gagal">Gagal Antar</option><option value="Selesai">Selesai</option><option value="Gudang">Kembali ke Gudang</option></select></div>
       <div><label class="label">Template alasan cepat</label><div class="reason-grid" id="reasonGrid"></div></div>
       <div><label class="label">Catatan tambahan</label><textarea class="field-area" id="statusNote" placeholder="Tulis keterangan singkat untuk admin atau pelanggan..."></textarea></div>
       <button class="sheet-btn primary" id="saveStatusBtn"><i class="fa-solid fa-check"></i> Simpan update status</button>
     </div>
   </section>
 
-  <section class="sheet" id="proofSheet">
+  
+    <!-- Sprint 1 note: input foto bukti kirim sudah ditambahkan di UI. Penyimpanan file ke backend/storage belum disambungkan di patch ini. -->
+<section class="sheet" id="proofSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div><h3>Bukti kirim modern</h3><p>Lengkapi penerima, pembayaran, dan titik lokasi.</p></div>
+      <div><h3>Bukti kirim</h3><p>Lengkapi bukti pengantaran sebelum menyelesaikan order.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="field-stack">
-      <div><label class="label">Nama penerima</label><input class="field" id="recipientInput" placeholder="Contoh: Bapak Andi" /></div>
-      <div><label class="label">Uang diterima</label><input class="field" id="receivedInput" type="number" placeholder="120000" /></div>
-      <div class="switch-row"><div><strong>Simpan titik GPS</strong><p>Gunakan geolokasi perangkat saat bukti kirim disimpan.</p></div><button class="switch active" id="proofGpsSwitch"></button></div>
-      <div><label class="label">Catatan bukti kirim</label><textarea class="field-area" id="proofNote" placeholder="Contoh: Paket diterima di teras depan, foto sudah diambil."></textarea></div>
+      <div><label class="label">Foto bukti kirim</label><input class="field" id="proofPhotoInput" type="file" accept="image/*" /></div>
+      <div class="muted-line">Wajib diisi sebagai bukti order telah diterima.</div>
+      <div><label class="label">Nama penerima</label><input class="field" id="recipientInput" placeholder="Nama orang yang menerima pesanan" /></div>
+      <div><label class="label">Uang diterima</label><input class="field" id="receivedInput" type="number" placeholder="Isi nominal jika pembayaran COD" /></div>
+      <div class="switch-row"><div><strong>Simpan titik GPS</strong><p>Gunakan lokasi perangkat untuk bukti kirim dan tracking pengantaran.</p></div><button class="switch active" id="proofGpsSwitch"></button></div>
+      <div><label class="label">Catatan bukti kirim</label><textarea class="field-area" id="proofNote" placeholder="Contoh: Diterima langsung di depan rumah"></textarea></div>
       <button class="sheet-btn primary" id="saveProofBtn"><i class="fa-solid fa-camera"></i> Simpan bukti & selesaikan</button>
     </div>
   </section>
@@ -359,39 +363,39 @@
   <section class="sheet" id="expenseSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div><h3>Catat pengeluaran</h3><p>Simpan biaya jalan, parkir, atau biaya tambahan operasional.</p></div>
+      <div><h3>Tambah pengeluaran</h3><p>Catat biaya operasional kurir hari ini.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="field-stack">
-      <div><label class="label">Jenis pengeluaran</label><select class="select-box" id="expenseType"><option value="Bensin">Bensin</option><option value="Parkir">Parkir</option><option value="Tol">Tol</option><option value="Lainnya">Lainnya</option></select></div>
+      <div><label class="label">Jenis biaya</label><select class="select-box" id="expenseType"><option value="Bensin">Bensin</option><option value="Parkir">Parkir</option><option value="Tol">Tol</option><option value="Lainnya">Lainnya</option></select></div>
       <div><label class="label">Nominal</label><input class="field" id="expenseAmount" type="number" placeholder="50000" /></div>
       <div><label class="label">Catatan</label><textarea class="field-area" id="expenseNote" placeholder="Contoh: Bensin shift pagi"></textarea></div>
-      <button class="sheet-btn primary" id="saveExpenseBtn"><i class="fa-solid fa-receipt"></i> Simpan pengeluaran</button>
+      <button class="sheet-btn primary" id="saveExpenseBtn"><i class="fa-solid fa-receipt"></i> Simpan Pengeluaran</button>
     </div>
   </section>
 
   <section class="sheet" id="closingSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div><h3>Closing kas harian</h3><p>Kunci rekap COD dan pengeluaran agar siap diverifikasi admin.</p></div>
+      <div><h3>Closing kas harian</h3><p>Verifikasi COD, pengeluaran, dan nominal setor hari ini.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="field-stack">
       <div class="mini-grid">
         <div class="metric-card"><label>COD terkumpul</label><strong id="closingCOD">Rp 0</strong></div>
         <div class="metric-card"><label>Pengeluaran</label><strong id="closingExpense">Rp 0</strong></div>
-        <div class="metric-card"><label>Wajib setor</label><strong id="closingSetor">Rp 0</strong></div>
+        <div class="metric-card"><label>Sisa kas</label><strong id="closingSetor">Rp 0</strong></div>
         <div class="metric-card"><label>Status</label><strong id="closingStatus">Open</strong></div>
       </div>
-      <div><label class="label">Catatan verifikasi</label><textarea class="field-area" id="closingNote" placeholder="Contoh: Kas cocok, siap setor ke admin."></textarea></div>
-      <button class="sheet-btn primary" id="lockClosingBtn"><i class="fa-solid fa-lock"></i> Kunci closing hari ini</button>
+      <div><label class="label">Catatan closing</label><textarea class="field-area" id="closingNote" placeholder="Contoh: Kas cocok, siap setor ke admin."></textarea></div>
+      <button class="sheet-btn primary" id="lockClosingBtn"><i class="fa-solid fa-lock"></i> Simpan Closing</button>
     </div>
   </section>
 
   <section class="sheet" id="archiveSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div><h3>Arsip / soft delete</h3><p>Pesanan yang diarsipkan tidak hilang permanen dan masih bisa diaudit.</p></div>
+      <div><h3>Arsip order</h3><p>Riwayat order selesai, gagal antar, dan kembali ke gudang.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="archive-list" id="archiveList"></div>
@@ -529,7 +533,7 @@
     };
 
     const STATUS_TO_DB = {
-      Proses: { status: 'on_the_way', label: 'Kurir menuju lokasi' },
+      Proses: { status: 'on_the_way', label: 'Menuju lokasi customer' },
       Tunda: { status: 'delivery_delayed', label: 'Tunda / akan dicoba lagi' },
       Gagal: { status: 'failed_delivery', label: 'Gagal antar' },
       Selesai: { status: 'delivered', label: 'Terkirim' },
@@ -704,21 +708,21 @@
     }
 
     function mapUiStatus(status) {
-      if (status === 'ready_in_warehouse') return 'Gudang';
+      if (status === 'ready_in_warehouse') return 'Siap di Gudang';
       if (['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(status)) return 'Proses';
-      if (status === 'delivered') return 'Selesai';
-      if (status === 'returned_to_warehouse') return 'Arsip';
+      if (status === 'delivered') return 'Terkirim';
+      if (status === 'returned_to_warehouse') return 'Kembali ke Gudang';
       return 'Gagal';
     }
 
     function mapStatusText(status) {
-      if (status === 'ready_in_warehouse') return 'Gudang';
-      if (status === 'picked_by_courier') return 'Di tas kurir';
-      if (status === 'on_the_way') return 'Proses';
+      if (status === 'ready_in_warehouse') return 'Siap di Gudang';
+      if (status === 'picked_by_courier') return 'Sudah Dipickup';
+      if (status === 'on_the_way') return 'Menuju Lokasi';
       if (status === 'delivery_delayed') return 'Tunda';
-      if (status === 'failed_delivery') return 'Gagal';
-      if (status === 'returned_to_warehouse') return 'Arsip';
-      if (status === 'delivered') return 'Selesai';
+      if (status === 'failed_delivery') return 'Gagal Antar';
+      if (status === 'returned_to_warehouse') return 'Kembali ke Gudang';
+      if (status === 'delivered') return 'Terkirim';
       return status || '-';
     }
 
@@ -826,8 +830,8 @@
       const counts = getCounts();
       const tabs = [
         { key: 'all', icon: 'fa-layer-group', label: 'SEMUA', value: counts.all },
-        { key: 'Gudang', icon: 'fa-warehouse', label: 'GUDANG', value: counts.Gudang },
-        { key: 'Proses', icon: 'fa-motorcycle', label: 'PROSES', value: counts.Proses },
+        { key: 'Gudang', icon: 'fa-warehouse', label: 'PICKUP', value: counts.Gudang },
+        { key: 'Proses', icon: 'fa-motorcycle', label: 'AKTIF', value: counts.Proses },
         { key: 'Selesai', icon: 'fa-check-double', label: 'SELESAI', value: counts.Selesai }
       ];
       els.statusTabs.innerHTML = tabs.map(tab => `<button class="tab-item ${state.currentTab === tab.key ? 'active' : ''}" data-tab="${tab.key}"><i class="fa-solid ${tab.icon}"></i><span>${tab.label}</span><b>${tab.value}</b></button>`).join('');
@@ -847,10 +851,10 @@
     function renderOrders() {
       const orders = getVisibleOrders();
       const titleMap = {
-        all: ['Rute pengiriman', 'Geser logika rute otomatis, status, dan bukti kirim.'],
-        Gudang: ['Antrian gudang', 'Order internal yang siap dipickup kurir.'],
-        Proses: ['Order aktif', 'Order yang sedang dibawa atau diantar kurir.'],
-        Selesai: ['Riwayat selesai', 'Order yang sudah selesai dan tercatat.']
+        all: ['Tugas pengantaran', 'Pantau tugas kirim setelah pickup gudang, urutkan berdasarkan area dan prioritas.'],
+        Gudang: ['Siap pickup', 'Order internal yang sudah dipacking dan siap diambil dari gudang.'],
+        Proses: ['Tugas aktif', 'Order yang sudah dipickup atau sedang dibawa ke customer.'],
+        Selesai: ['Selesai hari ini', 'Order yang sudah selesai dan tercatat.']
       };
       els.listTitle.textContent = titleMap[state.currentTab][0];
       els.listSub.textContent = titleMap[state.currentTab][1];
@@ -862,7 +866,7 @@
         let proofButton = `<button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-receipt"></i> Lihat bukti</button>`;
         if (['picked_by_courier', 'on_the_way', 'delivery_delayed', 'failed_delivery'].includes(order.status)) proofButton = `<button class="action-btn action-green" data-proof="${order.id}"><i class="fa-solid fa-camera"></i> Selesai</button>`;
         if (order.status === 'ready_in_warehouse') proofButton = `<button class="action-btn action-purple" data-claim="${order.id}"><i class="fa-solid fa-box-open"></i> Pickup</button>`;
-        return `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-grip-lines"></i> Stop ${index + 1} • ${order.area}</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-box"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>#${order.code} • ${order.payment === 'COD' ? 'COD ' + formatCurrency(order.cod) : 'Transfer'} • ${order.time}</p></div></div><div class="badge-stack"><span class="badge ${statusBadgeClass(order.statusText)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusText}</span><span class="badge ${order.payment === 'COD' ? 'cod' : 'transfer'}"><i class="fa-solid fa-wallet"></i> ${order.payment}</span>${order.urgent ? '<span class="badge urgent"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}</div></div><div class="eta-row"><span class="eta-chip"><i class="fa-solid fa-location-dot"></i> ${order.area}</span><span class="eta-chip"><i class="fa-solid fa-clock"></i> ETA ${order.eta} menit</span><span class="eta-chip"><i class="fa-solid fa-phone"></i> ${order.phone || '-'}</span>${order.pickupCode ? `<span class="eta-chip"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span>` : ''}${order.bagLabel ? `<span class="eta-chip"><i class="fa-solid fa-briefcase"></i> ${order.bagLabel}</span>` : ''}${paymentGap ? `<span class="eta-chip"><i class="fa-solid fa-money-bill-wave"></i> Kurang ${formatCurrency(paymentGap)}</span>` : ''}</div><div class="premium-progress"><div class="progress-label"><span>Progress operasional</span><span>${getOrderProgress(order)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${getOrderProgress(order)}%"></div></div></div>${order.pickupCode ? `<div class="pickup-box"><label>Pickup code</label><p><span class="pickup-code"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span></p></div>` : ''}<div class="address-box"><label>Alamat pengiriman</label><p>${order.address}</p></div>${proofBlock}<div class="timeline-summary"><label>Timeline terakhir</label><div class="timeline-preview">${timelinePreview || '<p class="muted-line">Belum ada preview timeline.</p>'}</div></div><div class="order-actions"><button class="action-btn action-blue" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> Kabari</button><button class="action-btn action-green" data-map="${order.id}"><i class="fa-solid fa-map-location-dot"></i> Maps</button>${proofButton}<button class="action-btn action-amber" data-status="${order.id}"><i class="fa-solid fa-pen-to-square"></i> Update</button></div><div class="action-row-full"><button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button><button class="action-btn action-danger" data-archive="${order.id}"><i class="fa-solid fa-box-archive"></i> ${order.archived ? 'Pulihkan' : 'Arsipkan'}</button></div></div></article>`;
+        return `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-grip-lines"></i> Stop ${index + 1} • ${order.area}</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-box"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>#${order.code} • ${order.payment === 'COD' ? 'COD ' + formatCurrency(order.cod) : 'Transfer'} • ${order.time}</p></div></div><div class="badge-stack"><span class="badge ${statusBadgeClass(order.statusText)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusText}</span><span class="badge ${order.payment === 'COD' ? 'cod' : 'transfer'}"><i class="fa-solid fa-wallet"></i> ${order.payment}</span>${order.urgent ? '<span class="badge urgent"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}</div></div><div class="eta-row"><span class="eta-chip"><i class="fa-solid fa-location-dot"></i> ${order.area}</span><span class="eta-chip"><i class="fa-solid fa-clock"></i> ETA ${order.eta} menit</span><span class="eta-chip"><i class="fa-solid fa-phone"></i> ${order.phone || '-'}</span>${order.pickupCode ? `<span class="eta-chip"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span>` : ''}${order.bagLabel ? `<span class="eta-chip"><i class="fa-solid fa-briefcase"></i> ${order.bagLabel}</span>` : ''}${paymentGap ? `<span class="eta-chip"><i class="fa-solid fa-money-bill-wave"></i> Kurang ${formatCurrency(paymentGap)}</span>` : ''}</div><div class="premium-progress"><div class="progress-label"><span>Progress operasional</span><span>${getOrderProgress(order)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${getOrderProgress(order)}%"></div></div></div>${order.pickupCode ? `<div class="pickup-box"><label>Pickup code</label><p><span class="pickup-code"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span></p></div>` : ''}<div class="address-box"><label>Alamat pengiriman</label><p>${order.address}</p></div>${proofBlock}<div class="timeline-summary"><label>Timeline terakhir</label><div class="timeline-preview">${timelinePreview || '<p class="muted-line">Belum ada preview timeline.</p>'}</div></div><div class="order-actions"><button class="action-btn action-blue" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> WA Customer</button><button class="action-btn action-green" data-map="${order.id}"><i class="fa-solid fa-map-location-dot"></i> Buka Map</button>${proofButton}<button class="action-btn action-amber" data-status="${order.id}"><i class="fa-solid fa-pen-to-square"></i> Update</button></div><div class="action-row-full"><button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button><button class="action-btn action-danger" data-archive="${order.id}"><i class="fa-solid fa-box-archive"></i> ${order.archived ? 'Pulihkan' : 'Arsipkan'}</button></div></div></article>`;
       }).join('');
     }
 
@@ -873,8 +877,8 @@
       active.forEach(order => areas[order.area] = (areas[order.area] || 0) + 1);
       const topArea = Object.entries(areas).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
       els.topArea.textContent = topArea;
-      if (!active.length) { els.routeList.innerHTML = '<div class="empty-state">Belum ada rute aktif hari ini.</div>'; return; }
-      els.routeList.innerHTML = active.map((order, index) => `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-route"></i> Prioritas rute • ${order.eta} menit</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-location-arrow"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>${order.area} • ${order.statusText} • ${order.code}</p></div></div><button class="mini-btn" data-map="${order.id}">Buka Maps</button></div><div class="address-box"><label>Catatan rute</label><p>${order.address}</p></div></div></article>`).join('');
+      if (!active.length) { els.routeList.innerHTML = '<div class="empty-state">Belum ada tugas aktif. Lakukan pickup dari gudang agar order masuk ke daftar pengantaran.</div>'; return; }
+      els.routeList.innerHTML = active.map((order, index) => `<article class="order-card"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-route"></i> Prioritas rute • ${order.eta} menit</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-location-arrow"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>${order.area} • ${order.statusText} • ${order.code}</p></div></div><button class="mini-btn" data-map="${order.id}">Buka Buka Map</button></div><div class="address-box"><label>Catatan rute</label><p>${order.address}</p></div></div></article>`).join('');
     }
 
     function renderWalletPage() {
@@ -886,7 +890,7 @@
       els.closingCOD.textContent = formatCurrency(summary.cod);
       els.closingExpense.textContent = formatCurrency(summary.expense);
       els.closingSetor.textContent = formatCurrency(summary.sisa);
-      els.walletLog.innerHTML = summary.expenseItems.length ? summary.expenseItems.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).map(item => `<div class="timeline-preview-item"><span class="timeline-point"></span><div class="timeline-content"><strong>${item.type} • ${formatCurrency(item.amount)}</strong><p>${item.note || '-'} • ${item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-'}</p></div></div>`).join('') : '<div class="empty-state">Belum ada log pengeluaran pada scope aktif.</div>';
+      els.walletLog.innerHTML = summary.expenseItems.length ? summary.expenseItems.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).map(item => `<div class="timeline-preview-item"><span class="timeline-point"></span><div class="timeline-content"><strong>${item.type} • ${formatCurrency(item.amount)}</strong><p>${item.note || '-'} • ${item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-'}</p></div></div>`).join('') : '<div class="empty-state">Belum ada transaksi dompet hari ini.</div>';
     }
 
     function renderAuditLog() {
@@ -894,7 +898,7 @@
       if (!isAdminPusatMode() && state.currentCourierId) logs = logs.filter(item => item.courierId === state.currentCourierId || item.actorId === state.currentCourierId);
       if (isAdminPusatMode() && state.currentCourierId && state.currentCourierId !== '__all__') logs = logs.filter(item => item.courierId === state.currentCourierId || item.actorId === state.currentCourierId);
       logs = logs.slice(0, 40);
-      if (!logs.length) { els.auditList.innerHTML = '<div class="empty-state">Belum ada log.</div>'; return; }
+      if (!logs.length) { els.auditList.innerHTML = '<div class="empty-state">Belum ada aktivitas tercatat.</div>'; return; }
       els.auditList.innerHTML = logs.map(item => `<div class="log-item"><span class="log-point"></span><div class="log-content"><strong>${item.title}</strong><p>${item.note || '-'} • ${item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '-'}</p></div></div>`).join('');
     }
 
@@ -919,7 +923,7 @@
       els.totalCOD.textContent = formatCurrency(summary.cod);
       els.totalPengeluaran.textContent = formatCurrency(summary.expense);
       els.setoranHariIni.textContent = formatCurrency(summary.sisa);
-      els.heroSub.textContent = isAdminPusatMode() ? 'Mode pantau pusat aktif. Anda bisa memonitor kurir dan performa realtime.' : (state.closingLocked ? 'Kas harian sudah dikunci dan siap diverifikasi admin.' : 'Pantau COD, pengeluaran, dan performa kurir real-time.');
+      els.heroSub.textContent = isAdminPusatMode() ? 'Mode pantau pusat aktif. Anda bisa memonitor kurir dan performa realtime.' : (state.closingLocked ? 'Kas harian sudah dikunci dan siap diverifikasi admin.' : 'Pickup dari gudang, antar ke customer, live tracking saat perjalanan, dan closing kas realtime.');
       els.shiftStatusText.textContent = isAdminPusatMode() ? 'Mode Pantau' : 'On Duty';
       els.zonaUtama.textContent = state.currentCourierProfile?.zone || els.topArea.textContent || '-';
       els.closingStatus.textContent = state.closingLocked ? 'Locked' : 'Open';
@@ -985,7 +989,7 @@
       try {
         await update(ref(db), updates);
         await safeWriteAudit(`Pickup ${order.code}`, `${state.currentCourierName} ambil order ke ${bagLabel}.`);
-        closeSheets(); els.pickupCodeInput.value = ''; els.bagLabelInput.value = ''; showToast(`Pickup ${order.customer} berhasil.`);
+        closeSheets(); els.pickupCodeInput.value = ''; els.bagLabelInput.value = ''; showToast('Pickup berhasil. Order masuk ke tugas saya.');
       } catch (err) { console.error(err); showToast('Gagal scan pickup.'); }
     }
 
@@ -1067,7 +1071,7 @@
       try {
         await set(ref(db, `pengeluaran_kurir/${state.currentCourierId}/${expenseId}`), { type, amount, note, courierId: state.currentCourierId, createdAt: Date.now() });
         await safeWriteAudit(`Pengeluaran ${type}`, `${formatCurrency(amount)} • ${note}`);
-        closeSheets(); els.expenseAmount.value = ''; els.expenseNote.value = ''; showToast('Pengeluaran berhasil disimpan.');
+        closeSheets(); els.expenseAmount.value = ''; els.expenseNote.value = ''; showToast('Pengeluaran berhasil dicatat.');
       } catch (err) { console.error(err); showToast('Gagal menyimpan pengeluaran.'); }
     }
 
@@ -1163,7 +1167,7 @@
         state.currentCourierName = state.currentCourierProfile?.name || 'Admin Pusat';
         localStorage.setItem('ej_active_courier_id', state.currentCourierId || '');
         localStorage.setItem('ej_active_courier_name', state.currentCourierName || '');
-        renderWalletScope(); renderAll(); showToast('Scope kurir berhasil diganti.');
+        renderWalletScope(); renderAll(); showToast('Alur operasional kurir berhasil diganti.');
       });
 
       document.body.addEventListener('click', (e) => {
@@ -1209,7 +1213,7 @@
           if (!order) return;
           const q = encodeURIComponent(order.address || order.customer);
           window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
-          safeWriteAudit(`Maps ${order.code}`, `Navigasi dibuka untuk ${order.customer}.`); return;
+          safeWriteAudit(`Buka Map ${order.code}`, `Navigasi dibuka untuk ${order.customer}.`); return;
         }
 
         const waBtn = e.target.closest('[data-wa]');
