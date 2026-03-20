@@ -985,19 +985,12 @@
       return status || '-';
     }
 
-    function resolvePackageTab(status) {
-      if (status === 'ready_in_warehouse') return 'Pickup';
-      if (['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(status)) return 'Aktif';
-      if (['failed_delivery', 'returned_to_warehouse'].includes(status)) return 'Gagal';
-      if (status === 'delivered') return 'Selesai';
-      return 'all';
-    }
 
     function getPackageTabMeta() {
       return {
         all: {
           title: 'Semua paket',
-          sub: 'Semua paket operasional hari ini, kecuali arsip.',
+          sub: 'Semua paket operasional yang sedang ditangani kurir hari ini.',
           empty: 'Belum ada paket operasional yang tampil.'
         },
         Pickup: {
@@ -1007,7 +1000,7 @@
         },
         Aktif: {
           title: 'Paket aktif',
-          sub: 'Paket yang sudah di tas kurir, sedang diantar, atau masih tertunda.',
+          sub: 'Paket yang sudah dibawa kurir, sedang diantar, atau sedang ditunda.',
           empty: 'Belum ada paket aktif.'
         },
         Gagal: {
@@ -1017,13 +1010,13 @@
         },
         Selesai: {
           title: 'Paket selesai',
-          sub: 'Paket yang sudah terkirim dan selesai hari ini.',
+          sub: 'Paket yang sudah terkirim dan selesai dicatat hari ini.',
           empty: 'Belum ada paket selesai.'
         }
       };
     }
 
-    function filterOrdersByPackageTab(orders, tabKey) {
+    function filterOrdersByTab(orders, tabKey) {
       const visible = orders.filter(order => !order.archived);
 
       if (tabKey === 'all') return visible;
@@ -1035,7 +1028,7 @@
       return visible;
     }
 
-    function sortOrdersByPackageTab(orders, tabKey) {
+    function sortOrdersByTab(orders, tabKey) {
       const list = [...orders];
 
       if (tabKey === 'Pickup') {
@@ -1044,8 +1037,8 @@
 
       if (tabKey === 'Aktif') {
         return list.sort((a, b) => {
-          const aPriority = a.status === 'on_the_way' ? 0 : (a.status === 'delivery_delayed' ? 2 : 1);
-          const bPriority = b.status === 'on_the_way' ? 0 : (b.status === 'delivery_delayed' ? 2 : 1);
+          const aPriority = a.status === 'on_the_way' ? 0 : (a.status === 'picked_by_courier' ? 1 : 2);
+          const bPriority = b.status === 'on_the_way' ? 0 : (b.status === 'picked_by_courier' ? 1 : 2);
           if (aPriority !== bPriority) return aPriority - bPriority;
           return (a.eta || 999) - (b.eta || 999);
         });
@@ -1061,6 +1054,17 @@
 
       return sortOrdersForMode(list, state.orderSortMode);
     }
+
+    function resolveTabForOrder(order) {
+      if (!order) return 'all';
+      if (order.status === 'ready_in_warehouse') return 'Pickup';
+      if (['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)) return 'Aktif';
+      if (['failed_delivery', 'returned_to_warehouse'].includes(order.status)) return 'Gagal';
+      if (order.status === 'delivered') return 'Selesai';
+      return 'all';
+    }
+
+
 
     function allOrders() {
       return Object.entries(state.ordersRaw || {}).map(([id, order]) => {
@@ -1107,7 +1111,7 @@
           bagLabel,
           distanceKm,
           createdAt: Number(order.createdAt || 0),
-          updatedAt: Number(order.updatedAt || shipment.lastUpdateAt || 0),
+          updatedAt: Number(order.updatedAt || shipment.lastUpdateAt || shipment.pickedByCourierAt || 0),
           deliveredAt: Number(shipment.deliveredAt || 0),
           raw: order
         };
@@ -1127,30 +1131,20 @@
     function getVisibleOrders() {
       const keyword = els.searchInput.value.trim().toLowerCase();
       const area = els.filterArea.value;
-
-      let orders = filterOrdersByPackageTab(getScopedOrders(), state.currentTab);
-
+      let orders = filterOrdersByTab(getScopedOrders(), state.currentTab);
       if (keyword) {
-        orders = orders.filter(order =>
-          [order.customer, order.code, order.address, order.pickupCode]
-            .join(' ')
-            .toLowerCase()
-            .includes(keyword)
-        );
+        orders = orders.filter(order => [order.customer, order.code, order.address, order.pickupCode].join(' ').toLowerCase().includes(keyword));
       }
-
       if (area !== 'all') {
         orders = orders.filter(order => order.area === area);
       }
-
-      return sortOrdersByPackageTab(orders, state.currentTab);
+      return sortOrdersByTab(orders, state.currentTab);
     }
 
     function getActiveOrders() { return getScopedOrders().filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)); }
 
     function getCounts() {
       const scoped = getScopedOrders().filter(order => !order.archived);
-
       return {
         all: scoped.length,
         Pickup: scoped.filter(order => order.status === 'ready_in_warehouse').length,
@@ -1278,10 +1272,10 @@
       const counts = getCounts();
       const tabs = [
         { key: 'all', icon: 'fa-layer-group', label: 'SEMUA', value: counts.all },
-        { key: 'Pickup', icon: 'fa-warehouse', label: 'PICKUP', value: counts.Pickup },
+        { key: 'Pickup', icon: 'fa-box-open', label: 'PICKUP', value: counts.Pickup },
         { key: 'Aktif', icon: 'fa-motorcycle', label: 'AKTIF', value: counts.Aktif },
         { key: 'Gagal', icon: 'fa-triangle-exclamation', label: 'GAGAL', value: counts.Gagal },
-        { key: 'Selesai', icon: 'fa-check-double', label: 'SELESAI', value: counts.Selesai }
+        { key: 'Selesai', icon: 'fa-badge-check', label: 'SELESAI', value: counts.Selesai }
       ];
       els.statusTabs.innerHTML = tabs.map(tab => `<button class="tab-item ${state.currentTab === tab.key ? 'active' : ''}" data-tab="${tab.key}"><i class="fa-solid ${tab.icon}"></i><span>${tab.label}</span><b>${tab.value}</b></button>`).join('');
     }
@@ -1299,10 +1293,26 @@
 
     function renderOrders() {
       const orders = getVisibleOrders();
-      const meta = getPackageTabMeta()[state.currentTab] || getPackageTabMeta().all;
-      els.listTitle.textContent = meta.title;
-      els.listSub.textContent = meta.sub;
-      if (!orders.length) { els.orderList.innerHTML = `<div class="empty-state">${meta.empty}</div>`; return; }
+      const tabMeta = getPackageTabMeta()[state.currentTab] || getPackageTabMeta().all;
+      els.listTitle.textContent = tabMeta.title;
+      const sortLabel = state.currentTab === 'all'
+        ? (state.orderSortMode === 'eta'
+            ? 'Urut ETA aktif.'
+            : (state.orderSortMode === 'cod'
+                ? 'Urut COD aktif.'
+                : (state.orderSortMode === 'area' ? 'Urut area aktif.' : 'Urutan default aktif.')))
+        : (state.currentTab === 'Pickup'
+            ? 'Paket paling lama siap pickup ditampilkan lebih dulu.'
+            : (state.currentTab === 'Aktif'
+                ? 'Paket yang sedang diantar diprioritaskan di atas.'
+                : (state.currentTab === 'Gagal'
+                    ? 'Kasus terbaru tampil di bagian atas.'
+                    : 'Pengiriman terakhir selesai tampil lebih dulu.')));
+      els.listSub.textContent = `${tabMeta.sub} ${sortLabel}`;
+      if (!orders.length) {
+        els.orderList.innerHTML = `<div class="empty-state">${tabMeta.empty}</div>`;
+        return;
+      }
       els.orderList.innerHTML = orders.map((order, index) => {
         const timelinePreview = addTimelinePreview(order.id);
         const paymentGap = getPaymentGap(order);
@@ -1311,7 +1321,7 @@
         if (['on_the_way', 'delivery_delayed', 'failed_delivery'].includes(order.status)) proofButton = `<button class="action-btn action-green" data-proof="${order.id}"><i class="fa-solid fa-camera"></i> Upload Bukti</button>`;
         if (order.status === 'picked_by_courier') proofButton = `<button class="action-btn action-purple" data-start="${order.id}"><i class="fa-solid fa-motorcycle"></i> Mulai Antar</button>`;
         if (order.status === 'ready_in_warehouse') proofButton = `<button class="action-btn action-purple" data-claim="${order.id}"><i class="fa-solid fa-box-open"></i> Ambil ke Tas</button>`;
-        return `<article class="order-card" data-order-card="${order.id}"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-grip-lines"></i> Stop ${index + 1} • ${order.area}</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-box"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>#${order.code} • ${order.payment === 'COD' ? 'COD ' + formatCurrency(order.cod) : 'Transfer'} • ${order.time}</p></div></div><div class="badge-stack"><span class="badge ${statusBadgeClass(order.statusText)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusText}</span><span class="badge ${order.payment === 'COD' ? 'cod' : 'transfer'}"><i class="fa-solid fa-wallet"></i> ${order.payment}</span>${order.urgent ? '<span class="badge urgent"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}</div></div><div class="eta-row"><span class="eta-chip"><i class="fa-solid fa-location-dot"></i> ${order.area}</span><span class="eta-chip"><i class="fa-solid fa-clock"></i> ETA ${order.eta} menit</span><span class="eta-chip"><i class="fa-solid fa-phone"></i> ${order.phone || '-'}</span>${order.pickupCode ? `<span class="eta-chip"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span>` : ''}${order.bagLabel ? `<span class="eta-chip"><i class="fa-solid fa-briefcase"></i> ${order.bagLabel}</span>` : ''}${paymentGap ? `<span class="eta-chip"><i class="fa-solid fa-money-bill-wave"></i> Kurang ${formatCurrency(paymentGap)}</span>` : ''}</div><div class="premium-progress"><div class="progress-label"><span>Progress operasional</span><span>${getOrderProgress(order)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${getOrderProgress(order)}%"></div></div></div>${order.pickupCode ? `<div class="pickup-box"><label>Pickup code</label><p><span class="pickup-code"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span></p></div>` : ''}<div class="address-box"><label>Alamat pengiriman</label><p>${order.address}</p></div>${proofBlock}<div class="timeline-summary"><label>Timeline terakhir</label><div class="timeline-preview">${timelinePreview || '<p class="muted-line">Belum ada preview timeline.</p>'}</div></div><div class="order-actions"><button class="action-btn action-blue" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> WA Customer</button><button class="action-btn action-green" data-map="${order.id}"><i class="fa-solid fa-map-location-dot"></i> Buka Map</button>${proofButton}<button class="action-btn action-amber" data-status="${order.id}"><i class="fa-solid fa-pen-to-square"></i> Update Status</button></div><div class="action-row-full"><button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button>${(['delivered','failed_delivery','returned_to_warehouse','archived'].includes(order.status)) ? `<button class="action-btn action-danger" data-archive="${order.id}"><i class="fa-solid fa-box-archive"></i> ${order.archived ? 'Pulihkan' : 'Arsipkan'}</button>` : ''}</div></div></article>`;
+        return `<article class="order-card" data-order-card="${order.id}"><div class="drag-bar"><div class="drag-num">${index + 1}</div><span><i class="fa-solid fa-grip-lines"></i> Stop ${index + 1} • ${order.area}</span></div><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="fa-solid fa-box"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>#${order.code} • ${order.payment === 'COD' ? 'COD ' + formatCurrency(order.cod) : 'Transfer'} • ${order.time}</p></div></div><div class="badge-stack"><span class="badge ${statusBadgeClass(order.uiStatus)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusText}</span><span class="badge ${order.payment === 'COD' ? 'cod' : 'transfer'}"><i class="fa-solid fa-wallet"></i> ${order.payment}</span>${order.urgent ? '<span class="badge urgent"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}</div></div><div class="eta-row"><span class="eta-chip"><i class="fa-solid fa-location-dot"></i> ${order.area}</span><span class="eta-chip"><i class="fa-solid fa-clock"></i> ETA ${order.eta} menit</span><span class="eta-chip"><i class="fa-solid fa-phone"></i> ${order.phone || '-'}</span>${order.pickupCode ? `<span class="eta-chip"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span>` : ''}${order.bagLabel ? `<span class="eta-chip"><i class="fa-solid fa-briefcase"></i> ${order.bagLabel}</span>` : ''}${paymentGap ? `<span class="eta-chip"><i class="fa-solid fa-money-bill-wave"></i> Kurang ${formatCurrency(paymentGap)}</span>` : ''}</div><div class="premium-progress"><div class="progress-label"><span>Progress operasional</span><span>${getOrderProgress(order)}%</span></div><div class="progress-track"><div class="progress-fill" style="width:${getOrderProgress(order)}%"></div></div></div>${order.pickupCode ? `<div class="pickup-box"><label>Pickup code</label><p><span class="pickup-code"><i class="fa-solid fa-barcode"></i> ${order.pickupCode}</span></p></div>` : ''}<div class="address-box"><label>Alamat pengiriman</label><p>${order.address}</p></div>${proofBlock}<div class="timeline-summary"><label>Timeline terakhir</label><div class="timeline-preview">${timelinePreview || '<p class="muted-line">Belum ada preview timeline.</p>'}</div></div><div class="order-actions"><button class="action-btn action-blue" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> WA Customer</button><button class="action-btn action-green" data-map="${order.id}"><i class="fa-solid fa-map-location-dot"></i> Buka Map</button>${proofButton}<button class="action-btn action-amber" data-status="${order.id}"><i class="fa-solid fa-pen-to-square"></i> Update Status</button></div><div class="action-row-full"><button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button>${(['delivered','failed_delivery','returned_to_warehouse','archived'].includes(order.status)) ? `<button class="action-btn action-danger" data-archive="${order.id}"><i class="fa-solid fa-box-archive"></i> ${order.archived ? 'Pulihkan' : 'Arsipkan'}</button>` : ''}</div></div></article>`;
       }).join('');
     }
 
@@ -2018,13 +2028,10 @@
 
     function focusOrderCard(orderId) {
       switchPage('home');
-
       const order = allOrders().find(item => item.id === orderId);
       if (!order) return;
-
-      state.currentTab = resolvePackageTab(order.status);
+      state.currentTab = resolveTabForOrder(order);
       renderAll();
-
       setTimeout(() => {
         const card = document.querySelector(`[data-order-card="${orderId}"]`);
         if (!card) return;
@@ -2032,6 +2039,288 @@
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setTimeout(() => card.classList.remove('scan-highlight'), 2200);
       }, 60);
+    }
+
+    async function processScanFile(file) {
+      if (!file) return false;
+      if (!('BarcodeDetector' in window)) return false;
+      try {
+        const detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','upc_a','upc_e'] });
+        const bitmap = await createImageBitmap(file);
+        const codes = await detector.detect(bitmap);
+        const rawCode = String(codes?.[0]?.rawValue || '').trim();
+        if (!rawCode) return false;
+        await handleScannedPickupCode(rawCode);
+        return true;
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
+    }
+
+    function vibratePulse(pattern) {
+      try { if (navigator.vibrate) navigator.vibrate(pattern); } catch {}
+    }
+
+    function getScannerAudioContext() {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!scannerAudioContext) scannerAudioContext = new Ctx();
+      if (scannerAudioContext.state === 'suspended') scannerAudioContext.resume().catch(() => {});
+      return scannerAudioContext;
+    }
+
+    function playScannerTone(type = 'success') {
+      const ctx = getScannerAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type === 'success' ? 'sine' : 'sawtooth';
+      if (type === 'success') {
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+      } else {
+        osc.frequency.setValueAtTime(280, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+      }
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(type === 'success' ? 0.16 : 0.2, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + (type === 'success' ? 0.16 : 0.22));
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + (type === 'success' ? 0.18 : 0.24));
+    }
+
+    function setScannerLoading(loading, message = 'Menyiapkan kamera belakang…') {
+      if (els.scannerLoaderText) els.scannerLoaderText.textContent = message;
+      if (els.scannerLoader) els.scannerLoader.classList.toggle('hidden', !loading);
+    }
+
+    function updateScannerTorchUi() {
+      if (!els.scannerTorchBtn) return;
+      els.scannerTorchBtn.disabled = !scannerTorchAvailable;
+      els.scannerTorchBtn.style.opacity = scannerTorchAvailable ? '1' : '.38';
+      els.scannerTorchBtn.title = scannerTorchAvailable ? (scannerTorchOn ? 'Matikan lampu' : 'Nyalakan lampu') : 'Lampu tidak didukung';
+      els.scannerTorchBtn.innerHTML = scannerTorchOn
+        ? '<i class="fa-solid fa-bolt" style="color:#f6dd82"></i>'
+        : '<i class="fa-solid fa-bolt"></i>';
+    }
+
+    async function setScannerTorch(nextState) {
+      if (!scannerStream) return;
+      const track = scannerStream.getVideoTracks?.()[0];
+      if (!track) return;
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+      if (!capabilities.torch) {
+        scannerTorchAvailable = false;
+        scannerTorchOn = false;
+        updateScannerTorchUi();
+        return;
+      }
+      try {
+        await track.applyConstraints({ advanced: [{ torch: !!nextState }] });
+        scannerTorchAvailable = true;
+        scannerTorchOn = !!nextState;
+      } catch (err) {
+        console.warn('SCANNER_TORCH_FAILED', err);
+        scannerTorchOn = false;
+      }
+      updateScannerTorchUi();
+    }
+
+    function setScannerStatus(message, tone = 'neutral') {
+      if (!els.scannerStatusText) return;
+      els.scannerStatusText.textContent = message;
+      els.scannerStatusText.classList.remove('success', 'warning');
+      if (els.scannerModal) {
+        const shell = els.scannerModal.querySelector('.scanner-shell');
+        if (shell) shell.classList.remove('scan-success', 'scan-warning');
+        if (tone === 'success') {
+          els.scannerStatusText.classList.add('success');
+          if (shell) shell.classList.add('scan-success');
+        } else if (tone === 'warning') {
+          els.scannerStatusText.classList.add('warning');
+          if (shell) shell.classList.add('scan-warning');
+        }
+      }
+    }
+
+    function pulseScannerFeedback(tone, message) {
+      setScannerStatus(message, tone);
+      if (tone === 'success') {
+        playScannerTone('success');
+        vibratePulse([40, 20, 40]);
+      } else if (tone === 'warning') {
+        playScannerTone('warning');
+        vibratePulse([90]);
+      }
+    }
+
+    function stopScannerModal() {
+      if (scannerLoopHandle) { clearTimeout(scannerLoopHandle); scannerLoopHandle = null; }
+      scannerBusy = false;
+      scannerLastCode = '';
+      scannerTorchAvailable = false;
+      scannerTorchOn = false;
+      updateScannerTorchUi();
+      setScannerLoading(true, 'Menyiapkan kamera belakang…');
+      setScannerStatus('Menyiapkan kamera belakang…');
+      if (scannerStream) {
+        scannerStream.getTracks().forEach(track => track.stop());
+        scannerStream = null;
+      }
+      if (els.scannerVideo) {
+        try { els.scannerVideo.pause(); } catch {}
+        els.scannerVideo.srcObject = null;
+      }
+      if (els.scannerModal) {
+        els.scannerModal.classList.remove('show');
+        els.scannerModal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    async function scannerDetectTick(detector) {
+      if (!els.scannerVideo || !scannerStream || scannerBusy) return;
+      const video = els.scannerVideo;
+      if (video.readyState < 2) {
+        scannerLoopHandle = setTimeout(() => scannerDetectTick(detector), 220);
+        return;
+      }
+      scannerBusy = true;
+      try {
+        const codes = await detector.detect(video);
+        const rawCode = String(codes?.[0]?.rawValue || '').trim();
+        if (rawCode && rawCode !== scannerLastCode) {
+          scannerLastCode = rawCode;
+          setScannerStatus(`Pickup code terbaca: ${rawCode}`);
+          const result = await handleScannedPickupCode(rawCode);
+          if (result === 'success') {
+            setTimeout(() => stopScannerModal(), 360);
+            return;
+          }
+          setTimeout(() => {
+            scannerLastCode = '';
+            setScannerStatus('Arahkan pickup code ke dalam frame. Scan berjalan otomatis.');
+          }, 1200);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        scannerBusy = false;
+      }
+      scannerLoopHandle = setTimeout(() => scannerDetectTick(detector), 260);
+    }
+
+    async function openScannerModal() {
+      if (!els.scannerModal || !els.scannerVideo) return startScanPickupLegacy();
+      els.scannerModal.classList.add('show');
+      els.scannerModal.setAttribute('aria-hidden', 'false');
+      scannerLastCode = '';
+      setScannerLoading(true, 'Menyiapkan kamera belakang…');
+      setScannerStatus('Menyiapkan kamera belakang…');
+      updateScannerTorchUi();
+      if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+        setScannerLoading(false);
+        setScannerStatus('Browser ini belum mendukung scanner live otomatis. Gunakan perangkat lain yang mendukung BarcodeDetector.', 'warning');
+        return;
+      }
+      try {
+        scannerStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        const track = scannerStream.getVideoTracks?.()[0];
+        const capabilities = track?.getCapabilities ? track.getCapabilities() : {};
+        scannerTorchAvailable = !!capabilities.torch;
+        scannerTorchOn = false;
+        updateScannerTorchUi();
+        els.scannerVideo.srcObject = scannerStream;
+        await els.scannerVideo.play();
+        setScannerLoading(false);
+        setScannerStatus('Arahkan pickup code ke dalam frame. Scan berjalan otomatis.');
+        const detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','upc_a','upc_e'] });
+        scannerDetectTick(detector);
+      } catch (err) {
+        console.error(err);
+        setScannerLoading(false);
+        setScannerStatus('Kamera tidak bisa dibuka. Pastikan izin kamera diberikan lalu coba lagi.', 'warning');
+      }
+    }
+
+    async function handleScannedPickupCode(rawCode) {
+      const code = String(rawCode || '').trim();
+      if (!code) return;
+      const order = allOrders().find(item => String(item.pickupCode || '').trim().toLowerCase() === code.toLowerCase());
+      if (!order) {
+        state.activeOrderId = '';
+        pulseScannerFeedback('warning', `Pickup code ${code} tidak ditemukan. Coba arahkan ulang barcode ke tengah frame.`);
+        showToast('Pickup code tidak ditemukan.');
+        return 'warning';
+      }
+
+      if (order.status === 'ready_in_warehouse') {
+        state.activeOrderId = order.id;
+        if (els.pickupCodePreview) els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${order.pickupCode || code}`;
+        if (els.pickupSheetText) els.pickupSheetText.textContent = `${order.customer} • ${order.code}`;
+        if (els.pickupCodeInput) els.pickupCodeInput.value = order.pickupCode || code;
+        if (els.bagLabelInput) els.bagLabelInput.value = order.bagLabel || defaultBagLabel();
+        pulseScannerFeedback('success', `Pickup code ${order.pickupCode || code} valid. Paket sedang diproses ke tas kurir...`);
+        await claimPickup(order.id);
+        return 'success';
+      }
+
+      if (order.courierId && state.currentCourierId && order.courierId === state.currentCourierId) {
+        focusOrderCard(order.id);
+        pulseScannerFeedback('success', `Paket ${order.code} sudah ada di ${order.bagLabel || 'tas kurir'}.`);
+        showToast(`Paket ${order.code} ada di ${order.bagLabel || 'tas kurir'}.`);
+        return 'success';
+      }
+
+      focusOrderCard(order.id);
+      pulseScannerFeedback('warning', `Paket ${order.code} ditemukan, tetapi bukan milik kurir aktif.`);
+      showToast(`Paket ${order.code} ditemukan dengan status ${order.statusText}.`);
+      return 'warning';
+    }
+
+    function startScanPickupLegacy() {
+      showToast('Scanner live wajib dipakai di versi ini.');
+    }
+
+    function startScanPickup() {
+      if (!requireCourierAction()) return;
+      openScannerModal();
+    }
+
+
+
+    function setHeroMessage(message, type = 'info') {
+      if (!els.heroSub) return;
+      const iconClass = type === 'lock'
+        ? 'fa-solid fa-lock'
+        : (type === 'warning' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-info');
+      els.heroSub.innerHTML = `
+        <span class="hero-note">
+          <i class="${iconClass}"></i>
+          <span>${message}</span>
+        </span>
+      `;
+    }
+
+    function defaultBagLabel() {
+      if (state.currentCourierProfile?.defaultBagLabel) return state.currentCourierProfile.defaultBagLabel;
+      if (state.currentCourierName) {
+        const shortName = String(state.currentCourierName).trim().split(' ')[0] || 'A';
+        return `Tas ${shortName}`;
+      }
+      return 'Tas A';
+    }
+
+    function reloadCourierPage() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_r', Date.now().toString());
+      window.location.href = url.toString();
     }
 
     function updateNetworkUI() {
