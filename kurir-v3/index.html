@@ -610,7 +610,7 @@
   </nav>
 
   <div class="overlay" id="overlay"></div>
-  <input id="proofPhotoInput" type="file" accept="image/*" capture="environment" aria-hidden="true" tabindex="-1" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0" />
+  <input id="proofPhotoInput" type="file" accept="image/*" capture="environment" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" />
 
   <section class="sheet" id="pickupSheet">
     <div class="sheet-handle"></div>
@@ -2145,35 +2145,6 @@
       if (els.proofPhotoMeta) els.proofPhotoMeta.innerHTML = '<i class="fa-solid fa-image"></i><span>Foto siap</span>';
     }
 
-    function triggerProofCamera(message = 'Kamera dibuka. Ambil foto bukti kirim dulu.') {
-      const input = els.proofPhotoInput;
-      if (!input) {
-        showToast('Input kamera tidak tersedia.');
-        return false;
-      }
-      input.value = '';
-      try {
-        if (typeof input.showPicker === 'function') {
-          input.showPicker();
-        } else {
-          input.focus({ preventScroll: true });
-          input.click();
-        }
-        showToast(message);
-        return true;
-      } catch (err) {
-        try {
-          input.click();
-          showToast(message);
-          return true;
-        } catch (fallbackErr) {
-          reportRuntimeIssue('PROOF_CAMERA_OPEN_FAILED', fallbackErr);
-          showToast('Kamera tidak terbuka otomatis. Tekan Ambil ulang.');
-          return false;
-        }
-      }
-    }
-
     function startProofCapture(order, options = {}) {
       if (!requireCourierAction()) return;
       if (!requireOnlineOperationalAction('Mode offline. Aktifkan Mode online untuk mengambil foto bukti kirim.')) return;
@@ -2187,7 +2158,12 @@
       };
       resetProofComposer(state.proofPrefill);
       closeSheets();
-      triggerProofCamera();
+      if (els.proofPhotoInput) {
+        els.proofPhotoInput.click();
+        showToast('Kamera dibuka. Ambil foto bukti kirim dulu.');
+      } else {
+        showToast('Input kamera tidak tersedia.');
+      }
     }
 
     async function updateStatus(orderId, newStatus, note) {
@@ -2574,7 +2550,10 @@
       document.getElementById('saveProofBtn').addEventListener('click', saveProof);
       if (els.retakeProofBtn) els.retakeProofBtn.addEventListener('click', () => {
         if (!requireOnlineOperationalAction('Mode offline. Aktifkan Mode online untuk mengambil ulang foto bukti kirim.')) return;
-        triggerProofCamera('Ambil ulang foto bukti kirim.');
+        if (!els.proofPhotoInput) return showToast('Input kamera tidak tersedia.');
+        els.proofPhotoInput.value = '';
+        els.proofPhotoInput.click();
+        showToast('Ambil ulang foto bukti kirim.');
       });
       document.getElementById('saveExpenseBtn').addEventListener('click', saveExpense);
       document.getElementById('lockClosingBtn').addEventListener('click', lockClosing);
