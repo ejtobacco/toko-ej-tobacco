@@ -25,7 +25,7 @@
   <script src="../assets/ej_session_badge.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>EJ Kurir Pickup</title>
+  <title>EJ Tobacco Delivery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -144,7 +144,7 @@
     body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% -10%, rgba(246,221,130,.14), transparent 34%),radial-gradient(circle at 50% 120%, rgba(59,130,246,.08), transparent 28%);opacity:.95}
     *:not(input):not(textarea):not(select):not(option){-webkit-user-select:none;user-select:none}
     body,.app-shell,.topbar,.brand-wrap,.brand-icon,.hero-card,.panel-card,.search-card,.tabs-card,.list-card,.bottom-nav{-webkit-touch-callout:none}
-    img{-webkit-user-drag:none;user-drag:none}
+    img{-webkit-user-drag:none;}
     input,textarea,select{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
     button,input,select,textarea{outline:none;-webkit-appearance:none;appearance:none}
     input:focus,select:focus,textarea:focus{border-color:rgba(212,175,55,.26);box-shadow:0 0 0 1px rgba(212,175,55,.22),0 0 0 4px rgba(212,175,55,.08)}
@@ -663,9 +663,6 @@
       <button class="sheet-btn primary" id="saveStatusBtn"><i class="fa-solid fa-check"></i> Simpan update status</button>
     </div>
   </section>
-
-  
-    <!-- Sprint 1 note: input foto bukti kirim sudah ditambahkan di UI. Penyimpanan file ke backend/storage belum disambungkan di patch ini. -->
 <section class="sheet" id="proofSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head proof-sheet-head">
@@ -911,8 +908,7 @@
       onlineSwitch: document.getElementById('onlineSwitch'),
       trackingSwitch: document.getElementById('trackingSwitch'),
       waSwitch: document.getElementById('waSwitch'),
-      gpsSwitch: document.getElementById('gpsSwitch'),
-      proofGpsSwitch: document.getElementById('proofGpsSwitch')
+      gpsSwitch: document.getElementById('gpsSwitch')
     };
 
     const STATUS_TO_DB = {
@@ -973,7 +969,7 @@
           [`courier_profiles/${state.currentCourierId}/lastSettingsUpdatedAt`]: payload.updatedAt
         });
       } catch (err) {
-        console.warn('SETTINGS_WRITE_FAILED', err);
+        reportRuntimeIssue('SETTINGS_WRITE_FAILED', err);
       }
     }
 
@@ -1001,7 +997,7 @@
         updates[`shipments_internal/${order.id}/trackingEnabled`] = !!state.trackingOn;
         updates[`shipments_internal/${order.id}/customerCanTrack`] = !!state.trackingOn;
       });
-      try { await update(ref(db), updates); } catch (err) { console.warn('LIVE_LOCATION_WRITE_FAILED', err); }
+      try { await update(ref(db), updates); } catch (err) { reportRuntimeIssue('LIVE_LOCATION_WRITE_FAILED', err); }
     }
 
     function stopLocationWatcher() {
@@ -1024,10 +1020,10 @@
       if (state.geoWatchId != null) return;
       state.geoWatchId = navigator.geolocation.watchPosition(
         (pos) => {
-          pushLiveLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }).catch(err => console.warn('LIVE_LOCATION_PUSH_FAILED', err));
+          pushLiveLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }).catch(err => reportRuntimeIssue('LIVE_LOCATION_PUSH_FAILED', err));
         },
         (err) => {
-          console.warn('WATCH_POSITION_FAILED', err);
+          reportRuntimeIssue('WATCH_POSITION_FAILED', err);
         },
         { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 }
       );
@@ -1120,6 +1116,13 @@
       showToast.timer = setTimeout(() => els.toast.classList.remove('show'), 2400);
     }
 
+    const DEV_RUNTIME_LOG = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.search.includes('debug=1');
+
+    function reportRuntimeIssue(tag, err) {
+      if (!DEV_RUNTIME_LOG) return;
+      window.console?.warn?.(tag, err);
+    }
+
     function openSheet(id) {
       els.overlay.classList.add('show');
       document.querySelectorAll('.sheet').forEach(sheet => sheet.classList.remove('show'));
@@ -1174,7 +1177,7 @@
           createdAt: Date.now(),
           ...extra
         });
-      } catch (err) { console.warn('AUDIT_WRITE_FAILED', err); }
+      } catch (err) { reportRuntimeIssue('AUDIT_WRITE_FAILED', err); }
     }
 
     function syncCourierFromRoleSession() {
@@ -2118,7 +2121,7 @@
         renderAll();
         refreshLocationWatcher();
         closeSheets(); els.pickupCodeInput.value = ''; els.bagLabelInput.value = ''; showToast('Pickup berhasil. Order masuk ke tugas saya.');
-      } catch (err) { console.error(err); showToast('Gagal scan pickup.'); }
+      } catch (err) { reportRuntimeIssue('APP_RUNTIME_ERROR', err); showToast('Gagal scan pickup.'); }
     }
 
     function syncProofSheetHeader(order) {
@@ -2217,7 +2220,7 @@
         refreshLocationWatcher();
         closeSheets();
         showToast(newStatus === 'Proses' ? `Kurir mulai antar ke ${order.customer}.` : `Status ${order.customer} berhasil diubah.`);
-      } catch (err) { console.error(err); showToast('Gagal memperbarui status order.'); }
+      } catch (err) { reportRuntimeIssue('APP_RUNTIME_ERROR', err); showToast('Gagal memperbarui status order.'); }
     }
 
     async function saveProof() {
@@ -2259,7 +2262,7 @@
         renderAll();
         refreshLocationWatcher();
         closeSheets(); els.recipientInput.value = ''; els.receivedInput.value = ''; els.proofNote.value = ''; els.proofPhotoInput.value = ''; proofPhotoCompressedDataUrl = ''; proofPhotoCompressedBlob = null; proofPhotoCompressedFileName = ''; if (els.proofPhotoPreview) els.proofPhotoPreview.src = ''; if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none'; if (els.proofPhotoMeta) els.proofPhotoMeta.innerHTML = '<i class="fa-solid fa-image"></i><span>Foto siap</span>'; syncProofSheetHeader(null); showToast(`Bukti kirim ${order.customer} berhasil disimpan.`);
-      } catch (err) { console.error(err); showToast('Gagal menyimpan bukti kirim.'); }
+      } catch (err) { reportRuntimeIssue('APP_RUNTIME_ERROR', err); showToast('Gagal menyimpan bukti kirim.'); }
     }
 
     async function saveExpense() {
@@ -2273,7 +2276,7 @@
         await set(ref(db, `pengeluaran_kurir/${state.currentCourierId}/${expenseId}`), { type, amount, note, courierId: state.currentCourierId, createdAt: Date.now() });
         await safeWriteAudit(`Pengeluaran ${type}`, `${formatCurrency(amount)} • ${note}`);
         closeSheets(); els.expenseAmount.value = ''; els.expenseNote.value = ''; showToast('Pengeluaran berhasil dicatat.');
-      } catch (err) { console.error(err); showToast('Gagal menyimpan pengeluaran.'); }
+      } catch (err) { reportRuntimeIssue('APP_RUNTIME_ERROR', err); showToast('Gagal menyimpan pengeluaran.'); }
     }
 
     async function lockClosing() {
@@ -2313,7 +2316,7 @@
         state.closingLocked = true;
         await safeWriteAudit('Closing kas dikunci', `${formatCurrency(amountSetor)} disetor • ${payload.note}`);
         renderAll(); closeSheets(); showToast('Closing kas hari ini berhasil disimpan.');
-      } catch (err) { console.error(err); showToast('Gagal menyimpan closing.'); }
+      } catch (err) { reportRuntimeIssue('APP_RUNTIME_ERROR', err); showToast('Gagal menyimpan closing.'); }
     }
 
     async function archiveOrder(orderId) {
@@ -2355,7 +2358,7 @@
         renderAll();
         refreshLocationWatcher();
         showToast(order.archived ? 'Pesanan dipulihkan.' : 'Pesanan diarsipkan.');
-      } catch (err) { console.error(err); showToast('Gagal memperbarui arsip pesanan.'); }
+      } catch (err) { reportRuntimeIssue('APP_RUNTIME_ERROR', err); showToast('Gagal memperbarui arsip pesanan.'); }
     }
 
     function bindRealtime() {
@@ -2626,7 +2629,7 @@
             });
             showToast('Foto siap. Lanjut isi nama penerima untuk selesaikan order.');
           } catch (err) {
-            console.error(err);
+            reportRuntimeIssue('APP_RUNTIME_ERROR', err);
             showToast('Foto gagal diproses. Coba ambil ulang.');
             proofPhotoCompressedDataUrl = '';
             proofPhotoCompressedBlob = null;
@@ -2667,7 +2670,7 @@
         await handleScannedPickupCode(rawCode);
         return true;
       } catch (err) {
-        console.error(err);
+        reportRuntimeIssue('APP_RUNTIME_ERROR', err);
         return false;
       }
     }
@@ -2738,7 +2741,7 @@
         scannerTorchAvailable = true;
         scannerTorchOn = !!nextState;
       } catch (err) {
-        console.warn('SCANNER_TORCH_FAILED', err);
+        reportRuntimeIssue('SCANNER_TORCH_FAILED', err);
         scannerTorchOn = false;
       }
       updateScannerTorchUi();
@@ -2820,7 +2823,7 @@
           }, 1200);
         }
       } catch (err) {
-        console.error(err);
+        reportRuntimeIssue('APP_RUNTIME_ERROR', err);
       } finally {
         scannerBusy = false;
       }
@@ -2857,7 +2860,7 @@
         const detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','upc_a','upc_e'] });
         scannerDetectTick(detector);
       } catch (err) {
-        console.error(err);
+        reportRuntimeIssue('APP_RUNTIME_ERROR', err);
         setScannerLoading(false);
         setScannerStatus('Kamera tidak bisa dibuka. Pastikan izin kamera diberikan lalu coba lagi.', 'warning');
       }
@@ -3018,7 +3021,6 @@
       els.trackingSwitch.classList.toggle('active', state.trackingOn);
       els.waSwitch.classList.toggle('active', state.waAuto);
       els.gpsSwitch.classList.toggle('active', state.gpsOn);
-      if (els.proofGpsSwitch) els.proofGpsSwitch.classList.toggle('active', state.proofGpsOn);
     }
 
     function stripHomeIdentityCard() {
