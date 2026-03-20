@@ -668,20 +668,20 @@
 <section class="sheet" id="proofSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div><h3>Bukti kirim</h3><p>Lengkapi bukti pengantaran sebelum menyelesaikan order.</p></div>
+      <div><h3>Bukti kirim</h3><p>Foto dibuka otomatis. Setelah foto oke, isi penerima untuk selesaikan order.</p></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="field-stack">
-      <div><label class="label">Foto bukti kirim</label><input class="field" id="proofPhotoInput" type="file" accept="image/*" capture="environment" /></div>
-      <div class="muted-line">Wajib diisi sebagai bukti order telah diterima.</div>
-      <div id="proofPhotoPreviewWrap" style="display:none;margin-top:12px">
+      <input id="proofPhotoInput" type="file" accept="image/*" capture="environment" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" />
+      <div id="proofPhotoPreviewWrap" style="display:none;margin-top:4px">
         <img id="proofPhotoPreview" alt="Preview bukti kirim" style="width:100%;border-radius:16px;display:block;" />
         <div id="proofPhotoMeta" class="muted-line" style="margin-top:8px"></div>
+        <button class="sheet-btn" id="retakeProofBtn" type="button" style="margin-top:10px"><i class="fa-solid fa-rotate"></i> Ambil ulang foto</button>
       </div>
       <div><label class="label">Nama penerima</label><input class="field" id="recipientInput" placeholder="Nama orang yang menerima pesanan" /></div>
       <div><label class="label">Uang diterima</label><input class="field" id="receivedInput" type="number" placeholder="Isi nominal jika pembayaran COD" /></div>
       <div><label class="label">Catatan bukti kirim</label><textarea class="field-area" id="proofNote" placeholder="Contoh: Diterima langsung di depan rumah"></textarea></div>
-      <button class="sheet-btn primary" id="saveProofBtn"><i class="fa-solid fa-camera"></i> Simpan bukti & selesaikan</button>
+      <button class="sheet-btn primary" id="saveProofBtn"><i class="fa-solid fa-check"></i> Selesaikan order</button>
     </div>
   </section>
 
@@ -788,6 +788,7 @@
       ordersRaw: {},
       paymentsRaw: {},
       shipmentsRaw: {},
+      proofPrefill: null,
       timelineRaw: {},
       expensesRaw: {},
       setoranRaw: {},
@@ -878,6 +879,7 @@
       proofPhotoPreviewWrap: document.getElementById('proofPhotoPreviewWrap'),
       proofPhotoPreview: document.getElementById('proofPhotoPreview'),
       proofPhotoMeta: document.getElementById('proofPhotoMeta'),
+      retakeProofBtn: document.getElementById('retakeProofBtn'),
       expenseType: document.getElementById('expenseType'),
       expenseAmount: document.getElementById('expenseAmount'),
       expenseNote: document.getElementById('expenseNote'),
@@ -2101,6 +2103,38 @@
       } catch (err) { console.error(err); showToast('Gagal scan pickup.'); }
     }
 
+    function resetProofComposer(prefill = {}) {
+      els.recipientInput.value = prefill.recipient ?? '';
+      els.receivedInput.value = prefill.received ?? 0;
+      els.proofNote.value = prefill.note ?? '';
+      if (els.proofPhotoInput) els.proofPhotoInput.value = '';
+      proofPhotoCompressedDataUrl = '';
+      proofPhotoCompressedBlob = null;
+      proofPhotoCompressedFileName = '';
+      if (els.proofPhotoPreview) els.proofPhotoPreview.src = '';
+      if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none';
+      if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = '';
+    }
+
+    function startProofCapture(order, options = {}) {
+      if (!requireCourierAction()) return;
+      if (!requireOnlineOperationalAction('Mode offline. Aktifkan Mode online untuk mengambil foto bukti kirim.')) return;
+      if (!order) return showToast('Order tidak ditemukan untuk bukti kirim.');
+      if (guardDeliveredOrder(order)) return;
+      state.activeOrderId = order.id;
+      state.proofPrefill = {
+        recipient: options.recipient ?? order.customer ?? '',
+        received: options.received ?? (order.payment === 'COD' ? (order.cod || 0) : 0),
+        note: options.note ?? 'Pesanan diterima customer.'
+      };
+      resetProofComposer(state.proofPrefill);
+      closeSheets();
+      if (els.proofPhotoInput) {
+        els.proofPhotoInput.click();
+        showToast('Kamera dibuka. Ambil foto bukti kirim dulu.');
+      }
+    }
+
     async function updateStatus(orderId, newStatus, note) {
       if (!requireCourierAction()) return;
       if (!requireOnlineOperationalAction('Mode offline. Aktifkan Mode online untuk update status.')) return;
@@ -2108,20 +2142,11 @@
       if (!order) return showToast('Order tidak ditemukan dalam scope kurir aktif.');
       if (guardDeliveredOrder(order)) return;
       if (newStatus === 'Selesai') {
-        state.activeOrderId = order.id;
-        els.recipientInput.value = order.customer || '';
-        els.receivedInput.value = order.payment === 'COD' ? (order.cod || 0) : 0;
-        els.proofNote.value = note || state.selectedReason || 'Pesanan diterima customer.';
-        els.proofPhotoInput.value = '';
-        proofPhotoCompressedDataUrl = '';
-        proofPhotoCompressedBlob = null;
-        proofPhotoCompressedFileName = '';
-        if (els.proofPhotoPreview) els.proofPhotoPreview.src = '';
-        if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none';
-        if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = '';
-        closeSheets();
-        openSheet('proofSheet');
-        showToast('Lengkapi bukti kirim dulu sebelum order diselesaikan.');
+        startProofCapture(order, {
+          recipient: order.customer || '',
+          received: order.payment === 'COD' ? (order.cod || 0) : 0,
+          note: note || state.selectedReason || 'Pesanan diterima customer.'
+        });
         return;
       }
       const map = STATUS_TO_DB[newStatus]; if (!map) return;
@@ -2414,11 +2439,14 @@
 
         const proofBtn = e.target.closest('[data-proof]');
         if (proofBtn) {
-          state.activeOrderId = proofBtn.dataset.proof;
-          const order = getScopedOrders().find(item => item.id === state.activeOrderId);
+          const order = getScopedOrders().find(item => item.id === proofBtn.dataset.proof);
           if (!order) return;
-          if (guardDeliveredOrder(order)) return;
-          els.recipientInput.value = ''; els.receivedInput.value = order.cod || 0; els.proofNote.value = ''; els.proofPhotoInput.value = ''; proofPhotoCompressedDataUrl = ''; proofPhotoCompressedBlob = null; proofPhotoCompressedFileName = ''; if (els.proofPhotoPreview) els.proofPhotoPreview.src = ''; if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none'; if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = ''; openSheet('proofSheet'); return;
+          startProofCapture(order, {
+            recipient: order.customer || '',
+            received: order.payment === 'COD' ? (order.cod || 0) : 0,
+            note: 'Pesanan diterima customer.'
+          });
+          return;
         }
 
         const claimBtn = e.target.closest('[data-claim]');
@@ -2489,6 +2517,10 @@
       document.getElementById('claimPickupBtn').addEventListener('click', () => { if (!state.activeOrderId) return; claimPickup(state.activeOrderId); });
       if (els.tabQuickActionBtn) els.tabQuickActionBtn.addEventListener('click', () => handleTabQuickAction());
       document.getElementById('saveProofBtn').addEventListener('click', saveProof);
+      if (els.retakeProofBtn) els.retakeProofBtn.addEventListener('click', () => {
+        if (!requireOnlineOperationalAction('Mode offline. Aktifkan Mode online untuk mengambil ulang foto bukti kirim.')) return;
+        if (els.proofPhotoInput) els.proofPhotoInput.click();
+      });
       document.getElementById('saveExpenseBtn').addEventListener('click', saveExpense);
       document.getElementById('lockClosingBtn').addEventListener('click', lockClosing);
 
@@ -2557,6 +2589,16 @@
             if (els.proofPhotoPreview) els.proofPhotoPreview.src = compressed.dataUrl;
             if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'block';
             if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = `${compressed.width}x${compressed.height} • ${formatBytes(compressed.size)} • JPEG kompres`;
+            if (state.proofPrefill) {
+              els.recipientInput.value = state.proofPrefill.recipient ?? '';
+              els.receivedInput.value = state.proofPrefill.received ?? 0;
+              els.proofNote.value = state.proofPrefill.note ?? '';
+            }
+            openSheet('proofSheet');
+            requestAnimationFrame(() => {
+              if (els.recipientInput) els.recipientInput.focus();
+            });
+            showToast('Foto siap. Lanjut isi nama penerima untuk selesaikan order.');
           } catch (err) {
             console.error(err);
             showToast('Foto gagal diproses. Coba ambil ulang.');
