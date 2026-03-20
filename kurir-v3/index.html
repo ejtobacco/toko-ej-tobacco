@@ -91,6 +91,7 @@
     .close-btn{width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text)}.field-stack{display:flex;flex-direction:column;gap:12px}.label{display:block;font-size:12px;font-weight:700;color:#dbe2f1;margin-bottom:8px}
     .reason-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.reason-btn{min-height:46px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text);font-size:12px;font-weight:700;padding:10px;text-align:center}.reason-btn.active{border-color:rgba(212,175,55,.4);background:rgba(212,175,55,.10);color:var(--gold-2)}
     .sheet-btn{width:100%;min-height:52px}.sheet-btn.primary{background:var(--gradient-gold);color:#151515}
+    .proof-sheet-head{margin-bottom:14px}.proof-sheet-head h3{margin-bottom:0}.proof-order-pill{display:inline-flex;align-items:center;gap:8px;min-height:30px;padding:0 12px;border-radius:999px;border:1px solid rgba(246,221,130,.18);background:linear-gradient(180deg, rgba(212,175,55,.16), rgba(212,175,55,.06));color:#f6dd82;font-size:11px;font-weight:800;letter-spacing:.18px}.proof-order-pill i{font-size:12px}.proof-order-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border-radius:20px;border:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));box-shadow:var(--lux-shadow-soft), var(--lux-highlight)}.proof-order-main{min-width:0}.proof-order-main strong{display:block;font-size:14px;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.proof-order-main span{display:block;margin-top:3px;font-size:11px;color:rgba(203,213,225,.68);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.proof-step-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;border-radius:999px;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.18);color:#bbf7d0;font-size:11px;font-weight:800}.proof-capture-card{padding:10px;border-radius:22px;border:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));box-shadow:var(--lux-shadow-soft), var(--lux-highlight)}.proof-capture-card img{width:100%;display:block;border-radius:18px}.proof-meta-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}.proof-meta-chip{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);font-size:11px;color:rgba(226,232,240,.78)}.proof-action-grid{display:grid;grid-template-columns:1fr 1.35fr;gap:10px}.proof-field-grid{display:grid;grid-template-columns:1fr;gap:12px}.proof-note-wrap .field-area{min-height:88px}.proof-compact-label{margin-bottom:7px}.proof-inline-help{font-size:11px;color:rgba(187,247,208,.84)}
     .toast{position:fixed;top:24px;left:50%;transform:translate(-50%, -18px);width:min(380px, calc(100% - 28px));padding:14px 16px;border-radius:18px;background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s ease;z-index:95}.toast.show{transform:translate(-50%,0);opacity:1}
     .switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}.switch-row strong{display:block;font-size:13px;margin-bottom:4px}.switch-row p{font-size:11px;color:var(--muted);line-height:1.4}
     .switch{position:relative;width:52px;height:30px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.08);flex:0 0 auto}.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:white;transition:.2s ease}.switch.active{background:rgba(34,197,94,.24)}.switch.active::after{transform:translateX(22px)}
@@ -667,21 +668,35 @@
     <!-- Sprint 1 note: input foto bukti kirim sudah ditambahkan di UI. Penyimpanan file ke backend/storage belum disambungkan di patch ini. -->
 <section class="sheet" id="proofSheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-head">
-      <div><h3>Bukti kirim</h3><p>Foto dibuka otomatis. Setelah foto oke, isi penerima untuk selesaikan order.</p></div>
+    <div class="sheet-head proof-sheet-head">
+      <div><span class="proof-order-pill" id="proofOrderPill"><i class="fa-solid fa-camera"></i> Bukti kirim</span></div>
       <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="field-stack">
       <input id="proofPhotoInput" type="file" accept="image/*" capture="environment" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" />
-      <div id="proofPhotoPreviewWrap" style="display:none;margin-top:4px">
-        <img id="proofPhotoPreview" alt="Preview bukti kirim" style="width:100%;border-radius:16px;display:block;" />
-        <div id="proofPhotoMeta" class="muted-line" style="margin-top:8px"></div>
-        <button class="sheet-btn" id="retakeProofBtn" type="button" style="margin-top:10px"><i class="fa-solid fa-rotate"></i> Ambil ulang foto</button>
+      <div class="proof-order-card">
+        <div class="proof-order-main">
+          <strong id="proofOrderTitle">Siapkan bukti kirim</strong>
+          <span id="proofOrderSub">Foto akan dibuka otomatis dari kamera</span>
+        </div>
+        <div class="proof-step-chip"><i class="fa-solid fa-circle-check"></i><span>Langkah akhir</span></div>
       </div>
-      <div><label class="label">Nama penerima</label><input class="field" id="recipientInput" placeholder="Nama orang yang menerima pesanan" /></div>
-      <div><label class="label">Uang diterima</label><input class="field" id="receivedInput" type="number" placeholder="Isi nominal jika pembayaran COD" /></div>
-      <div><label class="label">Catatan bukti kirim</label><textarea class="field-area" id="proofNote" placeholder="Contoh: Diterima langsung di depan rumah"></textarea></div>
-      <button class="sheet-btn primary" id="saveProofBtn"><i class="fa-solid fa-check"></i> Selesaikan order</button>
+      <div id="proofPhotoPreviewWrap" class="proof-capture-card" style="display:none">
+        <img id="proofPhotoPreview" alt="Preview bukti kirim" />
+        <div class="proof-meta-row">
+          <div id="proofPhotoMeta" class="proof-meta-chip"><i class="fa-solid fa-image"></i><span>Foto siap</span></div>
+          <span class="proof-inline-help">Foto oke? lanjut isi penerima</span>
+        </div>
+      </div>
+      <div class="proof-field-grid">
+        <div><label class="label proof-compact-label">Nama penerima</label><input class="field" id="recipientInput" placeholder="Nama penerima paket" /></div>
+        <div><label class="label proof-compact-label">Uang diterima</label><input class="field" id="receivedInput" type="number" placeholder="Isi jika pembayaran COD" /></div>
+      </div>
+      <div class="proof-note-wrap"><label class="label proof-compact-label">Catatan bukti</label><textarea class="field-area" id="proofNote" placeholder="Contoh: Diterima langsung di depan rumah"></textarea></div>
+      <div class="proof-action-grid">
+        <button class="sheet-btn" id="retakeProofBtn" type="button"><i class="fa-solid fa-rotate"></i> Ambil ulang</button>
+        <button class="sheet-btn primary" id="saveProofBtn"><i class="fa-solid fa-check"></i> Selesaikan order</button>
+      </div>
     </div>
   </section>
 
@@ -879,6 +894,9 @@
       proofPhotoPreviewWrap: document.getElementById('proofPhotoPreviewWrap'),
       proofPhotoPreview: document.getElementById('proofPhotoPreview'),
       proofPhotoMeta: document.getElementById('proofPhotoMeta'),
+      proofOrderPill: document.getElementById('proofOrderPill'),
+      proofOrderTitle: document.getElementById('proofOrderTitle'),
+      proofOrderSub: document.getElementById('proofOrderSub'),
       retakeProofBtn: document.getElementById('retakeProofBtn'),
       expenseType: document.getElementById('expenseType'),
       expenseAmount: document.getElementById('expenseAmount'),
@@ -2103,7 +2121,15 @@
       } catch (err) { console.error(err); showToast('Gagal scan pickup.'); }
     }
 
+    function syncProofSheetHeader(order) {
+      if (els.proofOrderPill) els.proofOrderPill.innerHTML = `<i class="fa-solid fa-camera"></i> ${order?.code || 'Bukti kirim'}`;
+      if (els.proofOrderTitle) els.proofOrderTitle.textContent = order?.customer || 'Siapkan bukti kirim';
+      if (els.proofOrderSub) els.proofOrderSub.textContent = order ? `${order.area || 'Area'} • ${order.payment || 'NON COD'}${order.payment === 'COD' ? ` • COD ${money(order.cod || 0)}` : ''}` : 'Foto akan dibuka otomatis dari kamera';
+    }
+
     function resetProofComposer(prefill = {}) {
+      const activeOrder = getScopedOrders().find(item => item.id === state.activeOrderId) || null;
+      syncProofSheetHeader(activeOrder);
       els.recipientInput.value = prefill.recipient ?? '';
       els.receivedInput.value = prefill.received ?? 0;
       els.proofNote.value = prefill.note ?? '';
@@ -2113,7 +2139,7 @@
       proofPhotoCompressedFileName = '';
       if (els.proofPhotoPreview) els.proofPhotoPreview.src = '';
       if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none';
-      if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = '';
+      if (els.proofPhotoMeta) els.proofPhotoMeta.innerHTML = '<i class="fa-solid fa-image"></i><span>Foto siap</span>';
     }
 
     function startProofCapture(order, options = {}) {
@@ -2232,7 +2258,7 @@
         state.currentTab = 'Selesai';
         renderAll();
         refreshLocationWatcher();
-        closeSheets(); els.recipientInput.value = ''; els.receivedInput.value = ''; els.proofNote.value = ''; els.proofPhotoInput.value = ''; proofPhotoCompressedDataUrl = ''; proofPhotoCompressedBlob = null; proofPhotoCompressedFileName = ''; if (els.proofPhotoPreview) els.proofPhotoPreview.src = ''; if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none'; if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = ''; showToast(`Bukti kirim ${order.customer} berhasil disimpan.`);
+        closeSheets(); els.recipientInput.value = ''; els.receivedInput.value = ''; els.proofNote.value = ''; els.proofPhotoInput.value = ''; proofPhotoCompressedDataUrl = ''; proofPhotoCompressedBlob = null; proofPhotoCompressedFileName = ''; if (els.proofPhotoPreview) els.proofPhotoPreview.src = ''; if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none'; if (els.proofPhotoMeta) els.proofPhotoMeta.innerHTML = '<i class="fa-solid fa-image"></i><span>Foto siap</span>'; syncProofSheetHeader(null); showToast(`Bukti kirim ${order.customer} berhasil disimpan.`);
       } catch (err) { console.error(err); showToast('Gagal menyimpan bukti kirim.'); }
     }
 
@@ -2588,7 +2614,7 @@
             proofPhotoCompressedFileName = `proof-${Date.now()}.jpg`;
             if (els.proofPhotoPreview) els.proofPhotoPreview.src = compressed.dataUrl;
             if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'block';
-            if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = `${compressed.width}x${compressed.height} • ${formatBytes(compressed.size)} • JPEG kompres`;
+            if (els.proofPhotoMeta) els.proofPhotoMeta.innerHTML = `<i class="fa-solid fa-image"></i><span>${compressed.width}x${compressed.height} • ${formatBytes(compressed.size)}</span>`;
             if (state.proofPrefill) {
               els.recipientInput.value = state.proofPrefill.recipient ?? '';
               els.receivedInput.value = state.proofPrefill.received ?? 0;
@@ -2607,7 +2633,7 @@
             proofPhotoCompressedFileName = '';
             if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none';
             if (els.proofPhotoPreview) els.proofPhotoPreview.src = '';
-            if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = '';
+            if (els.proofPhotoMeta) els.proofPhotoMeta.innerHTML = '<i class="fa-solid fa-image"></i><span>Foto siap</span>';
             els.proofPhotoInput.value = '';
           }
         });
