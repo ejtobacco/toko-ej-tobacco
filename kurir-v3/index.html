@@ -171,6 +171,176 @@
     .route-stop-card,.order-card,.metric-card,.wallet-card,.profile-card,.mini-stat{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 28px rgba(0,0,0,.14)}
     .top-actions .icon-btn{width:42px;height:42px}
 
+
+    /* design system harmony pass */
+    :root{
+      --ui-gap-xs:8px;
+      --ui-gap-sm:10px;
+      --ui-gap-md:12px;
+      --ui-gap-lg:14px;
+      --ui-radius-card:22px;
+      --ui-radius-soft:18px;
+      --ui-radius-btn:16px;
+      --ui-radius-pill:999px;
+      --ui-icon-xs:14px;
+      --ui-icon-sm:15px;
+      --ui-icon-md:16px;
+      --ui-icon-lg:18px;
+    }
+    .app-shell{gap:var(--ui-gap-lg)}
+    .topbar,.status-row,.route-head,.route-stop-head,.order-top,.section-head{gap:var(--ui-gap-md)}
+    .top-actions,.inline-actions,.route-stop-actions,.route-card-actions,.order-action-row,.icon-actions,.flow-pills,.compact-meta,.badge-stack{gap:var(--ui-gap-sm)}
+    .hero-grid,.mini-grid,.quick-row,.tool-grid,.wallet-grid,.profile-grid,.field-stack,.route-shell,.route-list,.order-list,.timeline-list,.log-list,.archive-list{gap:var(--ui-gap-md)}
+    .search-grid,.route-toolbar,.order-actions,.action-row-full{gap:var(--ui-gap-sm)}
+
+    .role-chip,.hero-card,.search-card,.tabs-card,.list-card,.panel-card,.order-card,.route-stop-card,.bottom-nav{border-radius:var(--ui-radius-card)}
+    .mini-stat,.metric-card,.wallet-card,.profile-card,.route-stat-card,.route-address,.switch-row,.scanner-card,.timeline-item,.log-item,.archive-item,.proof-preview{border-radius:var(--ui-radius-soft)}
+    .brand-icon,.role-avatar,.tab-item,.nav-item,.icon-btn,.primary-btn,.secondary-btn,.tool-btn,.route-sort-btn,.route-icon-btn,.action-btn,.ghost-btn,.sheet-btn,.action-icon-btn,.close-btn,.scanner-tool,.scanner-close,.search-box,.select-box,.field,.field-area{border-radius:var(--ui-radius-btn)}
+    .chip,.role-pill,.hero-badge,.route-chip-btn,.badge,.eta-chip,.pill-btn,.mini-btn,.flow-pill,.tab-cta-btn,.route-head-badge,.route-eyebrow{border-radius:var(--ui-radius-pill)}
+
+    .search-card,.panel-card,.list-card{padding:14px}
+    .tabs-card{padding:10px}
+    .hero-card{padding:20px}
+    .order-main,.route-stop-card,.route-stat-card,.archive-item,.log-item,.timeline-item{padding:14px}
+    .order-card.compact-tab .order-main{padding:12px}
+    .order-card.compact-tab.is-finished .order-main{padding:10px 12px}
+
+    .icon-btn,.close-btn,.scanner-tool,.scanner-close,.route-icon-btn,.action-icon-btn{width:42px;height:42px;min-height:42px}
+    .nav-item{min-height:60px}
+    .tab-item{min-height:82px}
+    .route-sort-btn,.route-chip-btn,.pill-btn{min-height:40px}
+    .action-btn,.ghost-btn,.sheet-btn,.primary-btn,.secondary-btn{min-height:52px}
+    .mini-btn{min-height:32px}
+    .chip,.hero-badge,.flow-pill,.badge,.eta-chip{min-height:32px}
+
+    .brand-icon i,.role-avatar i,.route-stat-icon i,.order-icon i,.tool-btn i{font-size:var(--ui-icon-lg)}
+    .icon-btn i,.close-btn i,.scanner-tool i,.scanner-close i,.route-icon-btn i,.action-icon-btn i,.route-sort-btn i,.route-chip-btn i,.action-btn i,.ghost-btn i,.sheet-btn i,.pill-btn i,.mini-btn i,.tab-cta-btn i,.chip i,.badge i,.eta-chip i{font-size:var(--ui-icon-sm)}
+    .tab-item i,.nav-item i,.search-wrap i,.flow-pill i,.hero-badge i{font-size:var(--ui-icon-md)}
+    .tab-item span,.nav-item span,.route-stop-code,.route-stop-meta span,.badge,.eta-chip,.mini-btn,.pill-btn,.route-chip-btn,.route-sort-btn{letter-spacing:.2px}
+
+    .top-actions .icon-btn{width:42px;height:42px}
+    .bottom-nav{padding:10px;gap:var(--ui-gap-sm)}
+    .route-toolbar,.tabs-card{align-items:stretch}
+    .route-stop-meta,.profile-grid,.wallet-grid,.hero-grid,.mini-grid{gap:var(--ui-gap-sm)}
+    .route-address,.field-area{line-height:1.5}
+    .brand-text h1,.hero-value,.route-head h2,.section-head h2,.order-meta h3{letter-spacing:-.2px}
+
+    @media (max-width:420px){
+      .app-shell{gap:12px}
+      .top-actions{gap:8px}
+      .hero-card{padding:18px}
+      .route-stop-card,.route-stat-card,.order-main{padding:12px}
+      .route-icon-btn,.action-icon-btn,.icon-btn{width:40px;height:40px;min-height:40px}
+    }
+
+  
+
+    /* premium micro finishing pass */
+    :root{
+      --lux-border-soft:rgba(255,255,255,.07);
+      --lux-border-strong:rgba(255,255,255,.11);
+      --lux-surface-top:rgba(255,255,255,.055);
+      --lux-surface-bottom:rgba(255,255,255,.028);
+      --lux-shadow-soft:0 14px 34px rgba(0,0,0,.18);
+      --lux-shadow-card:0 18px 42px rgba(0,0,0,.24);
+      --lux-shadow-float:0 24px 58px rgba(0,0,0,.34);
+      --lux-highlight:0 1px 0 rgba(255,255,255,.06) inset;
+    }
+    body{color:#f4f6fa;text-rendering:optimizeLegibility}
+    .brand-text h1{filter:drop-shadow(0 10px 22px rgba(212,175,55,.10))}
+    .brand-text h1 .brand-wordmark{letter-spacing:.35px}
+    .brand-text h1 span:last-child{font-weight:800;letter-spacing:.45px}
+    .brand-text p{font-size:10px;letter-spacing:.28px;color:rgba(226,232,240,.72);text-transform:uppercase}
+
+    .hero-title,
+    .mini-stat label,
+    .metric-card label,
+    .wallet-card label,
+    .profile-card label,
+    .route-stat-card label,
+    .section-head p,
+    .order-meta p,
+    .timeline-content p,
+    .log-content p,
+    .archive-content p,
+    .wallet-log-time,
+    .clock .date,
+    .route-stop-code,
+    .switch-row p{color:rgba(203,213,225,.68)}
+
+    .role-chip,.hero-card,.search-card,.tabs-card,.list-card,.panel-card,.bottom-nav{
+      border-color:var(--lux-border-soft);
+      box-shadow:var(--lux-shadow-float), var(--lux-highlight);
+    }
+    .order-card,.route-stop-card,.mini-stat,.metric-card,.wallet-card,.profile-card,.route-stat-card,.switch-row,.timeline-item,.log-item,.archive-item,.route-address,.proof-preview{
+      border:1px solid var(--lux-border-soft);
+      background:linear-gradient(180deg, var(--lux-surface-top), var(--lux-surface-bottom));
+      box-shadow:var(--lux-shadow-soft), var(--lux-highlight);
+    }
+    .hero-card{
+      background:
+        radial-gradient(circle at top right, rgba(246,221,130,.10), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(59,130,246,.10), transparent 24%),
+        linear-gradient(180deg, rgba(17,22,32,.94), rgba(10,13,20,.90));
+    }
+    .tabs-card,.search-card,.panel-card,.list-card,.role-chip{
+      background:linear-gradient(180deg, rgba(16,20,30,.94), rgba(9,12,18,.90));
+    }
+    .bottom-nav{backdrop-filter:blur(24px) saturate(120%)}
+
+    .tab-item,.nav-item,.route-sort-btn,.route-chip-btn,.tool-btn,.icon-btn,.action-icon-btn,.secondary-btn,.ghost-btn,.sheet-btn,.mini-btn,.pill-btn{
+      border:1px solid rgba(255,255,255,.05);
+    }
+    .primary-btn{
+      box-shadow:0 16px 34px rgba(212,175,55,.22), inset 0 1px 0 rgba(255,255,255,.20), 0 0 0 1px rgba(255,240,184,.12);
+    }
+    .secondary-btn,.ghost-btn,.sheet-btn,.icon-btn,.route-sort-btn,.route-chip-btn,.route-icon-btn,.action-icon-btn,.tool-btn,.tab-item,.nav-item{
+      background-image:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+    .tab-item.active,.nav-item.active,.route-sort-btn.active{
+      border-color:rgba(246,221,130,.22);
+      background:linear-gradient(180deg, rgba(212,175,55,.18), rgba(212,175,55,.07));
+      box-shadow:0 14px 28px rgba(212,175,55,.10), inset 0 1px 0 rgba(255,255,255,.07);
+    }
+    .tool-btn:hover,.icon-btn:hover,.route-sort-btn:hover,.route-chip-btn:hover,.route-icon-btn:hover,.action-icon-btn:hover,.secondary-btn:hover,.ghost-btn:hover,.sheet-btn:hover,.mini-btn:hover,.pill-btn:hover,.tab-item:hover,.nav-item:hover{
+      border-color:rgba(255,255,255,.08);
+      filter:brightness(1.02);
+    }
+
+    .search-box,.select-box,.field,.field-area{
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.03));
+      border-color:rgba(255,255,255,.055);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .search-box::placeholder,.field::placeholder,.field-area::placeholder{color:rgba(203,213,225,.46)}
+
+    .section-head h2,.route-head h2,.order-meta h3,.route-stop-title h3,.wallet-log-head h3,.timeline-content strong,.log-content strong,.archive-content strong{
+      color:#f8fafc;
+      text-shadow:0 1px 0 rgba(255,255,255,.02);
+    }
+    .hero-value,.clock .time,.mini-stat strong,.metric-card strong,.wallet-card strong,.profile-card strong,.route-stat-card strong{
+      color:#ffffff;
+      text-shadow:0 10px 24px rgba(255,255,255,.02);
+    }
+    .badge,.eta-chip,.chip,.hero-badge,.flow-pill,.route-head-badge,.route-eyebrow,.route-stop-meta span{
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .empty-state{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.018));
+      border-color:rgba(255,255,255,.09);
+      color:rgba(203,213,225,.78);
+    }
+    .switch-row strong{letter-spacing:.12px}
+    .wallet-log .timeline-preview-item,
+    .archive-item + .archive-item,
+    .log-item + .log-item,
+    .timeline-item + .timeline-item{border-top-color:rgba(255,255,255,.05)}
+
+    @media (max-width:420px){
+      .brand-text h1{font-size:15px}
+      .brand-text p{font-size:9px}
+    }
+
   </style>
 </head>
 <body>
