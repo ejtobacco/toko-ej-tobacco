@@ -718,6 +718,11 @@
       <div><label class="label">Catatan closing</label><textarea class="field-area" id="closingNote" placeholder="Contoh: Kas cocok, setor malam ke admin pusat."></textarea></div>
       <button class="sheet-btn primary" id="lockClosingBtn"><i class="fa-solid fa-lock"></i> Simpan Closing</button>
       <div class="field-stack hidden" id="adminClosingPanel">
+        <div class="profile-card">
+          <label>Kurir yang direview</label>
+          <strong id="adminClosingCourierName">-</strong>
+          <div class="footer-note" id="adminClosingCourierMeta" style="text-align:left;margin-top:8px">Pilih satu kurir dari menu Akun untuk mulai review closing.</div>
+        </div>
         <div>
           <label class="label">Catatan verifikasi admin</label>
           <textarea class="field-area" id="adminClosingNote" placeholder="Contoh: Kas cocok dan setor diterima admin pusat."></textarea>
@@ -940,6 +945,8 @@
       closingHelperText: document.getElementById('closingHelperText'),
       closingNote: document.getElementById('closingNote'),
       adminClosingPanel: document.getElementById('adminClosingPanel'),
+      adminClosingCourierName: document.getElementById('adminClosingCourierName'),
+      adminClosingCourierMeta: document.getElementById('adminClosingCourierMeta'),
       adminClosingNote: document.getElementById('adminClosingNote'),
       verifyClosingBtn: document.getElementById('verifyClosingBtn'),
       rejectClosingBtn: document.getElementById('rejectClosingBtn'),
@@ -2639,6 +2646,14 @@
       if (els.closingNote) {
         els.closingNote.value = closing.note || '';
         els.closingNote.disabled = reviewMode || closingState !== 'open';
+      }
+      if (els.adminClosingCourierName) {
+        els.adminClosingCourierName.textContent = reviewReady ? (state.currentCourierProfile?.name || state.currentCourierName || '-') : '-';
+      }
+      if (els.adminClosingCourierMeta) {
+        els.adminClosingCourierMeta.textContent = reviewReady
+          ? `${state.currentCourierProfile?.phone || 'Tanpa nomor'} • ${todayKey()} • ${closingState === 'verified' ? 'Sudah diverifikasi' : (closingState === 'locked' ? 'Menunggu verifikasi admin' : 'Belum lock closing')}`
+          : 'Pilih satu kurir dari menu Akun untuk mulai review closing.';
       }
       if (els.adminClosingNote) {
         els.adminClosingNote.value = closing.verificationNote || closing.rejectedNote || '';
