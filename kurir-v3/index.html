@@ -12,6 +12,10 @@
     let proofPhotoCompressedDataUrl = '';
     let proofPhotoCompressedBlob = null;
     let proofPhotoCompressedFileName = '';
+    let scannerStream = null;
+    let scannerLoopHandle = null;
+    let scannerBusy = false;
+    let scannerLastCode = '';
     window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };
   </script>
   <script type="module" src="../assets/ej_role_guard.js"></script>
@@ -56,7 +60,7 @@
     .tool-btn{min-height:82px;flex-direction:column;border-radius:18px;background:rgba(255,255,255,.04);color:var(--text);border:1px solid rgba(255,255,255,.06);font-size:11px;padding:10px 6px}.tool-btn i{font-size:17px;color:var(--gold-2)}.tool-btn span{text-align:center;line-height:1.25}
     .search-card,.panel-card,.list-card{padding:14px}.search-grid{display:grid;grid-template-columns:1fr 106px;gap:10px}.search-wrap{position:relative}.search-wrap i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:15px}
     .search-box,.select-box,.field,.field-area{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.04);color:var(--text);outline:none}.search-box,.select-box,.field{height:52px;padding:0 16px;font-size:14px;font-weight:500}.field-area{min-height:106px;padding:14px 16px;resize:vertical;font-size:14px}.search-wrap .search-box{padding-left:46px}
-    .tabs-card{padding:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tab-item{min-height:78px;border-radius:18px;border:1px solid transparent;background:rgba(255,255,255,.02);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;padding:10px 6px;color:inherit}.tab-item i{font-size:16px;color:var(--muted)}.tab-item span{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.3px}.tab-item b{font-size:15px;font-weight:800}.tab-item.active{background:linear-gradient(180deg, rgba(212,175,55,.17), rgba(212,175,55,.06));border-color:rgba(212,175,55,.30)}.tab-item.active i,.tab-item.active span,.tab-item.active b{color:var(--gold-2)}
+    .tabs-card{padding:10px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.tab-item{min-height:78px;border-radius:18px;border:1px solid transparent;background:rgba(255,255,255,.02);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;padding:10px 6px;color:inherit}.tab-item i{font-size:16px;color:var(--muted)}.tab-item span{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.3px}.tab-item b{font-size:15px;font-weight:800}.tab-item.active{background:linear-gradient(180deg, rgba(212,175,55,.17), rgba(212,175,55,.06));border-color:rgba(212,175,55,.30)}.tab-item.active i,.tab-item.active span,.tab-item.active b{color:var(--gold-2)}
     .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.section-head h2{font-size:15px;font-weight:800}.section-head p{font-size:11px;color:var(--muted);margin-top:4px}.mini-link{color:var(--gold-2);font-size:12px;font-weight:700;background:none;border:none}
     .inline-actions{display:flex;gap:8px;flex-wrap:wrap}.pill-btn,.mini-btn{min-height:36px;border-radius:999px;padding:0 14px;font-size:12px;color:var(--text);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}.mini-btn{min-height:30px;padding:0 10px;font-size:11px}
     .order-list,.timeline-list,.log-list,.archive-list{display:flex;flex-direction:column;gap:14px}
@@ -87,6 +91,22 @@
     .switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}.switch-row strong{display:block;font-size:13px;margin-bottom:4px}.switch-row p{font-size:11px;color:var(--muted);line-height:1.4}
     .switch{position:relative;width:52px;height:30px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.08);flex:0 0 auto}.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:white;transition:.2s ease}.switch.active{background:rgba(34,197,94,.24)}.switch.active::after{transform:translateX(22px)}
     .footer-note{margin-top:10px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5}.muted-line{color:var(--muted);font-size:12px;line-height:1.5}
+  
+    .scanner-modal{position:fixed;inset:0;z-index:130;display:none;background:rgba(6,8,12,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .scanner-modal.show{display:flex;align-items:center;justify-content:center;padding:18px}
+    .scanner-shell{width:min(100%,520px);background:linear-gradient(180deg, rgba(17,22,32,.96), rgba(10,14,22,.94));border:1px solid rgba(255,255,255,.08);border-radius:28px;box-shadow:0 28px 90px rgba(0,0,0,.5);overflow:hidden}
+    .scanner-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 18px 10px}
+    .scanner-head h3{margin:0;font-size:20px;font-weight:800}.scanner-head p{margin:6px 0 0;color:rgba(255,255,255,.72);font-size:13px;line-height:1.45}
+    .scanner-close{width:42px;height:42px;border:none;border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-size:18px;cursor:pointer}
+    .scanner-view{position:relative;aspect-ratio:3/4;background:#05070c;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);overflow:hidden}
+    .scanner-video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+    .scanner-frame{position:absolute;left:50%;top:50%;width:min(76vw,300px);height:min(42vw,180px);max-width:300px;max-height:180px;transform:translate(-50%,-50%);border:2px solid rgba(212,175,55,.95);border-radius:22px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
+    .scanner-frame::after{content:'';position:absolute;left:10px;right:10px;top:50%;height:2px;background:linear-gradient(90deg, transparent, rgba(212,175,55,.15), rgba(212,175,55,.95), rgba(212,175,55,.15), transparent);box-shadow:0 0 18px rgba(212,175,55,.65);animation:scanline 2s linear infinite}
+    @keyframes scanline{0%{transform:translateY(-52px)}50%{transform:translateY(52px)}100%{transform:translateY(-52px)}}
+    .scanner-status{padding:12px 18px 0;color:rgba(255,255,255,.84);font-size:13px;line-height:1.45;min-height:40px}
+    .scanner-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 18px 18px}
+    .scanner-actions .secondary-btn,.scanner-actions .primary-btn{width:100%;justify-content:center}
+
   </style>
 </head>
 <body>
@@ -286,6 +306,28 @@
 
   <input type="file" id="scanCaptureInput" accept="image/*" capture="environment" hidden />
 
+
+  <section class="scanner-modal" id="scannerModal" aria-hidden="true">
+    <div class="scanner-shell">
+      <div class="scanner-head">
+        <div>
+          <h3>Scanner pickup</h3>
+          <p>Arahkan pickup code ke dalam frame. Kamera belakang aktif dan scan berjalan otomatis.</p>
+        </div>
+        <button class="scanner-close" type="button" id="closeScannerBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="scanner-view">
+        <video id="scannerVideo" class="scanner-video" playsinline muted autoplay></video>
+        <div class="scanner-frame"></div>
+      </div>
+      <div class="scanner-status" id="scannerStatusText">Menyiapkan kamera belakang…</div>
+      <div class="scanner-actions">
+        <button class="secondary-btn" type="button" id="scannerManualBtn"><i class="fa-solid fa-keyboard"></i> Input Manual</button>
+        <button class="primary-btn" type="button" id="scannerGalleryBtn"><i class="fa-solid fa-image"></i> Scan dari Foto</button>
+      </div>
+    </div>
+  </section>
+
   <nav class="bottom-nav" id="bottomNav">
     <button class="nav-item active" data-page-target="home"><i class="fa-solid fa-house"></i><span>Beranda</span></button>
     <button class="nav-item" data-page-target="route"><i class="fa-solid fa-route"></i><span>Rute</span></button>
@@ -454,6 +496,7 @@
       currentTab: 'all',
       currentPage: 'home',
       closingLocked: false,
+      closingState: 'open',
       trackingOn: true,
       waAuto: true,
       online: true,
@@ -507,6 +550,12 @@
       totalPengeluaran: document.getElementById('totalPengeluaran'),
       heroSub: document.getElementById('heroSub'),
       scanCaptureInput: document.getElementById('scanCaptureInput'),
+      scannerModal: document.getElementById('scannerModal'),
+      scannerVideo: document.getElementById('scannerVideo'),
+      scannerStatusText: document.getElementById('scannerStatusText'),
+      closeScannerBtn: document.getElementById('closeScannerBtn'),
+      scannerManualBtn: document.getElementById('scannerManualBtn'),
+      scannerGalleryBtn: document.getElementById('scannerGalleryBtn'),
       aktifCount: document.getElementById('aktifCount'),
       urgentCount: document.getElementById('urgentCount'),
       etaAverage: document.getElementById('etaAverage'),
@@ -874,7 +923,8 @@
     function mapUiStatus(status) {
       if (status === 'ready_in_warehouse') return 'Gudang';
       if (['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(status)) return 'Proses';
-      if (['delivered', 'failed_delivery', 'returned_to_warehouse'].includes(status)) return 'Selesai';
+      if (['failed_delivery', 'returned_to_warehouse'].includes(status)) return 'Gagal';
+      if (status === 'delivered') return 'Selesai';
       if (status === 'archived') return 'Arsip';
       return 'Gagal';
     }
@@ -968,8 +1018,32 @@
         all: activeOrders.length,
         Gudang: activeOrders.filter(order => order.status === 'ready_in_warehouse').length,
         Proses: activeOrders.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)).length,
-        Selesai: getScopedOrders().filter(order => ['delivered', 'failed_delivery', 'returned_to_warehouse'].includes(order.status)).length
+        Gagal: getScopedOrders().filter(order => ['failed_delivery', 'returned_to_warehouse'].includes(order.status)).length,
+        Selesai: getScopedOrders().filter(order => ['delivered'].includes(order.status)).length
       };
+    }
+
+
+    function getTodayClosingRecord() {
+      if (!state.currentCourierId || state.currentCourierId === '__all__') return {};
+      return ((state.setoranRaw[state.currentCourierId] || {})[todayKey()] || {});
+    }
+
+    function resolveClosingState(record = {}) {
+      const raw = String(record.status || '').trim().toLowerCase();
+      if (raw === 'verified' || record.verified === true) return 'verified';
+      if (raw === 'locked' || record.closed) return 'locked';
+      return 'open';
+    }
+
+    function openPickupManual(prefillCode = '') {
+      const gudangOrder = getScopedOrders().find(order => order.status === 'ready_in_warehouse' && !order.archived);
+      state.activeOrderId = gudangOrder?.id || '';
+      if (els.pickupCodePreview) els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${gudangOrder?.pickupCode || prefillCode || 'PU-XXXX'}`;
+      if (els.pickupSheetText) els.pickupSheetText.textContent = gudangOrder ? `${gudangOrder.customer} • ${gudangOrder.code}` : 'Masukkan pickup code untuk mengambil paket dari gudang.';
+      if (els.pickupCodeInput) els.pickupCodeInput.value = prefillCode || gudangOrder?.pickupCode || '';
+      if (els.bagLabelInput) els.bagLabelInput.value = gudangOrder?.bagLabel || defaultBagLabel();
+      openSheet('pickupSheet');
     }
 
     function getFinancialSummary() {
@@ -1069,6 +1143,7 @@
         { key: 'all', icon: 'fa-layer-group', label: 'SEMUA', value: counts.all },
         { key: 'Gudang', icon: 'fa-warehouse', label: 'PICKUP', value: counts.Gudang },
         { key: 'Proses', icon: 'fa-motorcycle', label: 'AKTIF', value: counts.Proses },
+        { key: 'Gagal', icon: 'fa-triangle-exclamation', label: 'GAGAL', value: counts.Gagal },
         { key: 'Selesai', icon: 'fa-check-double', label: 'SELESAI', value: counts.Selesai }
       ];
       els.statusTabs.innerHTML = tabs.map(tab => `<button class="tab-item ${state.currentTab === tab.key ? 'active' : ''}" data-tab="${tab.key}"><i class="fa-solid ${tab.icon}"></i><span>${tab.label}</span><b>${tab.value}</b></button>`).join('');
@@ -1091,6 +1166,7 @@
         all: ['Tugas pengantaran', 'Pantau tugas kirim setelah pickup gudang, urutkan berdasarkan area dan prioritas.'],
         Gudang: ['Siap pickup', 'Order internal yang sudah dipacking dan siap diambil dari gudang.'],
         Proses: ['Tugas aktif', 'Order yang sudah dipickup atau sedang dibawa ke customer.'],
+        Gagal: ['Paket gagal / retur', 'Order yang gagal dikirim atau kembali ke gudang.'],
         Selesai: ['Selesai hari ini', 'Order yang sudah selesai dan tercatat.']
       };
       els.listTitle.textContent = titleMap[state.currentTab][0];
@@ -1129,7 +1205,10 @@
       els.closingCOD.textContent = formatCurrency(summary.cod);
       els.closingExpense.textContent = formatCurrency(summary.expense);
       els.closingSetor.textContent = formatCurrency(summary.sisaSebelumSetor);
-      els.closingStatus.textContent = state.closingLocked ? 'Locked' : 'Open';
+      const closingState = resolveClosingState(summary.todayClosing);
+      state.closingState = closingState;
+      state.closingLocked = closingState !== 'open';
+      els.closingStatus.textContent = closingState === 'verified' ? 'Verified' : (closingState === 'locked' ? 'Locked' : 'Open');
       if (els.closingAmountSetor) {
         const suggestedSetor = summary.todayClosing.amountSetor != null && summary.todayClosing.amountSetor !== '' ? Number(summary.todayClosing.amountSetor || 0) : summary.sisaSebelumSetor;
         els.closingAmountSetor.value = suggestedSetor ? String(suggestedSetor) : '';
@@ -1139,9 +1218,19 @@
       }
       if (els.closingHelperText) {
         const diff = Math.max(summary.sisaSebelumSetor - Number(summary.todayClosing.amountSetor || 0), 0);
-        els.closingHelperText.textContent = state.closingLocked
-          ? `Closing hari ini sudah tersimpan. Sisa belum tersetor: ${formatCurrency(diff)}.`
-          : `Sisa kas sebelum setor: ${formatCurrency(summary.sisaSebelumSetor)}. Isi sesuai nominal yang benar-benar disetor ke admin pusat.`;
+        els.closingHelperText.textContent = closingState === 'verified'
+          ? `Closing hari ini sudah diverifikasi admin. Outstanding: ${formatCurrency(diff)}.`
+          : (closingState === 'locked'
+            ? `Closing hari ini sudah tersimpan. Sisa belum tersetor: ${formatCurrency(diff)}.`
+            : `Sisa kas sebelum setor: ${formatCurrency(summary.sisaSebelumSetor)}. Isi sesuai nominal yang benar-benar disetor ke admin pusat.`);
+      }
+      if (els.lockClosingBtn) {
+        els.lockClosingBtn.disabled = closingState !== 'open';
+        els.lockClosingBtn.style.opacity = closingState !== 'open' ? '.55' : '1';
+        els.lockClosingBtn.style.cursor = closingState !== 'open' ? 'not-allowed' : 'pointer';
+        els.lockClosingBtn.innerHTML = closingState === 'verified'
+          ? '<i class="fa-solid fa-circle-check"></i> Closing Terverifikasi'
+          : (closingState === 'locked' ? '<i class="fa-solid fa-lock"></i> Closing Sudah Ditutup' : '<i class="fa-solid fa-lock"></i> Simpan Closing');
       }
 
       const walletItems = [
@@ -1174,26 +1263,8 @@
       els.archiveList.innerHTML = archived.map(order => `<div class="archive-item"><span class="archive-point"></span><div class="archive-content"><strong>${order.customer} • ${order.code}</strong><p>Status sebelum arsip: ${mapStatusText(order.raw.archivedFromStatus || 'returned_to_warehouse')} • Area ${order.area}</p></div><button class="mini-btn" data-restore="${order.id}">Pulihkan</button></div>`).join('');
     }
 
-    function renderSummary() {
-      const scoped = getScopedOrders();
-      const readyPickup = scoped.filter(order => order.status === 'ready_in_warehouse').length;
-      const activeTask = scoped.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)).length;
-      const onTheWay = scoped.filter(order => order.status === 'on_the_way').length;
-      const deliveredToday = scoped.filter(order => order.status === 'delivered').length;
-      const summary = getFinancialSummary();
-      els.aktifCount.textContent = `${readyPickup} order`;
-      els.urgentCount.textContent = `${activeTask} order`;
-      els.etaAverage.textContent = `${onTheWay} order`;
-      els.successRate.textContent = `${deliveredToday} order`;
-      els.totalCOD.textContent = formatCurrency(summary.cod);
-      els.totalPengeluaran.textContent = formatCurrency(summary.expense);
-      els.setoranHariIni.textContent = formatCurrency(summary.sisa);
-      setHeroMessage(isAdminPusatMode() ? 'Mode pantau pusat aktif. Anda bisa memonitor kurir, tracking, dan performa realtime.' : (state.closingLocked ? 'Kas harian sudah dikunci dan siap diverifikasi admin.' : 'Scan pickup, antar ke customer, dan pantau kas harian secara realtime.'), isAdminPusatMode() ? 'info' : (state.closingLocked ? 'lock' : 'info'));
-      els.shiftStatusText.textContent = isAdminPusatMode() ? 'Mode Pantau' : 'On Duty';
-      els.zonaUtama.textContent = state.currentCourierProfile?.zone || els.topArea.textContent || '-';
-      els.closingStatus.textContent = state.closingLocked ? 'Locked' : 'Open';
-      renderSessionInfo();
-    }
+    
+   function renderSummary() { const scoped = getScopedOrders(); const readyPickup = scoped.filter(order => order.status === 'ready_in_warehouse').length; const activeTask = scoped.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)).length; const onTheWay = scoped.filter(order => order.status === 'on_the_way').length; const deliveredToday = scoped.filter(order => order.status === 'delivered').length; const summary = getFinancialSummary(); els.aktifCount.textContent = `${readyPickup} order`; els.urgentCount.textContent = `${activeTask} order`; els.etaAverage.textContent = `${onTheWay} order`; els.successRate.textContent = `${deliveredToday} order`; els.totalCOD.textContent = formatCurrency(summary.cod); els.totalPengeluaran.textContent = formatCurrency(summary.expense); els.setoranHariIni.textContent = formatCurrency(summary.sisa); const closingState = resolveClosingState(summary.todayClosing); state.closingState = closingState; state.closingLocked = closingState !== 'open'; setHeroMessage( isAdminPusatMode() ? 'Mode pantau pusat aktif. Anda bisa memonitor kurir, tracking, dan performa realtime.' : ( closingState === 'verified' ? 'Kas harian sudah diverifikasi admin dan siap untuk operasional berikutnya.' : ( closingState === 'locked' ? 'Kas harian sudah dikunci dan siap diverifikasi admin.' : 'Scan pickup, antar ke customer, dan pantau kas harian secara realtime.' ) ), isAdminPusatMode() ? 'info' : ((closingState === 'locked' || closingState === 'verified') ? 'lock' : 'info') ); els.shiftStatusText.textContent = isAdminPusatMode() ? 'Mode Pantau' : 'On Duty'; els.zonaUtama.textContent = state.currentCourierProfile?.zone || els.topArea.textContent || '-'; els.closingStatus.textContent = closingState === 'verified' ? 'Verified' : (closingState === 'locked' ? 'Locked' : 'Open'); renderSessionInfo(); }
 
     async function renderTimeline(orderId) {
       const order = getScopedOrders().find(item => item.id === orderId) || allOrders().find(item => item.id === orderId);
@@ -1487,10 +1558,16 @@
 
     async function lockClosing() {
       if (!requireCourierAction()) return;
+      const existing = getTodayClosingRecord();
+      const existingState = resolveClosingState(existing);
+      if (existingState !== 'open') {
+        showToast(existingState === 'verified' ? 'Closing hari ini sudah diverifikasi admin.' : 'Closing hari ini sudah ditutup dan tidak bisa dikirim ulang.');
+        fillClosingForm();
+        return;
+      }
       const summary = getFinancialSummary();
       const amountSetor = Math.max(Number(els.closingAmountSetor?.value || 0), 0);
       const amountOutstanding = Math.max(summary.sisaSebelumSetor - amountSetor, 0);
-      const existing = ((state.setoranRaw[state.currentCourierId] || {})[todayKey()] || {});
       const payload = {
         amountCod: summary.cod,
         amountExpense: summary.expense,
@@ -1502,11 +1579,17 @@
         note: els.closingNote.value.trim() || 'Closing kas harian.',
         courierId: state.currentCourierId,
         closed: true,
+        status: 'locked',
+        verified: false,
+        verifiedBy: '',
+        verifiedAt: 0,
+        verificationNote: '',
         createdAt: existing.createdAt || Date.now(),
         updatedAt: Date.now()
       };
       try {
         await set(ref(db, `setoran_kurir/${state.currentCourierId}/${todayKey()}`), payload);
+        state.closingState = 'locked';
         state.closingLocked = true;
         await safeWriteAudit('Closing kas dikunci', `${formatCurrency(amountSetor)} disetor • ${payload.note}`);
         renderAll(); closeSheets(); showToast('Closing kas hari ini berhasil disimpan.');
@@ -1561,29 +1644,37 @@
       onValue(ref(db, 'shipments_internal'), snap => { state.shipmentsRaw = snap.val() || {}; renderAll(); refreshLocationWatcher(); });
       onValue(ref(db, 'order_timeline'), snap => { state.timelineRaw = snap.val() || {}; renderAll(); });
       onValue(ref(db, 'pengeluaran_kurir'), snap => { state.expensesRaw = snap.val() || {}; renderWalletPage(); renderSummary(); });
-      onValue(ref(db, 'setoran_kurir'), snap => { state.setoranRaw = snap.val() || {}; state.closingLocked = !!((state.setoranRaw[state.currentCourierId] || {})[todayKey()]?.closed); renderWalletPage(); renderSummary(); });
+      onValue(ref(db, 'setoran_kurir'), snap => { state.setoranRaw = snap.val() || {}; const currentClosing = getTodayClosingRecord(); state.closingState = resolveClosingState(currentClosing); state.closingLocked = state.closingState !== 'open'; renderWalletPage(); renderSummary(); });
       onValue(ref(db, 'audit_logs'), snap => { state.logsRaw = snap.val() || {}; renderAuditLog(); });
     }
 
     function renderWalletScope() {
-      const currentClosing = state.currentCourierId && state.currentCourierId !== '__all__'
-        ? ((state.setoranRaw[state.currentCourierId] || {})[todayKey()] || {})
-        : {};
-      state.closingLocked = !!currentClosing.closed;
+      const currentClosing = getTodayClosingRecord();
+      state.closingState = resolveClosingState(currentClosing);
+      state.closingLocked = state.closingState !== 'open';
     }
 
     function fillClosingForm() {
       const summary = getFinancialSummary();
       const closing = summary.todayClosing || {};
+      const closingState = resolveClosingState(closing);
       const suggested = closing.amountSetor != null && closing.amountSetor !== '' ? Number(closing.amountSetor || 0) : summary.sisaSebelumSetor;
-      if (els.closingAmountSetor) els.closingAmountSetor.value = suggested ? String(suggested) : '';
-      if (els.closingNote) els.closingNote.value = closing.note || '';
-      if (els.closingStatus) els.closingStatus.textContent = closing.closed ? 'Locked' : 'Open';
+      if (els.closingAmountSetor) { els.closingAmountSetor.value = suggested ? String(suggested) : ''; els.closingAmountSetor.disabled = closingState !== 'open'; }
+      if (els.closingNote) { els.closingNote.value = closing.note || ''; els.closingNote.disabled = closingState !== 'open'; }
+      if (els.closingStatus) els.closingStatus.textContent = closingState === 'verified' ? 'Verified' : (closingState === 'locked' ? 'Locked' : 'Open');
       if (els.closingHelperText) {
         const diff = Math.max(summary.sisaSebelumSetor - Number(closing.amountSetor || 0), 0);
-        els.closingHelperText.textContent = closing.closed
-          ? `Closing tersimpan. Selisih yang belum disetor: ${formatCurrency(diff)}.`
-          : `Sisa kas sebelum setor: ${formatCurrency(summary.sisaSebelumSetor)}. Isi sesuai nominal setor yang benar-benar diserahkan.`;
+        els.closingHelperText.textContent = closingState === 'verified'
+          ? `Closing sudah diverifikasi admin. Outstanding: ${formatCurrency(diff)}.`
+          : (closingState === 'locked' ? `Closing tersimpan. Selisih yang belum disetor: ${formatCurrency(diff)}.` : `Sisa kas sebelum setor: ${formatCurrency(summary.sisaSebelumSetor)}. Isi sesuai nominal setor yang benar-benar diserahkan.`);
+      }
+      if (els.lockClosingBtn) {
+        els.lockClosingBtn.disabled = closingState !== 'open';
+        els.lockClosingBtn.style.opacity = closingState !== 'open' ? '.55' : '1';
+        els.lockClosingBtn.style.cursor = closingState !== 'open' ? 'not-allowed' : 'pointer';
+        els.lockClosingBtn.innerHTML = closingState === 'verified'
+          ? '<i class="fa-solid fa-circle-check"></i> Closing Terverifikasi'
+          : (closingState === 'locked' ? '<i class="fa-solid fa-lock"></i> Closing Sudah Ditutup' : '<i class="fa-solid fa-lock"></i> Simpan Closing');
       }
     }
 
@@ -1719,6 +1810,14 @@
         ['reloadBtn', reloadCourierPage]
       ].forEach(([id, handler]) => { const node = document.getElementById(id); if (node) node.addEventListener('click', handler); });
 
+      if (els.closeScannerBtn) els.closeScannerBtn.addEventListener('click', stopScannerModal);
+      if (els.scannerManualBtn) els.scannerManualBtn.addEventListener('click', () => { stopScannerModal(); openPickupManual(''); });
+      if (els.scannerGalleryBtn) els.scannerGalleryBtn.addEventListener('click', () => { stopScannerModal(); startScanPickupLegacy(); });
+      if (els.scannerModal) {
+        els.scannerModal.addEventListener('click', (e) => { if (e.target === els.scannerModal) stopScannerModal(); });
+      }
+      window.addEventListener('beforeunload', stopScannerModal);
+
       [['onlineSwitch','online'],['trackingSwitch','trackingOn'],['waSwitch','waAuto'],['gpsSwitch','gpsOn'],['proofGpsSwitch','proofGpsOn']].forEach(([id,key]) => {
         document.getElementById(id).addEventListener('click', async () => {
           state[key] = !state[key];
@@ -1768,12 +1867,7 @@ if (els.scanCaptureInput) {
           if (!ok) {
             const gudangOrder = getScopedOrders().find(order => order.status === 'ready_in_warehouse' && !order.archived);
             if (gudangOrder) {
-              state.activeOrderId = gudangOrder.id;
-              els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${gudangOrder.pickupCode || '-'}`;
-              els.pickupSheetText.textContent = `${gudangOrder.customer} • ${gudangOrder.code}`;
-              els.pickupCodeInput.value = '';
-              els.bagLabelInput.value = gudangOrder.bagLabel || defaultBagLabel();
-              openSheet('pickupSheet');
+              openPickupManual('');
               showToast('Barcode belum terbaca. Silakan input manual.');
             } else {
               showToast('Barcode belum terbaca. Tidak ada order gudang untuk pickup.');
@@ -1808,7 +1902,7 @@ window.addEventListener('online', () => { state.online = true; updateNetworkUI()
       switchPage('home');
       const order = allOrders().find(item => item.id === orderId);
       if (!order) return;
-      state.currentTab = ['delivered','failed_delivery','returned_to_warehouse','archived'].includes(order.status) ? 'Selesai' : (order.status === 'ready_in_warehouse' ? 'Gudang' : 'Proses');
+      state.currentTab = order.status === 'ready_in_warehouse' ? 'Gudang' : (['failed_delivery','returned_to_warehouse'].includes(order.status) ? 'Gagal' : (['delivered','archived'].includes(order.status) ? 'Selesai' : 'Proses'));
       renderAll();
       setTimeout(() => {
         const card = document.querySelector(`[data-order-card="${orderId}"]`);
@@ -1836,16 +1930,85 @@ window.addEventListener('online', () => { state.online = true; updateNetworkUI()
       }
     }
 
+    function stopScannerModal() {
+      if (scannerLoopHandle) { clearTimeout(scannerLoopHandle); scannerLoopHandle = null; }
+      scannerBusy = false;
+      scannerLastCode = '';
+      if (scannerStream) {
+        scannerStream.getTracks().forEach(track => track.stop());
+        scannerStream = null;
+      }
+      if (els.scannerVideo) {
+        try { els.scannerVideo.pause(); } catch {}
+        els.scannerVideo.srcObject = null;
+      }
+      if (els.scannerModal) {
+        els.scannerModal.classList.remove('show');
+        els.scannerModal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    async function scannerDetectTick(detector) {
+      if (!els.scannerVideo || !scannerStream || scannerBusy) return;
+      const video = els.scannerVideo;
+      if (video.readyState < 2) {
+        scannerLoopHandle = setTimeout(() => scannerDetectTick(detector), 280);
+        return;
+      }
+      scannerBusy = true;
+      try {
+        const codes = await detector.detect(video);
+        const rawCode = String(codes?.[0]?.rawValue || '').trim();
+        if (rawCode && rawCode !== scannerLastCode) {
+          scannerLastCode = rawCode;
+          if (els.scannerStatusText) els.scannerStatusText.textContent = `Pickup code terbaca: ${rawCode}`;
+          await handleScannedPickupCode(rawCode);
+          stopScannerModal();
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        scannerBusy = false;
+      }
+      scannerLoopHandle = setTimeout(() => scannerDetectTick(detector), 420);
+    }
+
+    async function openScannerModal() {
+      if (!els.scannerModal || !els.scannerVideo) return startScanPickupLegacy();
+      els.scannerModal.classList.add('show');
+      els.scannerModal.setAttribute('aria-hidden', 'false');
+      if (els.scannerStatusText) els.scannerStatusText.textContent = 'Menyiapkan kamera belakang…';
+      if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+        if (els.scannerStatusText) els.scannerStatusText.textContent = 'Browser ini belum mendukung scanner live. Gunakan scan dari foto atau input manual.';
+        return;
+      }
+      try {
+        scannerStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        els.scannerVideo.srcObject = scannerStream;
+        await els.scannerVideo.play();
+        if (els.scannerStatusText) els.scannerStatusText.textContent = 'Arahkan pickup code ke dalam frame. Scan berjalan otomatis.';
+        const detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','upc_a','upc_e'] });
+        scannerDetectTick(detector);
+      } catch (err) {
+        console.error(err);
+        if (els.scannerStatusText) els.scannerStatusText.textContent = 'Kamera tidak bisa dibuka. Gunakan scan dari foto atau input manual.';
+      }
+    }
+
     async function handleScannedPickupCode(rawCode) {
       const code = String(rawCode || '').trim();
       if (!code) return;
       const order = allOrders().find(item => String(item.pickupCode || '').trim().toLowerCase() === code.toLowerCase());
       if (!order) {
         state.activeOrderId = '';
-        els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${code}`;
-        els.pickupSheetText.textContent = 'Pickup code tidak ditemukan. Cek ulang atau input manual.';
-        els.pickupCodeInput.value = code;
-        els.bagLabelInput.value = defaultBagLabel();
+        if (els.pickupCodePreview) els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${code}`;
+        if (els.pickupSheetText) els.pickupSheetText.textContent = 'Pickup code tidak ditemukan. Cek ulang atau input manual.';
+        if (els.pickupCodeInput) els.pickupCodeInput.value = code;
+        if (els.bagLabelInput) els.bagLabelInput.value = defaultBagLabel();
         openSheet('pickupSheet');
         showToast('Pickup code belum cocok. Silakan cek manual.');
         return;
@@ -1853,10 +2016,10 @@ window.addEventListener('online', () => { state.online = true; updateNetworkUI()
 
       if (order.status === 'ready_in_warehouse') {
         state.activeOrderId = order.id;
-        els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${order.pickupCode || code}`;
-        els.pickupSheetText.textContent = `${order.customer} • ${order.code}`;
-        els.pickupCodeInput.value = order.pickupCode || code;
-        els.bagLabelInput.value = order.bagLabel || defaultBagLabel();
+        if (els.pickupCodePreview) els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${order.pickupCode || code}`;
+        if (els.pickupSheetText) els.pickupSheetText.textContent = `${order.customer} • ${order.code}`;
+        if (els.pickupCodeInput) els.pickupCodeInput.value = order.pickupCode || code;
+        if (els.bagLabelInput) els.bagLabelInput.value = order.bagLabel || defaultBagLabel();
         await claimPickup(order.id);
         return;
       }
@@ -1871,14 +2034,18 @@ window.addEventListener('online', () => { state.online = true; updateNetworkUI()
       showToast(`Paket ${order.code} ditemukan dengan status ${order.statusText}.`);
     }
 
-    function startScanPickup() {
-      if (!requireCourierAction()) return;
+    function startScanPickupLegacy() {
       if (els.scanCaptureInput) {
         els.scanCaptureInput.value = '';
         els.scanCaptureInput.click();
       } else {
         showToast('Kamera scan tidak tersedia.');
       }
+    }
+
+    function startScanPickup() {
+      if (!requireCourierAction()) return;
+      openScannerModal();
     }
 
     function updateNetworkUI() {
