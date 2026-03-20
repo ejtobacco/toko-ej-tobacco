@@ -548,7 +548,6 @@
       totalCOD: document.getElementById('totalCOD'),
       totalPengeluaran: document.getElementById('totalPengeluaran'),
       heroSub: document.getElementById('heroSub'),
-      scanCaptureInput: document.getElementById('scanCaptureInput'),
       scannerModal: document.getElementById('scannerModal'),
       scannerVideo: document.getElementById('scannerVideo'),
       scannerStatusText: document.getElementById('scannerStatusText'),
@@ -1875,7 +1874,7 @@
           }
         });
       }
-
+    }
 
     function focusOrderCard(orderId) {
       switchPage('home');
@@ -2090,6 +2089,36 @@
     function startScanPickup() {
       if (!requireCourierAction()) return;
       openScannerModal();
+    }
+
+
+
+    function setHeroMessage(message, type = 'info') {
+      if (!els.heroSub) return;
+      const iconClass = type === 'lock'
+        ? 'fa-solid fa-lock'
+        : (type === 'warning' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-info');
+      els.heroSub.innerHTML = `
+        <span class="hero-note">
+          <i class="${iconClass}"></i>
+          <span>${message}</span>
+        </span>
+      `;
+    }
+
+    function defaultBagLabel() {
+      if (state.currentCourierProfile?.defaultBagLabel) return state.currentCourierProfile.defaultBagLabel;
+      if (state.currentCourierName) {
+        const shortName = String(state.currentCourierName).trim().split(' ')[0] || 'A';
+        return `Tas ${shortName}`;
+      }
+      return 'Tas A';
+    }
+
+    function reloadCourierPage() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_r', Date.now().toString());
+      window.location.href = url.toString();
     }
 
     function updateNetworkUI() {
