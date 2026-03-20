@@ -392,10 +392,18 @@
       window.location.assign(target);
     }
 
-    onValue(ref(db, 'app_users'), snap => {
-      state.users = snap.val() || {};
-      countRoles();
-    });
+    onValue(
+  ref(db, 'app_users'),
+  snap => {
+    state.users = snap.val() || {};
+    console.log('APP_USERS_LOADED', state.users);
+    countRoles();
+  },
+  err => {
+    console.error('APP_USERS_READ_FAILED', err);
+    showNotice('Gagal membaca app_users dari Firebase. Cek Rules.', true);
+  }
+);
 
     els.loginBtn.addEventListener('click', loginNow);
     els.continueSessionBtn.addEventListener('click', continueSession);
