@@ -167,34 +167,34 @@
         <div class="role-card">
           <strong>admin_pusat</strong>
           <p>Masuk ke root master admin pusat realtime.</p>
-          <div class="chips"><span class="chip"><code>/</code></span><span class="chip">Master admin</span></div>
+          <div class="chips"><span class="chip"><code>../index.html</code></span><span class="chip">Master admin</span></div>
         </div>
         <div class="role-card">
           <strong>admin_cabang</strong>
           <p>Masuk ke POS cabang live sesuai branch code.</p>
-          <div class="chips"><span class="chip"><code>/pos-cabang/</code></span><span class="chip">Kasir live</span></div>
+          <div class="chips"><span class="chip"><code>../pos-cabang/index.html</code></span><span class="chip">Kasir live</span></div>
         </div>
         <div class="role-card">
           <strong>kurir</strong>
           <p>Masuk ke panel kurir yang sudah dipakai operasional delivery.</p>
-          <div class="chips"><span class="chip"><code>/kurir/</code></span><span class="chip">Delivery</span></div>
+          <div class="chips"><span class="chip"><code>../kurir/index.html</code></span><span class="chip">Delivery</span></div>
         </div>
         <div class="role-card">
           <strong>customer</strong>
           <p>Masuk ke halaman order customer/checkout.</p>
-          <div class="chips"><span class="chip"><code>/customer/</code></span><span class="chip">Order</span></div>
+          <div class="chips"><span class="chip"><code>../customer/index.html</code></span><span class="chip">Order</span></div>
         </div>
       </div>
     </section>
 
     <div class="footer-note">
-      Simpan portal ini sebagai <code>portal/index.html</code> atau jadikan halaman login utama.
+      Simpan portal ini sebagai <code>portal/index.html</code>.
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
-    import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
@@ -208,12 +208,16 @@
     };
 
     const SESSION_KEY = 'ej_role_session_v1';
+    const LOGIN_TIME_KEY = 'ej_role_login_time_label';
+
     const ROLE_TARGETS = {
-  admin_pusat: '../',
-  admin_cabang: '../pos-cabang/',
-  kurir: '../kurir/',
-  customer: '../customer/'
-};
+      admin_pusat: '../index.html',
+      admin_cabang: '../pos-cabang/index.html',
+      kurir: '../kurir/index.html',
+      customer: '../customer/index.html'
+    };
+
+    const ALLOWED_SESSION_ROLES = ['admin_pusat', 'admin_cabang', 'kurir', 'customer'];
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -252,7 +256,7 @@
     }
 
     function countRoles(){
-      const users = Object.values(state.users || {});
+      const users = Object.values(state.users || {}).filter(u => u && u.isActive !== false);
       const pusat = users.filter(u => u.role === 'admin_pusat').length;
       const cabang = users.filter(u => u.role === 'admin_cabang').length;
       const kurir = users.filter(u => u.role === 'kurir').length;
@@ -262,17 +266,15 @@
       els.kurirCountText.textContent = String(kurir);
     }
 
-    function saveSession(user){
-      localStorage.setItem(SESSION_KEY, JSON.stringify({
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        name: user.name || user.username,
-        branchCode: user.branchCode || '',
-        target: user.target || ROLE_TARGETS[user.role] || './',
-        savedAt: Date.now()
-      }));
-      renderSession();
+    function normalizeTarget(target, role){
+      const fallback = ROLE_TARGETS[role] || '../index.html';
+      const raw = String(target || '').trim();
+
+      if (!raw) return fallback;
+      if (raw === '../') return '../index.html';
+      if (raw === './') return './index.html';
+      if (raw.endsWith('/')) return raw + 'index.html';
+      return raw;
     }
 
     function loadSession(){
@@ -283,31 +285,58 @@
       }
     }
 
+    function saveSession(user){
+      const session = {
+        id: user.id,
+        username: user.username || '',
+        role: user.role,
+        name: user.name || user.username || '',
+        branchCode: user.branchCode || '',
+        target: normalizeTarget(user.target || ROLE_TARGETS[user.role], user.role),
+        savedAt: Date.now()
+      };
+
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      localStorage.setItem(
+        LOGIN_TIME_KEY,
+        new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      );
+
+      localStorage.removeItem('ej_active_courier_id');
+      localStorage.removeItem('ej_active_courier_name');
+
+      renderSession();
+    }
+
     function clearSession(){
       localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(LOGIN_TIME_KEY);
+      localStorage.removeItem('ej_active_courier_id');
+      localStorage.removeItem('ej_active_courier_name');
       renderSession();
     }
 
     function renderSession(){
       const session = loadSession();
-      if(!session){
+      if(!session || !ALLOWED_SESSION_ROLES.includes(session.role)){
         els.sessionBox.classList.add('hidden');
         els.sessionEmpty.classList.remove('hidden');
         return;
       }
+
       els.sessionBox.classList.remove('hidden');
       els.sessionEmpty.classList.add('hidden');
-      els.sessionName.textContent = session.name;
+      els.sessionName.textContent = session.name || session.username || '-';
       els.sessionMeta.textContent = `${session.role}${session.branchCode ? ' • ' + session.branchCode : ''}`;
     }
 
     function resolveTarget(user){
-      if(user.target) return user.target;
-      return ROLE_TARGETS[user.role] || './';
+      return normalizeTarget(user.target || ROLE_TARGETS[user.role], user.role);
     }
 
     async function loginNow(){
       hideNotice();
+
       const username = els.usernameInput.value.trim().toLowerCase();
       const pin = els.pinInput.value.trim();
 
@@ -318,8 +347,8 @@
 
       const users = Object.entries(state.users || {}).map(([id, user]) => ({ id, ...user }));
       const found = users.find(user =>
-        String(user.username || '').toLowerCase() === username &&
-        String(user.pin || '') === pin &&
+        String(user.username || '').trim().toLowerCase() === username &&
+        String(user.pin || '').trim() === pin &&
         user.isActive !== false
       );
 
@@ -328,18 +357,39 @@
         return;
       }
 
+      if (!ALLOWED_SESSION_ROLES.includes(found.role)) {
+        showNotice(`Role ${found.role} belum diizinkan masuk dari portal ini.`, true);
+        return;
+      }
+
       const target = resolveTarget(found);
+
       saveSession({ ...found, target });
+
+      console.log('SESSION_SAVED', JSON.parse(localStorage.getItem(SESSION_KEY)));
+      console.log('REDIRECT_TARGET', target);
+
       showNotice(`Login berhasil sebagai ${found.role}. Mengalihkan ke halaman tujuan...`);
+
       setTimeout(() => {
-        window.location.href = target;
-      }, 500);
+        window.location.assign(target);
+      }, 300);
     }
 
     async function continueSession(){
       const session = loadSession();
-      if(!session) return;
-      window.location.href = session.target || './';
+      if(!session){
+        showNotice('Belum ada sesi tersimpan.', true);
+        return;
+      }
+
+      if (!session.role || !ALLOWED_SESSION_ROLES.includes(session.role)) {
+        showNotice('Role sesi tidak valid.', true);
+        return;
+      }
+
+      const target = normalizeTarget(session.target, session.role);
+      window.location.assign(target);
     }
 
     onValue(ref(db, 'app_users'), snap => {
@@ -357,6 +407,7 @@
     els.pinInput.addEventListener('keydown', e => {
       if(e.key === 'Enter') loginNow();
     });
+
     els.usernameInput.addEventListener('keydown', e => {
       if(e.key === 'Enter') els.pinInput.focus();
     });
