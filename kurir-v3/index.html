@@ -1,0 +1,2676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <script>
+    document.documentElement.style.visibility = 'hidden';
+    window.EJ_ROLE_GUARD = {
+      allowedRoles: ['kurir', 'admin_pusat'],
+      loginUrl: '../portal/',
+      fallbackHome: '../'
+    };
+
+    let proofPhotoCompressedDataUrl = '';
+    let proofPhotoCompressedBlob = null;
+    let proofPhotoCompressedFileName = '';
+    let scannerStream = null;
+    let scannerLoopHandle = null;
+    let scannerBusy = false;
+    let scannerLastCode = '';
+    let scannerAudioContext = null;
+    let scannerTorchAvailable = false;
+    let scannerTorchOn = false;
+    window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };
+  </script>
+  <script type="module" src="../assets/ej_role_guard.js"></script>
+  <script src="../assets/ej_session_badge.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>EJ Kurir Pickup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root { --bg:#07090d; --stroke:rgba(255,255,255,.08); --text:#f5f7fb; --muted:#98a2b3; --gold:#d4af37; --gold-2:#f6dd82; --green:#22c55e; --red:#ef4444; --shadow:0 20px 60px rgba(0,0,0,.38); --gradient-gold:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%); --gradient-hero:radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 38%), linear-gradient(180deg, #111827 0%, #090b10 100%);}
+    *{box-sizing:border-box;margin:0;padding:0} html,body{min-height:100%}
+    body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top left, rgba(59,130,246,.12), transparent 24%),radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 28%),radial-gradient(circle at bottom center, rgba(34,211,238,.07), transparent 24%),var(--bg);color:var(--text);padding:18px;overflow-x:hidden;background-attachment:fixed}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}.hidden{display:none!important}
+    .app-shell{width:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:110px}
+    .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0 10px;backdrop-filter:blur(18px);background:linear-gradient(180deg, rgba(7,9,13,.90), rgba(7,9,13,.55), transparent)}
+    .brand-wrap{display:flex;align-items:center;gap:12px;min-width:0}.brand-icon{width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);display:grid;place-items:center;overflow:hidden;box-shadow:var(--shadow);font-size:18px;flex:0 0 auto}.brand-icon img{width:100%;height:100%;object-fit:contain;display:block}
+    .brand-text h1{font-size:16px;line-height:1.15;font-weight:800;letter-spacing:.2px}.brand-text p{margin-top:3px;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .top-actions{display:flex;align-items:center;gap:8px}.icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .hero-note{display:flex;align-items:flex-start;gap:10px;margin-top:10px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:12px;line-height:1.5;color:var(--text-soft)}
+    .hero-note i{margin-top:2px;color:var(--gold-2)}
+    .scan-highlight{outline:2px solid rgba(212,175,55,.9);box-shadow:0 0 0 4px rgba(212,175,55,.14)}
+    .role-chip,.hero-card,.search-card,.tabs-card,.list-card,.panel-card{background:linear-gradient(180deg, rgba(17,22,32,.88), rgba(12,16,24,.82));border:1px solid var(--stroke);box-shadow:var(--shadow);border-radius:22px;backdrop-filter:blur(20px);position:relative;overflow:hidden}
+    .role-chip::before,.hero-card::before,.search-card::before,.tabs-card::before,.list-card::before,.panel-card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,255,255,.03), transparent 34%);pointer-events:none}
+    .role-chip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px}.role-chip-left{display:flex;align-items:center;gap:12px;min-width:0}.role-avatar{width:54px;height:54px;border-radius:18px;background:var(--gradient-gold);display:grid;place-items:center;color:#121212;font-size:21px;font-weight:800;box-shadow:0 14px 28px rgba(212,175,55,.24)}
+    .role-meta h3{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}.role-meta p{color:var(--muted);font-size:12px;line-height:1.4}.role-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.role-pill{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--gold-2);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+    .hero-card{border-radius:28px;padding:22px;background:var(--gradient-hero)}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:var(--gold-2);margin-bottom:14px}
+    .status-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+    .chip{display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:var(--text);font-size:11px;font-weight:700}.chip button{background:transparent;border:none;color:inherit;font-weight:inherit}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);flex:0 0 auto}.dot.offline{background:var(--red);box-shadow:0 0 12px var(--red)}
+    .clock{text-align:right}.clock .time{font-size:18px;font-weight:800;color:var(--gold-2)}.clock .date{margin-top:4px;font-size:11px;color:var(--muted)}
+    .hero-title{font-size:12px;color:rgba(255,255,255,.72);font-weight:700;letter-spacing:.9px;text-transform:uppercase}.hero-value{margin-top:10px;font-size:34px;font-weight:800;letter-spacing:-.8px}.hero-sub{margin-top:6px;font-size:12px;color:var(--muted)}
+    .hero-grid,.mini-grid,.quick-row,.tool-grid,.wallet-grid,.profile-grid{display:grid;gap:12px}.hero-grid,.mini-grid,.quick-row,.wallet-grid,.profile-grid{grid-template-columns:1fr 1fr}.tool-grid{grid-template-columns:repeat(4,1fr)}.hero-grid{margin-top:18px}
+    .mini-stat,.metric-card,.wallet-card,.profile-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px;backdrop-filter:blur(12px)}
+    .mini-stat label,.metric-card label,.wallet-card label,.profile-card label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px;font-weight:600}
+    .mini-stat strong,.metric-card strong,.wallet-card strong,.profile-card strong{display:block;font-size:18px;font-weight:800}
+    .primary-btn,.secondary-btn,.tool-btn,.pill-btn,.sheet-btn,.mini-btn{border:none;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-weight:800}
+    .primary-btn,.secondary-btn{min-height:54px;border-radius:18px;padding:0 16px;font-size:14px}.primary-btn{background:var(--gradient-gold);color:#151515;box-shadow:0 14px 28px rgba(212,175,55,.25)}.secondary-btn{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--stroke)}
+    .tool-btn{min-height:82px;flex-direction:column;border-radius:18px;background:rgba(255,255,255,.04);color:var(--text);border:1px solid rgba(255,255,255,.06);font-size:11px;padding:10px 6px}.tool-btn i{font-size:17px;color:var(--gold-2)}.tool-btn span{text-align:center;line-height:1.25}
+    .search-card,.panel-card,.list-card{padding:14px}.search-grid{display:grid;grid-template-columns:1fr 106px;gap:10px}.search-wrap{position:relative}.search-wrap i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:15px}.search-card.simple-search{padding:10px 12px}.search-card.simple-search .search-grid{grid-template-columns:1fr}.search-card.simple-search .search-wrap i{left:14px}.search-card.simple-search .search-box{height:48px;border-radius:14px;padding-left:42px}.search-card.simple-search .search-box::placeholder{color:var(--muted)}.search-card.simple-search .select-box{display:none}
+    .search-box,.select-box,.field,.field-area{width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.04);color:var(--text);outline:none}.search-box,.select-box,.field{height:52px;padding:0 16px;font-size:14px;font-weight:500}.field-area{min-height:106px;padding:14px 16px;resize:vertical;font-size:14px}.search-wrap .search-box{padding-left:46px}
+    .tabs-card{padding:10px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.tab-item{min-height:82px;border-radius:18px;border:1px solid transparent;background:rgba(255,255,255,.02);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;padding:10px 6px;color:inherit;transition:transform .18s ease,border-color .18s ease,background .18s ease}.tab-item i{font-size:16px;color:var(--muted)}.tab-item span{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.3px}.tab-item b{font-size:15px;font-weight:800}.tab-item.active{background:linear-gradient(180deg, rgba(212,175,55,.17), rgba(212,175,55,.06));border-color:rgba(212,175,55,.30);transform:translateY(-1px)}.tab-item.active i,.tab-item.active span,.tab-item.active b{color:var(--gold-2)}.tab-ux-card{padding:14px;display:flex;flex-direction:column;gap:12px}.tab-ux-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.tab-ux-copy h3{font-size:15px;font-weight:800}.tab-ux-copy p{margin-top:4px;font-size:12px;line-height:1.5;color:var(--muted)}.flow-pills{display:flex;flex-wrap:wrap;gap:8px}.flow-pill{display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);font-size:11px;font-weight:700;color:#dbe2f1}.flow-pill.active{background:rgba(212,175,55,.12);border-color:rgba(212,175,55,.22);color:var(--gold-2)}.tab-cta-btn{min-height:40px;padding:0 14px;border-radius:999px;border:none;background:rgba(255,255,255,.06);color:var(--gold-2);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.tab-cta-btn i{font-size:13px}.inline-actions.is-hidden,.pill-btn.is-hidden{display:none!important}@media (max-width:420px){.tabs-card{grid-template-columns:repeat(5,minmax(58px,1fr));gap:7px}.tab-item{min-height:78px;padding:10px 4px}.tab-item span{font-size:9px}.tab-ux-head{flex-direction:column}.tab-cta-btn{width:100%}}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.section-head h2{font-size:15px;font-weight:800}.section-head p{font-size:11px;color:var(--muted);margin-top:4px}.mini-link{color:var(--gold-2);font-size:12px;font-weight:700;background:none;border:none}
+    .inline-actions{display:flex;gap:8px;flex-wrap:wrap}.pill-btn,.mini-btn{min-height:36px;border-radius:999px;padding:0 14px;font-size:12px;color:var(--text);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}.mini-btn{min-height:30px;padding:0 10px;font-size:11px}
+    .order-list,.timeline-list,.log-list,.archive-list{display:flex;flex-direction:column;gap:12px}
+    .route-shell{gap:14px}.route-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.route-head h2{font-size:18px;font-weight:800;letter-spacing:-.2px}.route-eyebrow{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px;border-radius:999px;background:rgba(212,175,55,.10);border:1px solid rgba(212,175,55,.18);color:var(--gold-2);font-size:11px;font-weight:800;margin-bottom:10px}.route-head-badge{min-height:34px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:#eef2f8;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}.route-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.route-stat-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}.route-stat-icon{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:rgba(212,175,55,.10);color:var(--gold-2);border:1px solid rgba(212,175,55,.16);flex:0 0 auto}.route-stat-card label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}.route-stat-card strong{font-size:16px;font-weight:800}.route-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.route-sort-btn{min-height:44px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:#eef2f8;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 12px}.route-sort-btn i{color:var(--gold-2)}.route-sort-btn.active{background:linear-gradient(180deg, rgba(212,175,55,.16), rgba(212,175,55,.08));border-color:rgba(212,175,55,.24);color:var(--gold-2)}.route-list{display:flex;flex-direction:column;gap:10px}.route-stop-card{padding:14px;border-radius:22px;background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.026));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}.route-stop-head{display:flex;align-items:flex-start;gap:12px}.route-stop-num{width:34px;height:34px;border-radius:14px;display:grid;place-items:center;background:var(--gradient-gold);color:#111;font-size:13px;font-weight:900;flex:0 0 auto}.route-stop-copy{min-width:0;flex:1}.route-stop-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.route-stop-title h3{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.route-stop-code{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap}.route-stop-meta{display:flex;flex-wrap:wrap;gap:6px}.route-stop-meta span{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:10px;font-weight:800;color:#dbe2f1}.route-stop-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.route-icon-btn,.route-chip-btn{border:none}.route-icon-btn{width:38px;height:38px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--gold-2);display:grid;place-items:center}.route-address{margin-top:10px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);font-size:12px;line-height:1.5;color:#dbe2f1;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.route-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.route-chip-btn{min-height:34px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:#eef2f8;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}.route-chip-btn i{color:var(--gold-2)}@media (max-width:420px){.route-stats{grid-template-columns:1fr}.route-toolbar{grid-template-columns:repeat(3,minmax(0,1fr))}.route-sort-btn span{font-size:11px}.route-stop-head{align-items:flex-start}.route-stop-title{flex-direction:column;align-items:flex-start;gap:4px}.route-stop-actions{flex-direction:column}.route-icon-btn{width:36px;height:36px}}
+    .order-card{border-radius:24px;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.028));border:1px solid rgba(255,255,255,.08);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+    .drag-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(212,175,55,.08);border-bottom:1px solid rgba(212,175,55,.14);color:var(--gold-2);font-size:11px;font-weight:800;letter-spacing:.4px}.drag-num{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;background:var(--gradient-gold);color:#111;font-size:12px;font-weight:800;flex:0 0 auto}
+    .order-main{padding:14px}.order-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.order-left{display:flex;gap:10px;min-width:0}.order-icon{width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;color:var(--gold);flex:0 0 auto;font-size:15px}
+    .order-meta h3{font-size:15px;font-weight:800;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.order-meta p{font-size:11px;color:var(--muted);line-height:1.4}
+    .badge-stack{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.badge{min-height:28px;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:800;display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;white-space:nowrap}
+    .badge.status-gudang{background:rgba(99,102,241,.14);color:#c7d2fe;border-color:rgba(99,102,241,.24)}.badge.status-proses{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.24)}.badge.status-selesai{background:rgba(34,197,94,.14);color:#86efac;border-color:rgba(34,197,94,.24)}.badge.status-gagal,.badge.status-arsip{background:rgba(239,68,68,.14);color:#fca5a5;border-color:rgba(239,68,68,.24)}.badge.cod{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.24)}.badge.transfer{background:rgba(139,92,246,.12);color:#c4b5fd;border-color:rgba(139,92,246,.24)}.badge.urgent{background:rgba(239,68,68,.14);color:#fca5a5;border-color:rgba(239,68,68,.28)}
+    .eta-row{margin-top:10px;display:flex;flex-wrap:wrap;gap:7px}.eta-chip{min-height:28px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}.eta-chip.primary{background:rgba(212,175,55,.10);border-color:rgba(212,175,55,.18);color:var(--gold-2)}
+    .proof-highlight{margin-top:10px;padding:11px 13px;border-radius:16px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.16)}.proof-highlight strong{display:block;font-size:12px;color:#bbf7d0;margin-bottom:4px}.proof-highlight p{font-size:11px;line-height:1.45;color:#d1fae5}
+    .pickup-box,.address-box,.timeline-summary{margin-top:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:16px;padding:14px}.pickup-box label,.address-box label,.timeline-summary label{display:block;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}.pickup-box p,.address-box p,.timeline-summary p{font-size:13px;line-height:1.5;color:#e7ebf2}
+    .pickup-code{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.18);font-size:13px;font-weight:800;color:var(--gold-2)}
+    .timeline-preview{display:flex;flex-direction:column;gap:10px;margin-top:10px}.timeline-preview-item,.timeline-item,.log-item,.archive-item{display:flex;gap:12px;align-items:flex-start}.timeline-point,.log-point,.archive-point{width:12px;height:12px;border-radius:999px;margin-top:5px;background:var(--gold);box-shadow:0 0 12px rgba(212,175,55,.4);flex:0 0 auto}.timeline-content,.log-content,.archive-content{flex:1;min-width:0}.timeline-content strong,.log-content strong,.archive-content strong{display:block;font-size:13px;margin-bottom:4px}.timeline-content p,.log-content p,.archive-content p{color:var(--muted);font-size:11px;line-height:1.45}
+    .compact-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.compact-address{margin-top:8px;display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}.compact-address.compact-address-mini{padding:9px 11px}.compact-address i{color:var(--gold-2);margin-top:2px;flex:0 0 auto}.compact-address p{font-size:11px;line-height:1.4;color:#e7ebf2;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+    .order-actions,.action-row-full{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.order-action-row{margin-top:10px;display:flex;align-items:center;gap:8px}.action-main{flex:1;min-width:0}.icon-actions{display:flex;gap:8px;flex:0 0 auto}.action-btn,.ghost-btn,.sheet-btn,.action-icon-btn{min-height:42px;border-radius:14px;font-size:12px;font-weight:800;color:white;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;padding:0 10px}.action-icon-btn{width:42px;height:42px;padding:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text)}.action-icon-btn.gold{color:var(--gold-2)}.action-icon-btn.wa{color:#86efac}.action-icon-btn.danger{color:#fca5a5;border-color:rgba(239,68,68,.22);background:rgba(239,68,68,.08)}.action-green{background:linear-gradient(180deg, #22c55e, #16a34a)}.action-blue{background:linear-gradient(180deg, #3b82f6, #2563eb)}.action-amber{background:linear-gradient(180deg, #f59e0b, #d97706);color:#1d1300}.action-purple{background:linear-gradient(180deg, #8b5cf6, #7c3aed)}.action-danger{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.28);color:#fca5a5}.ghost-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text)}.action-btn[disabled],.ghost-btn[disabled],.sheet-btn[disabled],.action-icon-btn[disabled]{opacity:.42;cursor:not-allowed;pointer-events:none;filter:saturate(.18)}.ghost-btn.locked-action{background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.18);color:#cbd5e1}.order-mini-proof{margin-top:8px;display:flex;align-items:center;gap:7px;font-size:11px;color:#d1fae5}.order-mini-proof i{color:#86efac;flex:0 0 auto}.order-card.compact-tab .order-main{padding:12px}.order-card.compact-tab .order-icon{width:36px;height:36px;border-radius:12px;font-size:14px}.order-card.compact-tab .order-meta h3{font-size:14px;margin-bottom:2px}.order-card.compact-tab .order-meta p{font-size:10px}.order-card.compact-tab .badge{min-height:26px;padding:5px 9px;font-size:10px}.order-card.compact-tab.is-finished .order-main{padding:10px 12px}.order-card.compact-tab.is-finished .order-icon{width:32px;height:32px;border-radius:11px}.order-card.compact-tab.is-finished .order-meta h3{font-size:13px}.order-card.compact-tab.is-finished .compact-meta{margin-top:6px;gap:5px}.order-card.compact-tab.is-finished .eta-chip{min-height:24px;padding:5px 8px;font-size:10px}.order-card.compact-tab.is-finished .order-mini-proof{margin-top:6px;font-size:10px}.order-card.compact-tab.is-finished .order-action-row{display:none}.order-card.compact-tab.is-finished .badge-stack{align-items:flex-end}.order-card.compact-tab.is-finished .badge.urgent{display:none}
+    .panel-stack{display:flex;flex-direction:column;gap:16px}.empty-state{padding:24px 16px;text-align:center;color:var(--muted);font-size:13px;border-radius:18px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.02)}
+    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:calc(100% - 28px);max-width:412px;padding:10px;border-radius:28px;background:rgba(10,12,18,.86);border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(22px);display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;z-index:35}
+    .nav-item{min-height:60px;border-radius:18px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;color:var(--muted);font-size:10px;font-weight:800;border:none;background:transparent}.nav-item i{font-size:16px}.nav-item.active{background:rgba(212,175,55,.12);color:var(--gold-2)}
+    .floating-fab{position:fixed;right:max(18px, calc(50% - 202px));bottom:104px;width:58px;height:58px;border-radius:20px;border:none;background:var(--gradient-gold);color:#151515;font-size:20px;box-shadow:0 22px 40px rgba(212,175,55,.24);z-index:34}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:70}.overlay.show{opacity:1;pointer-events:auto}
+    .sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(440px, calc(100% - 18px));background:#0e131c;border:1px solid rgba(255,255,255,.08);border-bottom:none;border-top-left-radius:28px;border-top-right-radius:28px;padding:18px 18px 28px;box-shadow:0 -20px 60px rgba(0,0,0,.45);transition:transform .28s ease;z-index:80;max-height:85vh;overflow-y:auto}.sheet.show{transform:translate(-50%,0)}
+    .sheet-handle{width:64px;height:6px;border-radius:999px;background:rgba(255,255,255,.14);margin:0 auto 16px}.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}.sheet-head h3{font-size:18px;font-weight:800;margin-bottom:4px}.sheet-head p{font-size:12px;color:var(--muted);line-height:1.5}
+    .close-btn{width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text)}.field-stack{display:flex;flex-direction:column;gap:12px}.label{display:block;font-size:12px;font-weight:700;color:#dbe2f1;margin-bottom:8px}
+    .reason-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.reason-btn{min-height:46px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text);font-size:12px;font-weight:700;padding:10px;text-align:center}.reason-btn.active{border-color:rgba(212,175,55,.4);background:rgba(212,175,55,.10);color:var(--gold-2)}
+    .sheet-btn{width:100%;min-height:52px}.sheet-btn.primary{background:var(--gradient-gold);color:#151515}
+    .toast{position:fixed;top:24px;left:50%;transform:translate(-50%, -18px);width:min(380px, calc(100% - 28px));padding:14px 16px;border-radius:18px;background:rgba(17,22,32,.96);border:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);color:var(--text);font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s ease;z-index:95}.toast.show{transform:translate(-50%,0);opacity:1}
+    .switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}.switch-row strong{display:block;font-size:13px;margin-bottom:4px}.switch-row p{font-size:11px;color:var(--muted);line-height:1.4}
+    .switch{position:relative;width:52px;height:30px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.08);flex:0 0 auto}.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:white;transition:.2s ease}.switch.active{background:rgba(34,197,94,.24)}.switch.active::after{transform:translateX(22px)}
+    .footer-note{margin-top:10px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5}.muted-line{color:var(--muted);font-size:12px;line-height:1.5}
+  
+    .scanner-modal{position:fixed;inset:0;z-index:130;display:none;background:rgba(6,8,12,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .scanner-modal.show{display:flex;align-items:center;justify-content:center;padding:18px}
+    .scanner-shell{width:min(100%,520px);background:linear-gradient(180deg, rgba(17,22,32,.98), rgba(10,14,22,.96));border:1px solid rgba(255,255,255,.08);border-radius:30px;box-shadow:0 28px 90px rgba(0,0,0,.52);overflow:hidden}
+    .scanner-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 18px 12px}
+    .scanner-head h3{margin:0;font-size:20px;font-weight:800}
+    .scanner-head p{margin:6px 0 0;color:rgba(255,255,255,.72);font-size:13px;line-height:1.45}
+    .scanner-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .scanner-badge{min-height:28px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);font-size:11px;font-weight:800;color:#f6dd82;display:inline-flex;align-items:center;gap:6px}
+    .scanner-head-actions{display:flex;align-items:center;gap:8px}
+    .scanner-close,.scanner-tool{width:42px;height:42px;border:none;border-radius:14px;background:rgba(255,255,255,.08);color:#fff;font-size:18px;cursor:pointer;display:grid;place-items:center}
+    .scanner-tool[disabled]{opacity:.38;cursor:not-allowed}
+    .scanner-view{position:relative;aspect-ratio:3/4;background:#05070c;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);overflow:hidden}
+    .scanner-video{width:100%;height:100%;object-fit:cover;display:block;background:#000;filter:saturate(1.04) contrast(1.05)}
+    .scanner-view::before,.scanner-view::after{content:'';position:absolute;left:0;right:0;height:18%;pointer-events:none;z-index:2}
+    .scanner-view::before{top:0;background:linear-gradient(180deg, rgba(0,0,0,.44), transparent)}
+    .scanner-view::after{bottom:0;background:linear-gradient(0deg, rgba(0,0,0,.44), transparent)}
+    .scanner-frame{position:absolute;left:50%;top:50%;width:min(78vw,316px);height:min(44vw,188px);max-width:316px;max-height:188px;transform:translate(-50%,-50%);border-radius:26px;box-shadow:0 0 0 999px rgba(0,0,0,.32);z-index:3}
+    .scanner-frame::after{content:'';position:absolute;left:12px;right:12px;top:50%;height:2px;background:linear-gradient(90deg, transparent, rgba(212,175,55,.18), rgba(212,175,55,.95), rgba(212,175,55,.18), transparent);box-shadow:0 0 20px rgba(212,175,55,.7);animation:scanline 1.9s linear infinite;border-radius:999px}
+    .scanner-corner{position:absolute;width:34px;height:34px;border-color:rgba(212,175,55,.98);border-style:solid;border-width:0}
+    .scanner-corner.tl{top:0;left:0;border-top-width:4px;border-left-width:4px;border-top-left-radius:22px}
+    .scanner-corner.tr{top:0;right:0;border-top-width:4px;border-right-width:4px;border-top-right-radius:22px}
+    .scanner-corner.bl{bottom:0;left:0;border-bottom-width:4px;border-left-width:4px;border-bottom-left-radius:22px}
+    .scanner-corner.br{bottom:0;right:0;border-bottom-width:4px;border-right-width:4px;border-bottom-right-radius:22px}
+    .scanner-aim-text{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);padding:6px 10px;border-radius:999px;background:rgba(5,7,12,.72);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;color:#f6dd82;white-space:nowrap}
+    @keyframes scanline{0%{transform:translateY(-56px)}50%{transform:translateY(56px)}100%{transform:translateY(-56px)}}
+    .scanner-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(5,7,12,.56);z-index:4;transition:opacity .2s ease}
+    .scanner-loader.hidden{opacity:0;pointer-events:none}
+    .scanner-spinner{width:44px;height:44px;border-radius:999px;border:3px solid rgba(255,255,255,.16);border-top-color:#f6dd82;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .scanner-loader p{font-size:13px;color:#eef2f8;font-weight:700}
+    .scanner-status-wrap{padding:12px 18px 18px}
+    .scanner-status{color:rgba(255,255,255,.9);font-size:13px;line-height:1.45;min-height:44px;transition:color .2s ease;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+    .scanner-status.success{color:#35d07f;background:rgba(53,208,127,.08);border-color:rgba(53,208,127,.18)}
+    .scanner-status.warning{color:#ff8a8a;background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.18)}
+    .scanner-shell.scan-success .scanner-corner{border-color:#35d07f}
+    .scanner-shell.scan-warning .scanner-corner{border-color:#ff6b6b}
+    .scanner-tips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .scanner-tip{min-height:30px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:11px;color:rgba(255,255,255,.72);display:inline-flex;align-items:center;gap:6px}
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-icon"><img src="../assets/logo-ej-tobacco.png" alt="EJ Tobacco" /></div>
+        <div class="brand-text">
+          <h1>EJ TOBACCO DELIVERY</h1>
+          <p id="brandSub">Sistem online • Operasional aktif</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="reloadBtn" title="Reload"><i class="fa-solid fa-rotate-right"></i></button>
+        <button class="icon-btn" id="openAuditBtn" title="Audit log"><i class="fa-solid fa-shield-halved"></i></button>
+        <button class="icon-btn" id="openTimelineBtn" title="Timeline"><i class="fa-solid fa-clock-rotate-left"></i></button>
+      </div>
+    </header>
+
+
+    <section class="page page-home" data-page="home">
+      <section class="hero-card">
+        <div class="status-row">
+          <div class="chip"><span class="dot" id="networkDot"></span><button type="button" id="networkLabel">Sistem online</button></div>
+          <div class="clock">
+            <div class="time" id="liveClock">08:42</div>
+            <div class="date" id="liveDate">Operasional hari ini</div>
+          </div>
+        </div>
+        <div class="hero-title">Sisa kas hari ini</div>
+        <div class="hero-value" id="setoranHariIni">Rp 0</div>
+        <div class="hero-sub hidden" id="heroSub"></div>
+        <div class="hero-grid">
+          <div class="mini-stat">
+            <label>COD hari ini</label>
+            <strong id="totalCOD" style="color: var(--green);">Rp 0</strong>
+          </div>
+          <div class="mini-stat">
+            <label>Pengeluaran hari ini</label>
+            <strong id="totalPengeluaran" style="color: #fda4af;">Rp 0</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-row">
+        <button class="primary-btn" id="scanPickupBtn"><i class="fa-solid fa-barcode"></i> Scan Pickup</button>
+        <button class="secondary-btn" id="closingKasBtn"><i class="fa-solid fa-vault"></i> Tutup Kas</button>
+      </section>
+
+      <section class="panel-card quick-tools-card">
+        <div class="tool-grid">
+          <button class="tool-btn" id="sortRouteBtn"><i class="fa-solid fa-route"></i><span>Atur rute</span></button>
+          <button class="tool-btn" id="expenseBtn"><i class="fa-solid fa-receipt"></i><span>Pengeluaran</span></button>
+          <button class="tool-btn" id="openArchiveBtn"><i class="fa-solid fa-box-archive"></i><span>Arsip</span></button>
+          <button class="tool-btn" id="openAuditBtn2"><i class="fa-solid fa-list-check"></i><span>Audit log</span></button>
+        </div>
+      </section>
+
+      <section class="search-card simple-search">
+        <div class="search-grid">
+          <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="searchInput" class="search-box" placeholder="Cari paket" />
+          </div>
+          <select id="filterArea" class="select-box hidden" aria-hidden="true" tabindex="-1">
+            <option value="all">Semua area</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="tabs-card" id="statusTabs"></section>
+
+      <section class="panel-card tab-ux-card" style="display:none;" aria-hidden="true">
+        <div class="tab-ux-head">
+          <div class="tab-ux-copy">
+            <h3 id="tabFlowTitle">Alur paket hari ini</h3>
+            <p id="tabFlowSub">Pilih tab sesuai tahap operasional paket agar daftar tugas lebih ringkas.</p>
+          </div>
+          <button class="tab-cta-btn" id="tabQuickActionBtn" type="button"><i class="fa-solid fa-bolt"></i><span>Aksi Cepat</span></button>
+        </div>
+        <div class="flow-pills" id="tabFlowChips"></div>
+      </section>
+
+      <section class="panel-card" style="display:none;" aria-hidden="true">
+        <div class="section-head">
+          <div>
+            <h2>Ringkasan operasional</h2>
+            <p>Dashboard singkat pickup dan pengantaran hari ini.</p>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <div class="metric-card"><label>Siap pickup</label><strong id="aktifCount">0 order</strong></div>
+          <div class="metric-card"><label>Tugas aktif</label><strong id="urgentCount">0 order</strong></div>
+          <div class="metric-card"><label>Dalam pengantaran</label><strong id="etaAverage">0 menit</strong></div>
+          <div class="metric-card"><label>Selesai hari ini</label><strong id="successRate">0%</strong></div>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="section-head">
+          <div>
+            <h2 id="listTitle">Tugas pengantaran</h2>
+            <p id="listSub" class="hidden"></p>
+          </div>
+          <div class="inline-actions" id="listActionsWrap">
+            <button class="pill-btn" id="sortEtaBtn"><i class="fa-solid fa-clock"></i> Urut ETA</button>
+            <button class="pill-btn" id="sortCodBtn"><i class="fa-solid fa-wallet"></i> Urut COD</button>
+          </div>
+        </div>
+        <div id="orderList" class="order-list"></div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="route">
+      <section class="panel-card panel-stack route-shell">
+        <div class="route-head">
+          <div>
+            <div class="route-eyebrow"><i class="fa-solid fa-route"></i><span>Rute hari ini</span></div>
+            <h2>Atur pengantaran lebih cepat</h2>
+          </div>
+          <div class="route-head-badge" id="routeSortLabel">ETA</div>
+        </div>
+        <div class="route-stats">
+          <div class="route-stat-card">
+            <div class="route-stat-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <div>
+              <label>Stop aktif</label>
+              <strong id="routeStopCount">0 titik</strong>
+            </div>
+          </div>
+          <div class="route-stat-card">
+            <div class="route-stat-icon"><i class="fa-solid fa-map"></i></div>
+            <div>
+              <label>Area utama</label>
+              <strong id="topArea">-</strong>
+            </div>
+          </div>
+        </div>
+        <div class="route-toolbar">
+          <button class="route-sort-btn" id="routeEtaBtn"><i class="fa-solid fa-clock"></i><span>ETA</span></button>
+          <button class="route-sort-btn" id="sortAreaBtn"><i class="fa-solid fa-layer-group"></i><span>Area</span></button>
+          <button class="route-sort-btn" id="routeCodBtn"><i class="fa-solid fa-wallet"></i><span>COD</span></button>
+        </div>
+        <div id="routeList" class="route-list"></div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="wallet">
+      <section class="panel-card panel-stack">
+        <div class="section-head">
+          <div>
+            <h2>Dompet kurir</h2>
+            <p>Pantau COD, pengeluaran, setoran, dan closing kas harian.</p>
+          </div>
+          <button class="mini-link" id="openClosingBtn">Closing kas</button>
+        </div>
+        <div class="wallet-grid">
+          <div class="wallet-card"><label>COD terkumpul</label><strong id="walletCOD">Rp 0</strong></div>
+          <div class="wallet-card"><label>Sudah disetor</label><strong id="walletSetor">Rp 0</strong></div>
+          <div class="wallet-card"><label>Pengeluaran</label><strong id="walletExpense">Rp 0</strong></div>
+          <div class="wallet-card"><label>Sisa kas</label><strong id="walletSisa">Rp 0</strong></div>
+        </div>
+        <div class="quick-row">
+          <button class="primary-btn" id="walletExpenseBtn"><i class="fa-solid fa-money-bill-wave"></i> Tambah Biaya</button>
+          <button class="secondary-btn" id="walletClosingBtn"><i class="fa-solid fa-file-invoice-dollar"></i> Verifikasi</button>
+        </div>
+        <div class="timeline-summary">
+          <label>Log dompet hari ini</label>
+          <div id="walletLog" class="timeline-preview"></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="page hidden" data-page="account">
+      <section class="panel-card panel-stack">
+        <div class="section-head">
+          <div>
+            <h2>Identitas kurir</h2>
+            <p>Tab Akun jadi pusat identitas kurir aktif, role, shift, dan area tugas.</p>
+          </div>
+        </div>
+
+        <section class="role-chip">
+          <div class="role-chip-left">
+            <div class="role-avatar" id="sessionAvatar">KA</div>
+            <div class="role-meta">
+              <h3 id="sessionName">Memuat user...</h3>
+              <p id="sessionSub">Profil kurir aktif dan status sesi operasional.</p>
+            </div>
+          </div>
+          <div class="role-actions">
+            <div class="role-pill" id="sessionRole">role</div>
+            <button class="role-pill" id="logoutBtn">Logout</button>
+          </div>
+        </section>
+
+        <div class="profile-grid">
+          <div class="profile-card"><label>Nama kurir</label><strong id="courierNameCard">-</strong></div>
+          <div class="profile-card"><label>Nomor HP</label><strong id="courierPhoneText">-</strong></div>
+          <div class="profile-card"><label>Role aktif</label><strong id="roleDisplayCard">-</strong></div>
+          <div class="profile-card"><label>Status shift</label><strong id="shiftStatusText">On Duty</strong></div>
+          <div class="profile-card"><label>Pickup siap ambil</label><strong id="checkinText">-</strong></div>
+          <div class="profile-card"><label>Zona utama</label><strong id="zonaUtama">-</strong></div>
+        </div>
+
+        <div class="field-stack" id="courierSelectWrap">
+          <div>
+            <label class="label">Pilih identitas kurir</label>
+            <select id="courierSelect" class="select-box"></select>
+          </div>
+        </div>
+
+        <div class="field-stack">
+          <div class="switch-row"><div><strong>Mode online</strong><p>Aktifkan agar kurir siap menerima tugas pickup dan pengantaran.</p></div><button class="switch active" id="onlineSwitch"></button></div>
+          <div class="switch-row"><div><strong>Live tracking customer</strong><p>Customer bisa melihat posisi kurir saat order sudah dibawa dan sedang diantar.</p></div><button class="switch active" id="trackingSwitch"></button></div>
+          <div class="switch-row"><div><strong>Link WA otomatis</strong><p>Tampilkan tombol WhatsApp customer di detail tugas.</p></div><button class="switch active" id="waSwitch"></button></div>
+          <div class="switch-row"><div><strong>Simpan titik GPS</strong><p>Gunakan lokasi perangkat untuk bukti kirim dan tracking pengantaran.</p></div><button class="switch active" id="gpsSwitch"></button></div>
+        </div>
+        <div class="footer-note">Semua identitas kurir aktif dipusatkan di tab Akun agar Beranda tetap fokus ke daftar paket.</div>
+      </section>
+    </section>
+  </div>
+
+
+  <section class="scanner-modal" id="scannerModal" aria-hidden="true">
+    <div class="scanner-shell">
+      <div class="scanner-head">
+        <div>
+          <h3>Scanner pickup</h3>
+          <p>Arahkan pickup code ke dalam frame. Kamera belakang aktif dan scan berjalan otomatis.</p>
+          <div class="scanner-badges">
+            <span class="scanner-badge"><i class="fa-solid fa-camera"></i> Kamera belakang</span>
+            <span class="scanner-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto scan aktif</span>
+          </div>
+        </div>
+        <div class="scanner-head-actions">
+          <button class="scanner-tool" type="button" id="scannerTorchBtn" title="Lampu" disabled><i class="fa-solid fa-bolt"></i></button>
+          <button class="scanner-close" type="button" id="closeScannerBtn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="scanner-view">
+        <video id="scannerVideo" class="scanner-video" playsinline muted autoplay></video>
+        <div class="scanner-loader" id="scannerLoader">
+          <div class="scanner-spinner"></div>
+          <p id="scannerLoaderText">Menyiapkan kamera belakang…</p>
+        </div>
+        <div class="scanner-frame">
+          <span class="scanner-corner tl"></span>
+          <span class="scanner-corner tr"></span>
+          <span class="scanner-corner bl"></span>
+          <span class="scanner-corner br"></span>
+          <span class="scanner-aim-text">Posisikan pickup code di dalam frame</span>
+        </div>
+      </div>
+      <div class="scanner-status-wrap">
+        <div class="scanner-status" id="scannerStatusText">Menyiapkan kamera belakang…</div>
+        <div class="scanner-tips">
+          <span class="scanner-tip"><i class="fa-solid fa-sun"></i> Tambah cahaya bila barcode gelap</span>
+          <span class="scanner-tip"><i class="fa-solid fa-mobile-screen"></i> Jaga kamera tetap stabil 1–2 detik</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" data-page-target="home"><i class="fa-solid fa-house"></i><span>Beranda</span></button>
+    <button class="nav-item" data-page-target="route"><i class="fa-solid fa-route"></i><span>Rute</span></button>
+    <button class="nav-item" data-page-target="wallet"><i class="fa-solid fa-wallet"></i><span>Dompet</span></button>
+    <button class="nav-item" data-page-target="account"><i class="fa-solid fa-user"></i><span>Akun</span></button>
+  </nav>
+
+  <div class="overlay" id="overlay"></div>
+
+  <section class="sheet" id="pickupSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div>
+        <h3>Scan pickup gudang</h3>
+        <p id="pickupSheetText">Scan pickup code dengan kamera belakang atau masukkan manual untuk mengambil order dari gudang ke tas kurir.</p>
+      </div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="field-stack">
+      <div class="pickup-box">
+        <label>Pickup code order</label>
+        <p><span class="pickup-code" id="pickupCodePreview"><i class="fa-solid fa-barcode"></i> PU-XXXX</span></p>
+      </div>
+      <div><label class="label">Pickup code yang discan / diketik</label><input class="field" id="pickupCodeInput" placeholder="Tempel pickup code dari gudang" /></div>
+      <div><label class="label">Label tas kurir</label><input class="field" id="bagLabelInput" placeholder="Contoh: Tas A" /></div>
+      <button class="sheet-btn primary" id="claimPickupBtn"><i class="fa-solid fa-box-open"></i> Ambil ke tas saya</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="timelineSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><h3>Timeline pesanan</h3><p id="timelineHeadText">Pilih salah satu order untuk melihat histori lengkap.</p></div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="timeline-summary"><label>Detail order</label><p id="timelineSummaryText">Pilih order untuk melihat detail, aksi, dan histori.</p></div>
+    <div class="timeline-list" id="timelineList"></div>
+  </section>
+
+  <section class="sheet" id="auditSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><h3>Audit log</h3><p>Jejak semua aksi penting: pickup, WA, map, status, bukti kirim, pengeluaran, dan closing.</p></div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="log-list" id="auditList"></div>
+  </section>
+
+  <section class="sheet" id="statusSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><h3>Update status</h3><p id="statusSheetText">Pilih aksi cepat untuk order yang sedang dibawa kurir.</p></div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="field-stack">
+      <div><label class="label">Pilih aksi</label><select class="select-box" id="statusSelect"><option value="Proses">Menuju lokasi</option><option value="Tunda">Tunda</option><option value="Gagal">Gagal Antar</option><option value="Selesai">Selesai</option><option value="Gudang">Kembali ke Gudang</option></select></div>
+      <div><label class="label">Template alasan cepat</label><div class="reason-grid" id="reasonGrid"></div></div>
+      <div><label class="label">Catatan tambahan</label><textarea class="field-area" id="statusNote" placeholder="Tulis keterangan singkat untuk admin atau pelanggan..."></textarea></div>
+      <button class="sheet-btn primary" id="saveStatusBtn"><i class="fa-solid fa-check"></i> Simpan update status</button>
+    </div>
+  </section>
+
+  
+    <!-- Sprint 1 note: input foto bukti kirim sudah ditambahkan di UI. Penyimpanan file ke backend/storage belum disambungkan di patch ini. -->
+<section class="sheet" id="proofSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><h3>Bukti kirim</h3><p>Lengkapi bukti pengantaran sebelum menyelesaikan order.</p></div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="field-stack">
+      <div><label class="label">Foto bukti kirim</label><input class="field" id="proofPhotoInput" type="file" accept="image/*" capture="environment" /></div>
+      <div class="muted-line">Wajib diisi sebagai bukti order telah diterima.</div>
+      <div id="proofPhotoPreviewWrap" style="display:none;margin-top:12px">
+        <img id="proofPhotoPreview" alt="Preview bukti kirim" style="width:100%;border-radius:16px;display:block;" />
+        <div id="proofPhotoMeta" class="muted-line" style="margin-top:8px"></div>
+      </div>
+      <div><label class="label">Nama penerima</label><input class="field" id="recipientInput" placeholder="Nama orang yang menerima pesanan" /></div>
+      <div><label class="label">Uang diterima</label><input class="field" id="receivedInput" type="number" placeholder="Isi nominal jika pembayaran COD" /></div>
+      <div class="switch-row"><div><strong>Simpan titik GPS</strong><p>Gunakan lokasi perangkat untuk bukti kirim dan tracking pengantaran.</p></div><button class="switch active" id="proofGpsSwitch"></button></div>
+      <div><label class="label">Catatan bukti kirim</label><textarea class="field-area" id="proofNote" placeholder="Contoh: Diterima langsung di depan rumah"></textarea></div>
+      <button class="sheet-btn primary" id="saveProofBtn"><i class="fa-solid fa-camera"></i> Simpan bukti & selesaikan</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="expenseSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><h3>Tambah pengeluaran</h3><p>Catat biaya operasional kurir hari ini.</p></div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="field-stack">
+      <div><label class="label">Jenis biaya</label><select class="select-box" id="expenseType"><option value="Bensin">Bensin</option><option value="Parkir">Parkir</option><option value="Tol">Tol</option><option value="Lainnya">Lainnya</option></select></div>
+      <div><label class="label">Nominal</label><input class="field" id="expenseAmount" type="number" placeholder="50000" /></div>
+      <div><label class="label">Catatan</label><textarea class="field-area" id="expenseNote" placeholder="Contoh: Bensin shift pagi"></textarea></div>
+      <button class="sheet-btn primary" id="saveExpenseBtn"><i class="fa-solid fa-receipt"></i> Simpan Pengeluaran</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="closingSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><h3>Closing kas harian</h3><p>Verifikasi COD, pengeluaran, sisa kas, dan nominal setor hari ini.</p></div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="field-stack">
+      <div class="mini-grid">
+        <div class="metric-card"><label>COD terkumpul</label><strong id="closingCOD">Rp 0</strong></div>
+        <div class="metric-card"><label>Pengeluaran</label><strong id="closingExpense">Rp 0</strong></div>
+        <div class="metric-card"><label>Sisa kas</label><strong id="closingSetor">Rp 0</strong></div>
+        <div class="metric-card"><label>Status</label><strong id="closingStatus">Open</strong></div>
+      </div>
+      <div>
+        <label class="label">Nominal setor</label>
+        <input class="field" id="closingAmountSetor" type="number" min="0" step="1000" placeholder="Masukkan nominal setor hari ini" />
+        <div class="footer-note" id="closingHelperText">Isi sesuai nominal yang benar-benar disetor ke admin pusat.</div>
+      </div>
+      <div><label class="label">Catatan closing</label><textarea class="field-area" id="closingNote" placeholder="Contoh: Kas cocok, setor malam ke admin pusat."></textarea></div>
+      <button class="sheet-btn primary" id="lockClosingBtn"><i class="fa-solid fa-lock"></i> Simpan Closing</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="archiveSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div><h3>Arsip order</h3><p>Riwayat order selesai, gagal antar, dan kembali ke gudang.</p></div>
+      <button class="close-btn" data-close-sheet><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="archive-list" id="archiveList"></div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, onValue, push, set, update, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8',
+      authDomain: 'ej-tobacco-store.firebaseapp.com',
+      databaseURL: 'https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId: 'ej-tobacco-store',
+      storageBucket: 'ej-tobacco-store.firebasestorage.app',
+      messagingSenderId: '70458372662',
+      appId: '1:70458372662:web:c37950efaf04b33c7f9e97',
+      measurementId: 'G-VCRFQSRB9H'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const SESSION_KEY = 'ej_role_session_v1';
+    const LOGIN_TIME_KEY = 'ej_role_login_time_label';
+    const SETTINGS_PREFIX = 'ej_kurir_v3_settings';
+    const ORDER_SORT_KEY = 'ej_kurir_v3_order_sort';
+    const ROUTE_SORT_KEY = 'ej_kurir_v3_route_sort';
+    const roleSession = (() => {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
+    })();
+
+    if (!localStorage.getItem(LOGIN_TIME_KEY)) {
+      const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+      localStorage.setItem(LOGIN_TIME_KEY, now);
+    }
+
+    const state = {
+      currentTab: 'all',
+      currentPage: 'home',
+      closingLocked: false,
+      closingState: 'open',
+      trackingOn: true,
+      waAuto: true,
+      online: true,
+      gpsOn: true,
+      proofGpsOn: true,
+      orderSortMode: localStorage.getItem(ORDER_SORT_KEY) || 'default',
+      routeSortMode: localStorage.getItem(ROUTE_SORT_KEY) || 'eta',
+      geoWatchId: null,
+      lastLiveLocationWrite: 0,
+      lastLiveLocation: null,
+      activeOrderId: null,
+      selectedReason: '',
+      couriers: {},
+      currentCourierId: localStorage.getItem('ej_active_courier_id') || '',
+      currentCourierName: localStorage.getItem('ej_active_courier_name') || '',
+      currentCourierProfile: null,
+      ordersRaw: {},
+      paymentsRaw: {},
+      shipmentsRaw: {},
+      timelineRaw: {},
+      expensesRaw: {},
+      setoranRaw: {},
+      logsRaw: {},
+      reasonTemplates: {
+        Proses: ['Kurir menuju lokasi', 'Paket sudah dibawa', 'Sudah mulai antar', 'Sudah konfirmasi customer'],
+        Tunda: ['Rumah kosong', 'Pelanggan minta sore', 'Akses jalan tertutup', 'Cuaca tidak mendukung'],
+        Gagal: ['Alamat tidak ditemukan', 'Nomor tidak aktif', 'Pelanggan batal', 'Pembayaran kurang'],
+        Selesai: ['Diterima keluarga', 'Diterima security', 'COD lunas', 'Paket sesuai pesanan'],
+        Gudang: ['Retur ke gudang', 'Jadwal ulang', 'Belum bisa dikirim', 'Perlu verifikasi admin']
+      }
+    };
+
+    const els = {
+      orderList: document.getElementById('orderList'),
+      routeList: document.getElementById('routeList'),
+      statusTabs: document.getElementById('statusTabs'),
+      searchInput: document.getElementById('searchInput'),
+      filterArea: document.getElementById('filterArea'),
+      liveClock: document.getElementById('liveClock'),
+      liveDate: document.getElementById('liveDate'),
+      brandSub: document.getElementById('brandSub'),
+      sessionAvatar: document.getElementById('sessionAvatar'),
+      sessionName: document.getElementById('sessionName'),
+      sessionSub: document.getElementById('sessionSub'),
+      sessionRole: document.getElementById('sessionRole'),
+      logoutBtn: document.getElementById('logoutBtn'),
+      networkDot: document.getElementById('networkDot'),
+      networkLabel: document.getElementById('networkLabel'),
+      setoranHariIni: document.getElementById('setoranHariIni'),
+      totalCOD: document.getElementById('totalCOD'),
+      totalPengeluaran: document.getElementById('totalPengeluaran'),
+      heroSub: document.getElementById('heroSub'),
+      scannerModal: document.getElementById('scannerModal'),
+      scannerVideo: document.getElementById('scannerVideo'),
+      scannerStatusText: document.getElementById('scannerStatusText'),
+      closeScannerBtn: document.getElementById('closeScannerBtn'),
+      scannerTorchBtn: document.getElementById('scannerTorchBtn'),
+      scannerLoader: document.getElementById('scannerLoader'),
+      scannerLoaderText: document.getElementById('scannerLoaderText'),
+      aktifCount: document.getElementById('aktifCount'),
+      urgentCount: document.getElementById('urgentCount'),
+      etaAverage: document.getElementById('etaAverage'),
+      successRate: document.getElementById('successRate'),
+      walletCOD: document.getElementById('walletCOD'),
+      walletSetor: document.getElementById('walletSetor'),
+      walletExpense: document.getElementById('walletExpense'),
+      walletSisa: document.getElementById('walletSisa'),
+      walletLog: document.getElementById('walletLog'),
+      routeStopCount: document.getElementById('routeStopCount'),
+      routeSortLabel: document.getElementById('routeSortLabel'),
+      topArea: document.getElementById('topArea'),
+      zonaUtama: document.getElementById('zonaUtama'),
+      courierSelectWrap: document.getElementById('courierSelectWrap'),
+      courierSelect: document.getElementById('courierSelect'),
+      courierNameCard: document.getElementById('courierNameCard'),
+      courierPhoneText: document.getElementById('courierPhoneText'),
+      roleDisplayCard: document.getElementById('roleDisplayCard'),
+      shiftStatusText: document.getElementById('shiftStatusText'),
+      checkinText: document.getElementById('checkinText'),
+      listTitle: document.getElementById('listTitle'),
+      listSub: document.getElementById('listSub'),
+      tabFlowTitle: document.getElementById('tabFlowTitle'),
+      tabFlowSub: document.getElementById('tabFlowSub'),
+      tabFlowChips: document.getElementById('tabFlowChips'),
+      tabQuickActionBtn: document.getElementById('tabQuickActionBtn'),
+      listActionsWrap: document.getElementById('listActionsWrap'),
+      sortEtaBtn: document.getElementById('sortEtaBtn'),
+      sortCodBtn: document.getElementById('sortCodBtn'),
+      timelineList: document.getElementById('timelineList'),
+      timelineHeadText: document.getElementById('timelineHeadText'),
+      timelineSummaryText: document.getElementById('timelineSummaryText'),
+      auditList: document.getElementById('auditList'),
+      archiveList: document.getElementById('archiveList'),
+      toast: document.getElementById('toast'),
+      overlay: document.getElementById('overlay'),
+      pickupCodePreview: document.getElementById('pickupCodePreview'),
+      pickupCodeInput: document.getElementById('pickupCodeInput'),
+      bagLabelInput: document.getElementById('bagLabelInput'),
+      pickupSheetText: document.getElementById('pickupSheetText'),
+      reasonGrid: document.getElementById('reasonGrid'),
+      statusSelect: document.getElementById('statusSelect'),
+      statusNote: document.getElementById('statusNote'),
+      recipientInput: document.getElementById('recipientInput'),
+      receivedInput: document.getElementById('receivedInput'),
+      proofNote: document.getElementById('proofNote'),
+      proofPhotoInput: document.getElementById('proofPhotoInput'),
+      proofPhotoPreviewWrap: document.getElementById('proofPhotoPreviewWrap'),
+      proofPhotoPreview: document.getElementById('proofPhotoPreview'),
+      proofPhotoMeta: document.getElementById('proofPhotoMeta'),
+      expenseType: document.getElementById('expenseType'),
+      expenseAmount: document.getElementById('expenseAmount'),
+      expenseNote: document.getElementById('expenseNote'),
+      closingCOD: document.getElementById('closingCOD'),
+      closingExpense: document.getElementById('closingExpense'),
+      closingSetor: document.getElementById('closingSetor'),
+      closingStatus: document.getElementById('closingStatus'),
+      closingAmountSetor: document.getElementById('closingAmountSetor'),
+      closingHelperText: document.getElementById('closingHelperText'),
+      closingNote: document.getElementById('closingNote'),
+      onlineSwitch: document.getElementById('onlineSwitch'),
+      trackingSwitch: document.getElementById('trackingSwitch'),
+      waSwitch: document.getElementById('waSwitch'),
+      gpsSwitch: document.getElementById('gpsSwitch'),
+      proofGpsSwitch: document.getElementById('proofGpsSwitch')
+    };
+
+    const STATUS_TO_DB = {
+      Proses: { status: 'on_the_way', label: 'Menuju lokasi customer' },
+      Tunda: { status: 'delivery_delayed', label: 'Tunda / akan dicoba lagi' },
+      Gagal: { status: 'failed_delivery', label: 'Gagal antar' },
+      Selesai: { status: 'delivered', label: 'Terkirim' },
+      Gudang: { status: 'returned_to_warehouse', label: 'Kembali ke gudang' }
+    };
+
+
+    function settingsStorageKey(courierId) {
+      return `${SETTINGS_PREFIX}:${courierId || 'default'}`;
+    }
+
+    function distanceMeters(a, b) {
+      if (!a || !b) return Number.POSITIVE_INFINITY;
+      const toRad = (deg) => deg * Math.PI / 180;
+      const R = 6371000;
+      const dLat = toRad((b.lat || 0) - (a.lat || 0));
+      const dLng = toRad((b.lng || 0) - (a.lng || 0));
+      const lat1 = toRad(a.lat || 0);
+      const lat2 = toRad(b.lat || 0);
+      const sinLat = Math.sin(dLat / 2);
+      const sinLng = Math.sin(dLng / 2);
+      const h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+      return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+    }
+
+    function applyCourierSettings() {
+      const profileSettings = state.currentCourierProfile?.opsSettings || {};
+      let localSettings = {};
+      try { localSettings = JSON.parse(localStorage.getItem(settingsStorageKey(state.currentCourierId)) || '{}') || {}; } catch { localSettings = {}; }
+      const merged = { ...profileSettings, ...localSettings };
+      if (typeof merged.trackingOn === 'boolean') state.trackingOn = merged.trackingOn;
+      if (typeof merged.waAuto === 'boolean') state.waAuto = merged.waAuto;
+      if (typeof merged.gpsOn === 'boolean') state.gpsOn = merged.gpsOn;
+      if (typeof merged.proofGpsOn === 'boolean') state.proofGpsOn = merged.proofGpsOn;
+      if (typeof merged.online === 'boolean') state.online = merged.online;
+    }
+
+    async function persistCourierSettings() {
+      const payload = {
+        online: !!state.online,
+        trackingOn: !!state.trackingOn,
+        waAuto: !!state.waAuto,
+        gpsOn: !!state.gpsOn,
+        proofGpsOn: !!state.proofGpsOn,
+        updatedAt: Date.now()
+      };
+      try { localStorage.setItem(settingsStorageKey(state.currentCourierId), JSON.stringify(payload)); } catch {}
+      if (!state.currentCourierId || state.currentCourierId === '__all__') return;
+      try {
+        await update(ref(db), {
+          [`courier_profiles/${state.currentCourierId}/opsSettings`]: payload,
+          [`courier_profiles/${state.currentCourierId}/isOnline`]: !!state.online,
+          [`courier_profiles/${state.currentCourierId}/lastSettingsUpdatedAt`]: payload.updatedAt
+        });
+      } catch (err) {
+        console.warn('SETTINGS_WRITE_FAILED', err);
+      }
+    }
+
+    function getTrackableOrders() {
+      return getScopedOrders().filter(order => order.courierId === state.currentCourierId && ['picked_by_courier', 'on_the_way'].includes(order.status));
+    }
+
+    async function pushLiveLocation(position, { force = false } = {}) {
+      if (!canMutate() || !state.currentCourierId || state.currentCourierId === '__all__' || !state.gpsOn) return;
+      const trackable = getTrackableOrders();
+      if (!trackable.length) return;
+      const current = { lat: position.lat, lng: position.lng, updatedAt: Date.now() };
+      const moved = state.lastLiveLocation ? distanceMeters(state.lastLiveLocation, current) : Number.POSITIVE_INFINITY;
+      const now = Date.now();
+      if (!force && moved < 25 && (now - state.lastLiveLocationWrite) < 15000) return;
+      state.lastLiveLocation = current;
+      state.lastLiveLocationWrite = now;
+      const updates = {
+        [`courier_profiles/${state.currentCourierId}/liveLocation`]: current,
+        [`courier_profiles/${state.currentCourierId}/lastLocationAt`]: now,
+        [`courier_profiles/${state.currentCourierId}/isOnline`]: !!state.online
+      };
+      trackable.forEach(order => {
+        updates[`shipments_internal/${order.id}/lastCourierLocation`] = current;
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = !!state.trackingOn;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = !!state.trackingOn;
+      });
+      try { await update(ref(db), updates); } catch (err) { console.warn('LIVE_LOCATION_WRITE_FAILED', err); }
+    }
+
+    function stopLocationWatcher() {
+      if (state.geoWatchId != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(state.geoWatchId);
+      }
+      state.geoWatchId = null;
+    }
+
+    function refreshLocationWatcher() {
+      if (!navigator.geolocation || !canMutate() || !state.currentCourierId || state.currentCourierId === '__all__' || !state.gpsOn || !state.trackingOn || !state.online) {
+        stopLocationWatcher();
+        return;
+      }
+      const trackable = getTrackableOrders();
+      if (!trackable.length) {
+        stopLocationWatcher();
+        return;
+      }
+      if (state.geoWatchId != null) return;
+      state.geoWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          pushLiveLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }).catch(err => console.warn('LIVE_LOCATION_PUSH_FAILED', err));
+        },
+        (err) => {
+          console.warn('WATCH_POSITION_FAILED', err);
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 12000 }
+      );
+    }
+
+    function sortOrdersForMode(orders, mode) {
+      const list = [...orders];
+      if (mode === 'eta') return list.sort((a, b) => (a.eta || 999) - (b.eta || 999));
+      if (mode === 'cod') return list.sort((a, b) => (b.cod || 0) - (a.cod || 0));
+      if (mode === 'area') return list.sort((a, b) => String(a.area || '').localeCompare(String(b.area || ''), 'id') || ((a.eta || 999) - (b.eta || 999)));
+      return list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value || 0);
+    }
+
+    function todayKey() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function getDateKeyFromTimestamp(ts = 0) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function isTodayTimestamp(ts = 0) {
+      return getDateKeyFromTimestamp(ts) === todayKey();
+    }
+
+    function normalizeText(value = '') {
+      return String(value).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function isAdminPusatMode() { return roleSession?.role === 'admin_pusat'; }
+    function canMutate() { return roleSession?.role === 'kurir'; }
+    function getRoleDisplay() { return isAdminPusatMode() ? 'admin_pusat' : 'kurir'; }
+
+    function getDisplayCourierName() {
+      if (isAdminPusatMode() && state.currentCourierId === '__all__') return 'Admin Pusat';
+      if (isAdminPusatMode() && state.currentCourierProfile?.name) return state.currentCourierProfile.name;
+      if (isAdminPusatMode()) return 'Admin Pusat';
+      return state.currentCourierName || roleSession?.name || 'Kurir';
+    }
+
+    function getCheckinLabel() { return localStorage.getItem(LOGIN_TIME_KEY) || (new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'); }
+
+    function requireCourierAction() {
+      if (!canMutate()) { showToast('Mode pantau admin pusat, aksi live dinonaktifkan.'); return false; }
+      if (!state.currentCourierId || state.currentCourierId === '__all__') { showToast('Kurir aktif belum sinkron.'); return false; }
+      return true;
+    }
+
+    function areaFromAddress(address = '') { return (address.split(',')[0] || '-').trim(); }
+
+    function updateClock() {
+      const now = new Date();
+      els.liveClock.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      els.liveDate.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => els.toast.classList.remove('show'), 2400);
+    }
+
+    function openSheet(id) {
+      els.overlay.classList.add('show');
+      document.querySelectorAll('.sheet').forEach(sheet => sheet.classList.remove('show'));
+      document.getElementById(id).classList.add('show');
+    }
+
+    function closeSheets() {
+      els.overlay.classList.remove('show');
+      document.querySelectorAll('.sheet').forEach(sheet => sheet.classList.remove('show'));
+    }
+
+    function switchPage(pageName) {
+      state.currentPage = pageName;
+      document.querySelectorAll('.page').forEach(page => page.classList.toggle('hidden', page.dataset.page !== pageName));
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.pageTarget === pageName));
+    }
+
+    function renderSessionInfo() {
+      const displayName = getDisplayCourierName();
+      const initials = displayName.split(' ').map(v => v[0]).join('').slice(0, 2).toUpperCase() || 'EJ';
+      if (els.sessionAvatar) els.sessionAvatar.textContent = initials;
+      if (els.sessionName) els.sessionName.textContent = displayName;
+      if (els.sessionSub) {
+        els.sessionSub.textContent = isAdminPusatMode()
+          ? (state.currentCourierId === '__all__' ? 'Mode pantau semua kurir aktif dari pusat.' : 'Identitas kurir yang sedang dipantau dari pusat.')
+          : 'Identitas kurir aktif dan sesi operasional siap digunakan.';
+      }
+      if (els.sessionRole) els.sessionRole.textContent = getRoleDisplay();
+      els.checkinText.textContent = getCheckinLabel();
+      if (els.courierNameCard) els.courierNameCard.textContent = displayName;
+      if (els.courierPhoneText) els.courierPhoneText.textContent = state.currentCourierProfile?.phone || roleSession?.phone || '-';
+      if (els.roleDisplayCard) els.roleDisplayCard.textContent = getRoleDisplay();
+      els.courierSelectWrap.classList.toggle('hidden', !isAdminPusatMode());
+    }
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem('ej_active_courier_id');
+      localStorage.removeItem('ej_active_courier_name');
+      localStorage.removeItem(LOGIN_TIME_KEY);
+      window.location.href = '../portal/';
+    }
+
+    async function safeWriteAudit(title, note, extra = {}) {
+      try {
+        const auditId = push(ref(db, 'audit_logs')).key;
+        await set(ref(db, `audit_logs/${auditId}`), {
+          title, note,
+          actorType: isAdminPusatMode() ? 'admin_pusat' : 'courier',
+          actorId: roleSession?.id || state.currentCourierId || getRoleDisplay(),
+          courierId: state.currentCourierId === '__all__' ? '' : (state.currentCourierId || ''),
+          createdAt: Date.now(),
+          ...extra
+        });
+      } catch (err) { console.warn('AUDIT_WRITE_FAILED', err); }
+    }
+
+    function syncCourierFromRoleSession() {
+      const entries = Object.entries(state.couriers || {}).filter(([, courier]) => courier.isActive !== false);
+      if (!entries.length) { state.currentCourierProfile = null; return; }
+
+      if (isAdminPusatMode()) {
+        if (!state.currentCourierId) state.currentCourierId = '__all__';
+        state.currentCourierProfile = state.currentCourierId && state.currentCourierId !== '__all__' ? state.couriers[state.currentCourierId] || null : null;
+        state.currentCourierName = state.currentCourierProfile?.name || 'Admin Pusat';
+        return;
+      }
+
+      const sessionName = normalizeText(roleSession?.name || '');
+      const sessionId = normalizeText(roleSession?.id || '');
+      const sessionUsername = normalizeText(roleSession?.username || '');
+
+      const found = entries.find(([id, courier]) => {
+        const key = normalizeText(id);
+        const name = normalizeText(courier?.name || '');
+        return (sessionName && name === sessionName) || (sessionId && key.includes(sessionId)) || (sessionUsername && (key.includes(sessionUsername) || name.includes(sessionUsername)));
+      });
+
+      if (found) {
+        state.currentCourierId = found[0];
+        state.currentCourierProfile = found[1] || null;
+        state.currentCourierName = found[1]?.name || roleSession?.name || '';
+        localStorage.setItem('ej_active_courier_id', state.currentCourierId);
+        localStorage.setItem('ej_active_courier_name', state.currentCourierName);
+      } else {
+        state.currentCourierProfile = null;
+        state.currentCourierName = roleSession?.name || '';
+      }
+    }
+
+    function ensureCourierSelection() {
+      syncCourierFromRoleSession();
+      const entries = Object.entries(state.couriers || {}).filter(([, courier]) => courier.isActive !== false);
+      if (!entries.length) {
+        els.courierSelect.innerHTML = '<option value="">Belum ada kurir aktif</option>';
+        state.currentCourierId = '';
+        state.currentCourierName = roleSession?.name || '';
+        state.currentCourierProfile = null;
+        localStorage.removeItem('ej_active_courier_id');
+        return;
+      }
+
+      if (isAdminPusatMode()) {
+        const options = ['<option value="__all__">Semua kurir aktif</option>'].concat(entries.map(([id, courier]) => `<option value="${id}">${courier.name} • ${courier.phone || '-'}</option>`));
+        els.courierSelect.innerHTML = options.join('');
+        if (!state.currentCourierId || (!state.couriers[state.currentCourierId] && state.currentCourierId !== '__all__')) state.currentCourierId = '__all__';
+        els.courierSelect.value = state.currentCourierId;
+        state.currentCourierProfile = state.currentCourierId !== '__all__' ? state.couriers[state.currentCourierId] || null : null;
+        state.currentCourierName = state.currentCourierProfile?.name || 'Admin Pusat';
+        applyCourierSettings();
+        return;
+      }
+
+      if (!state.currentCourierId || !state.couriers[state.currentCourierId]) state.currentCourierId = entries[0][0];
+      els.courierSelect.innerHTML = entries.map(([id, courier]) => `<option value="${id}">${courier.name} • ${courier.phone || '-'}</option>`).join('');
+      els.courierSelect.value = state.currentCourierId;
+      state.currentCourierProfile = state.couriers[state.currentCourierId] || null;
+      state.currentCourierName = state.currentCourierProfile?.name || roleSession?.name || '';
+      localStorage.setItem('ej_active_courier_id', state.currentCourierId);
+      localStorage.setItem('ej_active_courier_name', state.currentCourierName);
+      applyCourierSettings();
+    }
+
+    function mapUiStatus(status) {
+      if (status === 'ready_in_warehouse') return 'Pickup';
+      if (['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(status)) return 'Aktif';
+      if (['failed_delivery', 'returned_to_warehouse'].includes(status)) return 'Gagal';
+      if (status === 'delivered') return 'Selesai';
+      if (status === 'archived') return 'Arsip';
+      return 'Gagal';
+    }
+
+    function mapStatusText(status) {
+      if (status === 'ready_in_warehouse') return 'Siap Pickup';
+      if (status === 'picked_by_courier') return 'Di Tas Kurir';
+      if (status === 'on_the_way') return 'Sedang Diantar';
+      if (status === 'delivery_delayed') return 'Tunda Antar';
+      if (status === 'failed_delivery') return 'Gagal Antar';
+      if (status === 'returned_to_warehouse') return 'Retur Gudang';
+      if (status === 'delivered') return 'Terkirim';
+      if (status === 'archived') return 'Diarsipkan';
+      return status || '-';
+    }
+
+
+    function getPackageTabMeta() {
+      return {
+        all: {
+          title: 'Semua paket',
+          sub: 'Pantau semua paket operasional hari ini lalu pindah ke tab yang paling relevan.',
+          empty: 'Belum ada paket operasional yang tampil.',
+          flow: ['Pantau seluruh alur paket', 'Gunakan filter area dan pencarian', 'Masuk ke tab sesuai tahap pengiriman'],
+          action: { icon: 'fa-barcode', label: 'Scan Pickup', type: 'scan' }
+        },
+        Pickup: {
+          title: 'Paket siap pickup',
+          sub: 'Paket siap diambil dari gudang. Prioritaskan scan pickup agar cepat masuk ke tas kurir.',
+          empty: 'Belum ada paket siap pickup.',
+          flow: ['Siap di gudang', 'Scan pickup live', 'Masuk ke tas kurir'],
+          action: { icon: 'fa-camera', label: 'Buka Scanner', type: 'scan' }
+        },
+        Aktif: {
+          title: 'Paket aktif',
+          sub: 'Paket sudah di tas kurir, sedang diantar, atau sedang ditunda.',
+          empty: 'Belum ada paket aktif.',
+          flow: ['Sudah di tas kurir', 'Sedang diantar', 'Bisa tunda bila perlu'],
+          action: { icon: 'fa-route', label: 'Lihat Rute', type: 'route' }
+        },
+        Gagal: {
+          title: 'Paket gagal / retur',
+          sub: 'Paket gagal antar atau sudah kembali ke gudang untuk ditindaklanjuti.',
+          empty: 'Belum ada paket gagal atau retur.',
+          flow: ['Gagal antar', 'Retur ke gudang', 'Tinjau timeline kasus'],
+          action: { icon: 'fa-list-check', label: 'Audit Status', type: 'audit' }
+        },
+        Selesai: {
+          title: 'Paket selesai',
+          sub: 'Paket sudah terkirim, bukti kirim tersimpan, dan COD siap masuk closing.',
+          empty: 'Belum ada paket selesai.',
+          flow: ['Paket terkirim', 'Bukti kirim tersimpan', 'COD siap closing'],
+          action: { icon: 'fa-wallet', label: 'Buka Dompet', type: 'wallet' }
+        }
+      };
+    }
+
+    function getResolvedTabActionMeta(tabKey = state.currentTab) {
+      const meta = getPackageTabMeta()[tabKey] || getPackageTabMeta().all;
+      if (isAdminPusatMode() && meta.action?.type === 'scan') {
+        return { icon: 'fa-list-check', label: 'Audit Pickup', type: 'audit' };
+      }
+      return meta.action || { icon: 'fa-bolt', label: 'Aksi Cepat', type: 'scan' };
+    }
+
+    function renderPackageFlow() {
+      if (!els.tabFlowTitle || !els.tabFlowSub || !els.tabFlowChips || !els.tabQuickActionBtn) return;
+      const counts = getCounts();
+      const meta = getPackageTabMeta()[state.currentTab] || getPackageTabMeta().all;
+      const countValue = counts[state.currentTab] != null ? counts[state.currentTab] : counts.all;
+      const countLabel = `${countValue} paket`;
+      els.tabFlowTitle.textContent = `${meta.title} • ${countLabel}`;
+      els.tabFlowSub.textContent = meta.sub;
+      els.tabFlowChips.innerHTML = (meta.flow || []).map((item, index) => `<span class="flow-pill ${index === 0 ? 'active' : ''}"><i class="fa-solid ${index === 0 ? 'fa-circle-dot' : 'fa-arrow-right'}"></i><span>${item}</span></span>`).join('');
+      const action = getResolvedTabActionMeta(state.currentTab);
+      els.tabQuickActionBtn.innerHTML = `<i class="fa-solid ${action.icon}"></i><span>${action.label}</span>`;
+    }
+
+    function handleTabQuickAction(tabKey = state.currentTab) {
+      const action = getResolvedTabActionMeta(tabKey);
+      if (action.type === 'scan') return startScanPickup();
+      if (action.type === 'route') {
+        switchPage('route');
+        renderRoutePage();
+        showToast('Pusat rute aktif dibuka.');
+        return;
+      }
+      if (action.type === 'wallet') {
+        switchPage('wallet');
+        renderWalletPage();
+        showToast('Dompet kurir dibuka.');
+        return;
+      }
+      if (action.type === 'audit') {
+        openSheet('auditSheet');
+        return;
+      }
+      return startScanPickup();
+    }
+
+    function updateListControls() {
+      const showSort = state.currentTab === 'all';
+      if (els.listActionsWrap) els.listActionsWrap.classList.toggle('is-hidden', !showSort);
+      if (els.sortEtaBtn) els.sortEtaBtn.classList.toggle('is-hidden', !showSort);
+      if (els.sortCodBtn) els.sortCodBtn.classList.toggle('is-hidden', !showSort);
+    }
+
+    function filterOrdersByTab(orders, tabKey) {
+      const visible = orders.filter(order => !order.archived);
+
+      if (tabKey === 'all') return visible;
+      if (tabKey === 'Pickup') return visible.filter(order => order.status === 'ready_in_warehouse');
+      if (tabKey === 'Aktif') return visible.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status));
+      if (tabKey === 'Gagal') return visible.filter(order => ['failed_delivery', 'returned_to_warehouse'].includes(order.status));
+      if (tabKey === 'Selesai') return visible.filter(order => order.status === 'delivered');
+
+      return visible;
+    }
+
+    function sortOrdersByTab(orders, tabKey) {
+      const list = [...orders];
+
+      if (tabKey === 'Pickup') {
+        return list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      }
+
+      if (tabKey === 'Aktif') {
+        return list.sort((a, b) => {
+          const aPriority = a.status === 'on_the_way' ? 0 : (a.status === 'picked_by_courier' ? 1 : 2);
+          const bPriority = b.status === 'on_the_way' ? 0 : (b.status === 'picked_by_courier' ? 1 : 2);
+          if (aPriority !== bPriority) return aPriority - bPriority;
+          return (a.eta || 999) - (b.eta || 999);
+        });
+      }
+
+      if (tabKey === 'Gagal') {
+        return list.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      }
+
+      if (tabKey === 'Selesai') {
+        return list.sort((a, b) => (b.deliveredAt || 0) - (a.deliveredAt || 0));
+      }
+
+      return sortOrdersForMode(list, state.orderSortMode);
+    }
+
+    function resolveTabForOrder(order) {
+      if (!order) return 'all';
+      if (order.status === 'ready_in_warehouse') return 'Pickup';
+      if (['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)) return 'Aktif';
+      if (['failed_delivery', 'returned_to_warehouse'].includes(order.status)) return 'Gagal';
+      if (order.status === 'delivered') return 'Selesai';
+      return 'all';
+    }
+
+
+
+    function allOrders() {
+      return Object.entries(state.ordersRaw || {}).map(([id, order]) => {
+        const payment = state.paymentsRaw[id] || {};
+        const shipment = state.shipmentsRaw[id] || {};
+        const paymentMethod = order.paymentMethod || payment.paymentMethod || 'cod';
+        const grandTotal = Number(order.grandTotal || order.total || 0);
+        const amountPaid = Number(payment.amountPaid || 0);
+        const pickupCode = order.pickupCode || shipment.pickupCode || '';
+        const bagLabel = order.bagLabel || shipment.bagLabel || '';
+        const distanceKm = Number(order.distanceKm || 0);
+        return {
+          id,
+          code: order.orderNo || id,
+          customer: order.customerName || 'Customer',
+          phone: order.customerPhone || '',
+          payment: paymentMethod === 'cod' ? 'COD' : 'Transfer',
+          cod: paymentMethod === 'cod' ? grandTotal : 0,
+          total: grandTotal,
+          received: amountPaid,
+          status: order.status || 'waiting_confirmation',
+          uiStatus: mapUiStatus(order.status || ''),
+          statusText: mapStatusText(order.status || ''),
+          urgent: distanceKm > 0 && distanceKm <= 3,
+          time: order.createdAt ? new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-',
+          eta: shipment.etaMinutes || Math.max(12, Math.round(Math.max(distanceKm || 1, 1) * 4)),
+          area: areaFromAddress(order.fullAddress || ''),
+          address: order.fullAddress || '-',
+          mapLink: order.mapLink || order.customerMapLink || shipment.mapLink || '',
+          mapPoint: order.mapPoint || shipment.mapPoint || null,
+          proof: shipment.proofDelivery ? {
+            recipient: shipment.proofDelivery.recipientName || '-',
+            note: shipment.proofDelivery.note || '-',
+            location: shipment.proofDelivery.gps ? 'GPS tersimpan' : 'GPS tidak tersedia',
+            time: shipment.proofDelivery.deliveredAtLabel || '-',
+            photoName: shipment.proofDelivery.photoName || '',
+            photoDataUrl: shipment.proofDelivery.photoDataUrl || ''
+          } : null,
+          trackingEnabled: !!shipment.trackingEnabled,
+          archived: order.status === 'archived',
+          pickupCode,
+          courierId: order.courierId || shipment.courierId || '',
+          courierName: order.courierName || shipment.courierName || '',
+          bagLabel,
+          distanceKm,
+          createdAt: Number(order.createdAt || 0),
+          updatedAt: Number(order.updatedAt || shipment.lastUpdateAt || shipment.pickedByCourierAt || 0),
+          deliveredAt: Number(shipment.deliveredAt || 0),
+          raw: order
+        };
+      }).filter(order => ['internal', 'internal_courier', 'kurir_toko'].includes(order.raw.shippingType || 'internal'));
+    }
+
+    function getScopedOrders() {
+      const orders = allOrders();
+      if (isAdminPusatMode()) {
+        if (state.currentCourierId && state.currentCourierId !== '__all__') return orders.filter(order => order.status === 'ready_in_warehouse' || order.courierId === state.currentCourierId);
+        return orders;
+      }
+      if (!state.currentCourierId) return orders.filter(order => order.status === 'ready_in_warehouse');
+      return orders.filter(order => order.status === 'ready_in_warehouse' || order.courierId === state.currentCourierId);
+    }
+
+    function getVisibleOrders() {
+      const keyword = els.searchInput.value.trim().toLowerCase();
+      const area = els.filterArea.value;
+      let orders = filterOrdersByTab(getScopedOrders(), state.currentTab);
+      if (keyword) {
+        orders = orders.filter(order => [order.customer, order.code, order.address, order.pickupCode].join(' ').toLowerCase().includes(keyword));
+      }
+      if (area !== 'all') {
+        orders = orders.filter(order => order.area === area);
+      }
+      return sortOrdersByTab(orders, state.currentTab);
+    }
+
+    function getActiveOrders() { return getScopedOrders().filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)); }
+
+    function getCounts() {
+      const scoped = getScopedOrders().filter(order => !order.archived);
+      return {
+        all: scoped.length,
+        Pickup: scoped.filter(order => order.status === 'ready_in_warehouse').length,
+        Aktif: scoped.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)).length,
+        Gagal: scoped.filter(order => ['failed_delivery', 'returned_to_warehouse'].includes(order.status)).length,
+        Selesai: scoped.filter(order => order.status === 'delivered').length
+      };
+    }
+
+
+    function getTodayClosingRecord() {
+      if (!state.currentCourierId || state.currentCourierId === '__all__') return {};
+      return ((state.setoranRaw[state.currentCourierId] || {})[todayKey()] || {});
+    }
+
+    function resolveClosingState(record = {}) {
+      const raw = String(record.status || '').trim().toLowerCase();
+      if (raw === 'verified' || record.verified === true) return 'verified';
+      if (raw === 'locked' || record.closed) return 'locked';
+      return 'open';
+    }
+
+    function openPickupManual(prefillCode = '') {
+      const gudangOrder = getScopedOrders().find(order => order.status === 'ready_in_warehouse' && !order.archived);
+      state.activeOrderId = gudangOrder?.id || '';
+      if (els.pickupCodePreview) els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${gudangOrder?.pickupCode || prefillCode || 'PU-XXXX'}`;
+      if (els.pickupSheetText) els.pickupSheetText.textContent = gudangOrder ? `${gudangOrder.customer} • ${gudangOrder.code}` : 'Masukkan pickup code untuk mengambil paket dari gudang.';
+      if (els.pickupCodeInput) els.pickupCodeInput.value = prefillCode || gudangOrder?.pickupCode || '';
+      if (els.bagLabelInput) els.bagLabelInput.value = gudangOrder?.bagLabel || defaultBagLabel();
+      openSheet('pickupSheet');
+    }
+
+    function getFinancialSummary() {
+      const courierOrders = getScopedOrders();
+      const deliveredItems = courierOrders.filter(order => {
+        if (order.status !== 'delivered' || order.payment !== 'COD') return false;
+        const shipment = state.shipmentsRaw[order.id] || {};
+        return isTodayTimestamp(shipment.deliveredAt || order.raw.updatedAt || order.createdAt);
+      }).map(order => {
+        const shipment = state.shipmentsRaw[order.id] || {};
+        const payment = state.paymentsRaw[order.id] || {};
+        const amount = Number(payment.amountPaid || order.received || order.cod || 0);
+        const time = shipment.deliveredAt || order.raw.updatedAt || order.createdAt || 0;
+        return {
+          id: order.id,
+          type: 'cod',
+          title: `COD ${order.code}`,
+          amount,
+          note: `${order.customer} • ${order.courierName || getDisplayCourierName()}`,
+          createdAt: time
+        };
+      });
+
+      const expenseItems = Object.values(state.expensesRaw[state.currentCourierId] || {}).filter(item => {
+        return isTodayTimestamp(item.createdAt || 0);
+      }).map(item => ({
+        ...item,
+        title: `Biaya ${item.type || 'operasional'}`,
+        createdAt: Number(item.createdAt || 0),
+        amount: Number(item.amount || 0),
+        type: 'expense'
+      }));
+
+      const todayClosing = state.currentCourierId && state.currentCourierId !== '__all__'
+        ? ((state.setoranRaw[state.currentCourierId] || {})[todayKey()] || {})
+        : {};
+      const setor = Number(todayClosing.amountSetor || 0);
+      const cod = deliveredItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const expense = expenseItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const sisaSebelumSetor = Math.max(cod - expense, 0);
+      const outstanding = Math.max(sisaSebelumSetor - setor, 0);
+      const closingItem = todayClosing.updatedAt ? [{
+        type: 'closing',
+        title: 'Closing kas',
+        amount: setor,
+        note: todayClosing.note || 'Setoran harian tersimpan.',
+        createdAt: Number(todayClosing.updatedAt || 0),
+        closed: !!todayClosing.closed
+      }] : [];
+
+      return {
+        cod,
+        expense,
+        setor,
+        sisaSebelumSetor,
+        sisa: outstanding,
+        deliveredItems,
+        expenseItems,
+        closingItem,
+        todayClosing
+      };
+    }
+
+    function getTimelineItems(orderId) {
+      const raw = state.timelineRaw[orderId] || {};
+      return Object.values(raw).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+
+    function addTimelinePreview(orderId) {
+      const shipment = state.shipmentsRaw[orderId] || {};
+      const preview = Array.isArray(shipment.timelinePreview) ? shipment.timelinePreview : [];
+      const previewItems = preview.length
+        ? preview.slice(-2).reverse().map(item => ({
+            title: item.title || 'Aktivitas',
+            description: item.note || item.description || '-',
+            timeLabel: item.time || '-'
+          }))
+        : getTimelineItems(orderId).slice(0, 2).map(item => ({
+            title: item.title || 'Aktivitas',
+            description: item.description || item.note || '-',
+            timeLabel: item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '-'
+          }));
+      return previewItems.map(item => `<div class="timeline-preview-item"><span class="timeline-point"></span><div class="timeline-content"><strong>${item.title}</strong><p>${item.description} • ${item.timeLabel}</p></div></div>`).join('');
+    }
+
+    function statusBadgeClass(status) {
+      if (status === 'Pickup' || status === 'Gudang') return 'status-gudang';
+      if (status === 'Aktif' || status === 'Proses' || status === 'Tunda') return 'status-proses';
+      if (status === 'Selesai') return 'status-selesai';
+      if (status === 'Arsip') return 'status-arsip';
+      return 'status-gagal';
+    }
+
+    function renderTabs() {
+      const counts = getCounts();
+      const tabs = [
+        { key: 'all', icon: 'fa-layer-group', label: 'SEMUA', value: counts.all },
+        { key: 'Pickup', icon: 'fa-box-open', label: 'PICKUP', value: counts.Pickup },
+        { key: 'Aktif', icon: 'fa-motorcycle', label: 'AKTIF', value: counts.Aktif },
+        { key: 'Gagal', icon: 'fa-triangle-exclamation', label: 'GAGAL', value: counts.Gagal },
+        { key: 'Selesai', icon: 'fa-badge-check', label: 'SELESAI', value: counts.Selesai }
+      ];
+      els.statusTabs.innerHTML = tabs.map(tab => `<button class="tab-item ${state.currentTab === tab.key ? 'active' : ''}" data-tab="${tab.key}"><i class="fa-solid ${tab.icon}"></i><span>${tab.label}</span><b>${tab.value}</b></button>`).join('');
+      renderPackageFlow();
+    }
+
+    function iconActionButton(attrName, orderId, iconClass, title, tone = '', disabled = false) {
+      const toneClass = tone ? ` ${tone}` : '';
+      const disabledAttr = disabled ? ' disabled aria-disabled="true"' : '';
+      return `<button class="action-icon-btn${toneClass}" ${attrName}="${orderId}" aria-label="${title}" title="${title}"${disabledAttr}><i class="${iconClass}"></i></button>`;
+    }
+
+    function isDeliveredOrderLocked(order) {
+      return order?.status === 'delivered';
+    }
+
+    function getLockedDeliveredActionGroups(order) {
+      const main = [`<button class="ghost-btn locked-action" type="button" disabled><i class="fa-solid fa-lock"></i> Order Terkunci</button>`];
+      const icons = [
+        iconActionButton('data-locked', order.id, 'fa-solid fa-receipt', 'Bukti kirim terkunci', '', true),
+        iconActionButton('data-locked', order.id, 'fa-solid fa-lock', 'Aksi dikunci', '', true)
+      ];
+      return { main, icons };
+    }
+
+    function getOrderActionGroups(order, tabKey = state.currentTab) {
+      const main = [];
+      const icons = [];
+      if (isDeliveredOrderLocked(order)) return getLockedDeliveredActionGroups(order);
+      if (order.status === 'ready_in_warehouse') {
+        main.push(`<button class="action-btn action-green" data-claim="${order.id}"><i class="fa-solid fa-briefcase"></i> Ambil Tas</button>`);
+        icons.push(iconActionButton('data-open-scanner', order.id, 'fa-solid fa-barcode', 'Scan Pickup', 'gold'));
+        icons.push(iconActionButton('data-wa', order.id, 'fa-brands fa-whatsapp', 'WhatsApp Customer', 'wa'));
+        icons.push(iconActionButton('data-open-timeline', order.id, 'fa-solid fa-clock-rotate-left', 'Timeline'));
+        return { main, icons };
+      }
+      if (order.status === 'picked_by_courier') {
+        main.push(`<button class="action-btn action-purple" data-start="${order.id}"><i class="fa-solid fa-motorcycle"></i> Mulai Antar</button>`);
+        icons.push(iconActionButton('data-map', order.id, 'fa-solid fa-map-location-dot', 'Buka Map'));
+        icons.push(iconActionButton('data-wa', order.id, 'fa-brands fa-whatsapp', 'WhatsApp Customer', 'wa'));
+        return { main, icons };
+      }
+      if (['on_the_way', 'delivery_delayed'].includes(order.status)) {
+        main.push(`<button class="action-btn action-green" data-proof="${order.id}"><i class="fa-solid fa-camera"></i> Upload Bukti</button>`);
+        icons.push(iconActionButton('data-map', order.id, 'fa-solid fa-map-location-dot', 'Buka Map'));
+        icons.push(iconActionButton('data-wa', order.id, 'fa-brands fa-whatsapp', 'WhatsApp Customer', 'wa'));
+        icons.push(iconActionButton('data-status', order.id, 'fa-solid fa-pen-to-square', 'Update Status'));
+        return { main, icons };
+      }
+      if (['failed_delivery', 'returned_to_warehouse'].includes(order.status)) {
+        main.push(`<button class="ghost-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button>`);
+        icons.push(iconActionButton('data-wa', order.id, 'fa-brands fa-whatsapp', 'WhatsApp Customer', 'wa'));
+        icons.push(iconActionButton('data-status', order.id, 'fa-solid fa-pen-to-square', 'Update Status'));
+        if (!order.archived) icons.push(iconActionButton('data-archive', order.id, 'fa-solid fa-box-archive', 'Arsipkan', 'danger'));
+        return { main, icons };
+      }
+      main.push(`<button class="action-btn action-blue" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> WA</button>`);
+      icons.push(iconActionButton('data-map', order.id, 'fa-solid fa-map-location-dot', 'Buka Map'));
+      icons.push(iconActionButton('data-open-timeline', order.id, 'fa-solid fa-clock-rotate-left', 'Timeline'));
+      return { main, icons };
+    }
+
+    function buildOrderActionMarkup(order, tabKey = state.currentTab) {
+      const groups = getOrderActionGroups(order, tabKey);
+      const main = groups.main.length ? `<div class="action-main">${groups.main.join('')}</div>` : '';
+      const icons = groups.icons.length ? `<div class="icon-actions">${groups.icons.join('')}</div>` : '';
+      if (!main && !icons) return '';
+      return `<div class="order-action-row">${main}${icons}</div>`;
+    }
+
+    function getOrderProgress(order) {
+      if (order.status === 'ready_in_warehouse') return 18;
+      if (order.status === 'picked_by_courier') return 42;
+      if (order.status === 'on_the_way') return 64;
+      if (order.status === 'delivery_delayed') return 48;
+      if (['failed_delivery','returned_to_warehouse','delivered'].includes(order.status)) return 100;
+      return 24;
+    }
+
+    function getPaymentGap(order) { if (order.payment !== 'COD') return 0; return Math.max(order.cod - (order.received || 0), 0); }
+
+    function getCompactMetaChips(order, index, tabKey = state.currentTab) {
+      const chips = [];
+      const paymentGap = getPaymentGap(order);
+      const addChip = (iconClass, label, primary = false) => {
+        chips.push(`<span class="eta-chip${primary ? ' primary' : ''}"><i class="${iconClass}"></i> ${label}</span>`);
+      };
+
+      if (tabKey !== 'Selesai') addChip('fa-solid fa-hashtag', `Stop ${index + 1}`, true);
+
+      if (tabKey === 'Pickup') {
+        addChip('fa-solid fa-location-dot', order.area);
+        if (order.pickupCode) addChip('fa-solid fa-barcode', order.pickupCode);
+        if (order.payment === 'COD' && order.cod) addChip('fa-solid fa-wallet', `COD ${formatCurrency(order.cod)}`);
+        return chips.slice(0, 4);
+      }
+
+      if (tabKey === 'Aktif') {
+        addChip('fa-solid fa-clock', `ETA ${order.eta} mnt`);
+        addChip('fa-solid fa-location-dot', order.area);
+        addChip(order.status === 'delivery_delayed' ? 'fa-solid fa-pause-circle' : (order.status === 'picked_by_courier' ? 'fa-solid fa-briefcase' : 'fa-solid fa-motorcycle'), order.status === 'delivery_delayed' ? 'Tunda' : (order.status === 'picked_by_courier' ? 'Di tas' : 'Antar'));
+        if (paymentGap) addChip('fa-solid fa-money-bill-wave', `Kurang ${formatCurrency(paymentGap)}`);
+        return chips.slice(0, 4);
+      }
+
+      if (tabKey === 'Gagal') {
+        addChip('fa-solid fa-location-dot', order.area);
+        addChip('fa-solid fa-triangle-exclamation', order.statusText);
+        if (order.payment === 'COD' && order.cod) addChip('fa-solid fa-wallet', `COD ${formatCurrency(order.cod)}`);
+        return chips.slice(0, 3);
+      }
+
+      if (tabKey === 'Selesai') {
+        addChip('fa-solid fa-location-dot', order.area);
+        if (order.proof?.time && order.proof.time !== '-') addChip('fa-solid fa-clock', order.proof.time);
+        else addChip('fa-solid fa-badge-check', 'Terkirim');
+        addChip('fa-solid fa-lock', 'Terkunci');
+        return chips.slice(0, 3);
+      }
+
+      addChip('fa-solid fa-location-dot', order.area);
+      const resolvedTab = resolveTabForOrder(order);
+      if (resolvedTab === 'Pickup' && order.pickupCode) addChip('fa-solid fa-barcode', order.pickupCode);
+      if (resolvedTab === 'Aktif') addChip('fa-solid fa-clock', `ETA ${order.eta} mnt`);
+      if (resolvedTab === 'Gagal') addChip('fa-solid fa-triangle-exclamation', order.statusText);
+      if (resolvedTab === 'Selesai') addChip('fa-solid fa-badge-check', 'Terkirim');
+      if (paymentGap) addChip('fa-solid fa-money-bill-wave', `Kurang ${formatCurrency(paymentGap)}`);
+      return chips.slice(0, 4);
+    }
+
+    function shouldShowCompactAddress(tabKey = state.currentTab) {
+      return tabKey !== 'Selesai';
+    }
+
+    function getCompactProofLine(order, tabKey = state.currentTab) {
+      if (!order.proof || tabKey !== 'Selesai') return '';
+      const parts = [];
+      if (order.proof.recipient && order.proof.recipient !== '-') parts.push(order.proof.recipient);
+      else parts.push('Bukti kirim tersimpan');
+      return `<div class="order-mini-proof"><i class="fa-solid fa-circle-check"></i><span>${parts.join(' • ')}</span></div>`;
+    }
+
+    function buildOrderCardMarkup(order, index, tabKey = state.currentTab) {
+      const paymentText = order.payment === 'COD' ? `COD ${formatCurrency(order.cod)}` : 'Transfer';
+      const compactMeta = getCompactMetaChips(order, index, tabKey);
+      const resolvedTab = tabKey === 'all' ? resolveTabForOrder(order) : tabKey;
+      const isFinishedTab = resolvedTab === 'Selesai';
+      const summaryParts = isFinishedTab ? [`#${order.code}`, paymentText] : [`#${order.code}`, paymentText];
+      if (resolvedTab === 'Aktif') summaryParts.push(`ETA ${order.eta} mnt`);
+      else if (resolvedTab === 'Gagal') summaryParts.push(order.statusText);
+      else if (!isFinishedTab) summaryParts.push(order.time);
+      const addressBlock = shouldShowCompactAddress(tabKey)
+        ? `<div class="compact-address compact-address-mini"><i class="fa-solid fa-location-arrow"></i><p>${order.address}</p></div>`
+        : '';
+      const proofLine = getCompactProofLine(order, tabKey);
+      const actionMarkup = isFinishedTab ? '' : buildOrderActionMarkup(order, tabKey);
+      const cardClass = `order-card compact-tab${isFinishedTab ? ' is-finished' : ''}`;
+      const iconClass = isFinishedTab ? 'fa-solid fa-circle-check' : 'fa-solid fa-box';
+      return `<article class="${cardClass}" data-order-card="${order.id}"><div class="order-main"><div class="order-top"><div class="order-left"><div class="order-icon"><i class="${iconClass}"></i></div><div class="order-meta"><h3>${order.customer}</h3><p>${summaryParts.join(' • ')}</p></div></div><div class="badge-stack"><span class="badge ${statusBadgeClass(order.uiStatus)}"><i class="fa-solid fa-circle-dot"></i> ${order.statusText}</span>${order.urgent && !isFinishedTab ? '<span class="badge urgent"><i class="fa-solid fa-bolt"></i> Urgent</span>' : ''}</div></div><div class="compact-meta">${compactMeta.join('')}</div>${proofLine}${addressBlock}${actionMarkup}</div></article>`;
+    }
+
+    function renderOrders() {
+      updateListControls();
+      const orders = getVisibleOrders();
+      const tabMeta = getPackageTabMeta()[state.currentTab] || getPackageTabMeta().all;
+      els.listTitle.textContent = tabMeta.title;
+      const sortLabel = state.currentTab === 'all'
+        ? (state.orderSortMode === 'eta'
+            ? 'Urut ETA aktif.'
+            : (state.orderSortMode === 'cod'
+                ? 'Urut COD aktif.'
+                : (state.orderSortMode === 'area' ? 'Urut area aktif.' : 'Urutan default aktif.')))
+        : (state.currentTab === 'Pickup'
+            ? 'Paket paling lama siap pickup ditampilkan lebih dulu.'
+            : (state.currentTab === 'Aktif'
+                ? 'Paket yang sedang diantar diprioritaskan di atas.'
+                : (state.currentTab === 'Gagal'
+                    ? 'Kasus terbaru tampil di bagian atas.'
+                    : 'Pengiriman terakhir selesai tampil lebih dulu.')));
+      els.listSub.textContent = '';
+      if (!orders.length) {
+        els.orderList.innerHTML = `<div class="empty-state">${tabMeta.empty}</div>`;
+        return;
+      }
+      els.orderList.innerHTML = orders.map((order, index) => buildOrderCardMarkup(order, index, state.currentTab)).join('');
+    }
+
+    function renderRoutePage() {
+      const routeMode = state.routeSortMode === 'default' ? 'eta' : state.routeSortMode;
+      const active = sortOrdersForMode(getActiveOrders(), routeMode);
+      const routeModeLabel = routeMode === 'area' ? 'Area' : (routeMode === 'cod' ? 'COD' : 'ETA');
+      if (els.routeSortLabel) els.routeSortLabel.textContent = routeModeLabel;
+      els.routeStopCount.textContent = `${active.length} titik`;
+      const areas = {};
+      active.forEach(order => areas[order.area] = (areas[order.area] || 0) + 1);
+      const topArea = Object.entries(areas).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+      els.topArea.textContent = topArea;
+      [['routeEtaBtn', routeMode === 'eta'], ['sortAreaBtn', routeMode === 'area'], ['routeCodBtn', routeMode === 'cod']].forEach(([id, activeMode]) => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle('active', activeMode);
+      });
+      if (!active.length) {
+        els.routeList.innerHTML = '<div class="empty-state">Belum ada tugas aktif. Lakukan pickup dari gudang agar order masuk ke rute.</div>';
+        return;
+      }
+      els.routeList.innerHTML = active.map((order, index) => `
+        <article class="route-stop-card" data-order-card="${order.id}">
+          <div class="route-stop-head">
+            <div class="route-stop-num">${index + 1}</div>
+            <div class="route-stop-copy">
+              <div class="route-stop-title">
+                <h3>${order.customer}</h3>
+                <span class="route-stop-code">${order.code}</span>
+              </div>
+              <div class="route-stop-meta">
+                <span><i class="fa-solid fa-location-dot"></i>${order.area}</span>
+                <span><i class="fa-solid fa-clock"></i>${order.eta} menit</span>
+                <span><i class="fa-solid fa-bag-shopping"></i>${order.statusText}</span>
+              </div>
+            </div>
+            <div class="route-stop-actions">
+              <button class="route-icon-btn" data-map="${order.id}" aria-label="Buka Map"><i class="fa-solid fa-map-location-dot"></i></button>
+            </div>
+          </div>
+          <div class="route-address">${order.address}</div>
+          <div class="route-card-actions">
+            <button class="route-chip-btn" data-wa="${order.id}"><i class="fa-brands fa-whatsapp"></i> WA</button>
+            <button class="route-chip-btn" data-open-timeline="${order.id}"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderWalletPage() {
+      const summary = getFinancialSummary();
+      els.walletCOD.textContent = formatCurrency(summary.cod);
+      els.walletSetor.textContent = formatCurrency(summary.setor);
+      els.walletExpense.textContent = formatCurrency(summary.expense);
+      els.walletSisa.textContent = formatCurrency(summary.sisa);
+      els.closingCOD.textContent = formatCurrency(summary.cod);
+      els.closingExpense.textContent = formatCurrency(summary.expense);
+      els.closingSetor.textContent = formatCurrency(summary.sisaSebelumSetor);
+      const closingState = resolveClosingState(summary.todayClosing);
+      state.closingState = closingState;
+      state.closingLocked = closingState !== 'open';
+      els.closingStatus.textContent = closingState === 'verified' ? 'Verified' : (closingState === 'locked' ? 'Locked' : 'Open');
+      if (els.closingAmountSetor) {
+        const suggestedSetor = summary.todayClosing.amountSetor != null && summary.todayClosing.amountSetor !== '' ? Number(summary.todayClosing.amountSetor || 0) : summary.sisaSebelumSetor;
+        els.closingAmountSetor.value = suggestedSetor ? String(suggestedSetor) : '';
+      }
+      if (els.closingNote && !document.getElementById('closingSheet')?.classList.contains('show')) {
+        els.closingNote.value = summary.todayClosing.note || '';
+      }
+      if (els.closingHelperText) {
+        const diff = Math.max(summary.sisaSebelumSetor - Number(summary.todayClosing.amountSetor || 0), 0);
+        els.closingHelperText.textContent = closingState === 'verified'
+          ? `Closing hari ini sudah diverifikasi admin. Outstanding: ${formatCurrency(diff)}.`
+          : (closingState === 'locked'
+            ? `Closing hari ini sudah tersimpan. Sisa belum tersetor: ${formatCurrency(diff)}.`
+            : `Sisa kas sebelum setor: ${formatCurrency(summary.sisaSebelumSetor)}. Isi sesuai nominal yang benar-benar disetor ke admin pusat.`);
+      }
+      if (els.lockClosingBtn) {
+        els.lockClosingBtn.disabled = closingState !== 'open';
+        els.lockClosingBtn.style.opacity = closingState !== 'open' ? '.55' : '1';
+        els.lockClosingBtn.style.cursor = closingState !== 'open' ? 'not-allowed' : 'pointer';
+        els.lockClosingBtn.innerHTML = closingState === 'verified'
+          ? '<i class="fa-solid fa-circle-check"></i> Closing Terverifikasi'
+          : (closingState === 'locked' ? '<i class="fa-solid fa-lock"></i> Closing Sudah Ditutup' : '<i class="fa-solid fa-lock"></i> Simpan Closing');
+      }
+
+      const walletItems = [
+        ...summary.deliveredItems,
+        ...summary.expenseItems,
+        ...summary.closingItem
+      ].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      els.walletLog.innerHTML = walletItems.length
+        ? walletItems.map(item => {
+            const colorClass = item.type === 'cod' ? 'var(--green)' : (item.type === 'closing' ? 'var(--gold-2)' : '#fda4af');
+            const prefix = item.type === 'expense' ? '-' : '+';
+            return `<div class="timeline-preview-item"><span class="timeline-point"></span><div class="timeline-content"><strong>${item.title} • <span style="color:${colorClass}">${prefix}${formatCurrency(item.amount)}</span></strong><p>${item.note || '-'} • ${item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-'}</p></div></div>`;
+          }).join('')
+        : '<div class="empty-state">Belum ada transaksi dompet hari ini.</div>';
+    }
+
+    function renderAuditLog() {
+      let logs = Object.values(state.logsRaw || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      if (!isAdminPusatMode() && state.currentCourierId) logs = logs.filter(item => item.courierId === state.currentCourierId || item.actorId === state.currentCourierId);
+      if (isAdminPusatMode() && state.currentCourierId && state.currentCourierId !== '__all__') logs = logs.filter(item => item.courierId === state.currentCourierId || item.actorId === state.currentCourierId);
+      logs = logs.slice(0, 40);
+      if (!logs.length) { els.auditList.innerHTML = '<div class="empty-state">Belum ada aktivitas tercatat.</div>'; return; }
+      els.auditList.innerHTML = logs.map(item => `<div class="log-item"><span class="log-point"></span><div class="log-content"><strong>${item.title}</strong><p>${item.note || '-'} • ${item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '-'}</p></div></div>`).join('');
+    }
+
+    function renderArchive() {
+      const archived = allOrders().filter(order => order.archived);
+      if (!archived.length) { els.archiveList.innerHTML = '<div class="empty-state">Belum ada order yang diarsipkan.</div>'; return; }
+      els.archiveList.innerHTML = archived.map(order => `<div class="archive-item"><span class="archive-point"></span><div class="archive-content"><strong>${order.customer} • ${order.code}</strong><p>Status sebelum arsip: ${mapStatusText(order.raw.archivedFromStatus || 'returned_to_warehouse')} • Area ${order.area}</p></div><button class="mini-btn" data-restore="${order.id}"><i class="fa-solid fa-rotate-left"></i> Pulihkan</button></div>`).join('');
+    }
+
+    function renderSummary() {
+      const scoped = getScopedOrders();
+      const readyPickup = scoped.filter(order => order.status === 'ready_in_warehouse').length;
+      const activeTask = scoped.filter(order => ['picked_by_courier', 'on_the_way', 'delivery_delayed'].includes(order.status)).length;
+      const onTheWay = scoped.filter(order => order.status === 'on_the_way').length;
+      const deliveredToday = scoped.filter(order => order.status === 'delivered').length;
+      const summary = getFinancialSummary();
+      els.aktifCount.textContent = `${readyPickup} order`;
+      els.urgentCount.textContent = `${activeTask} order`;
+      els.etaAverage.textContent = `${onTheWay} order`;
+      els.successRate.textContent = `${deliveredToday} order`;
+      els.totalCOD.textContent = formatCurrency(summary.cod);
+      els.totalPengeluaran.textContent = formatCurrency(summary.expense);
+      els.setoranHariIni.textContent = formatCurrency(summary.sisa);
+      const closingState = resolveClosingState(summary.todayClosing);
+      state.closingState = closingState;
+      state.closingLocked = closingState !== 'open';
+      setHeroMessage(isAdminPusatMode() ? 'Mode pantau pusat aktif. Anda bisa memonitor kurir, tracking, dan performa realtime.' : (closingState === 'verified' ? 'Kas harian sudah diverifikasi admin dan siap untuk operasional berikutnya.' : (closingState === 'locked' ? 'Kas harian sudah dikunci dan siap diverifikasi admin.' : 'Scan pickup, antar ke customer, dan pantau kas harian secara realtime.')), isAdminPusatMode() ? 'info' : ((closingState === 'locked' || closingState === 'verified') ? 'lock' : 'info'));
+      els.shiftStatusText.textContent = isAdminPusatMode() ? 'Mode Pantau' : 'On Duty';
+      els.zonaUtama.textContent = state.currentCourierProfile?.zone || els.topArea.textContent || '-';
+      els.closingStatus.textContent = closingState === 'verified' ? 'Verified' : (closingState === 'locked' ? 'Locked' : 'Open');
+      renderSessionInfo();
+    }
+
+    async function renderTimeline(orderId) {
+      const order = getScopedOrders().find(item => item.id === orderId) || allOrders().find(item => item.id === orderId);
+      if (!order) return;
+      state.activeOrderId = orderId;
+      els.timelineHeadText.textContent = `${order.customer} • ${order.code}`;
+      let summaryText = `${order.payment === 'COD' ? 'COD ' + formatCurrency(order.cod) : 'Transfer'} • ${order.statusText} • ${order.area}`;
+      if (order.proof) summaryText += ` • Bukti: ${order.proof.recipient} (${order.proof.time})`;
+      els.timelineSummaryText.textContent = summaryText;
+      let items = getTimelineItems(orderId);
+      if (!items.length) {
+        const snap = await get(ref(db, `order_timeline/${orderId}`));
+        items = Object.values(snap.val() || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      }
+      els.timelineList.innerHTML = items.length ? items.map(item => `<div class="timeline-item"><span class="timeline-point"></span><div class="timeline-content"><strong>${item.title}</strong><p>${item.description || item.note || '-'} • ${item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '-'}</p></div></div>`).join('') : '<div class="empty-state">Belum ada timeline untuk order ini.</div>';
+      openSheet('timelineSheet');
+    }
+
+    function renderReasonButtons() {
+      const status = els.statusSelect.value;
+      const reasons = state.reasonTemplates[status] || [];
+      state.selectedReason = '';
+      els.reasonGrid.innerHTML = reasons.map(reason => `<button class="reason-btn" data-reason="${reason}">${reason}</button>`).join('');
+    }
+
+
+    function buildCustomerMapUrl(order) {
+      if (order.mapLink) return order.mapLink;
+      if (order.mapPoint && order.mapPoint.lat && order.mapPoint.lng) {
+        return `https://www.google.com/maps/search/?api=1&query=${order.mapPoint.lat},${order.mapPoint.lng}`;
+      }
+      const q = encodeURIComponent(order.address || order.customer);
+      return `https://www.google.com/maps/search/?api=1&query=${q}`;
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function compressImageFile(file, options = {}) {
+      const {
+        maxWidth = 1280,
+        maxHeight = 1280,
+        quality = 0.72,
+        outputType = 'image/jpeg'
+      } = options;
+      if (!file) throw new Error('File foto tidak ada.');
+
+      let width;
+      let height;
+      let drawImageSource;
+
+      if ('createImageBitmap' in window) {
+        const imageBitmap = await createImageBitmap(file);
+        width = imageBitmap.width;
+        height = imageBitmap.height;
+        drawImageSource = imageBitmap;
+      } else {
+        const dataUrl = await fileToDataUrl(file);
+        const img = await new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = reject;
+          image.src = dataUrl;
+        });
+        width = img.width;
+        height = img.height;
+        drawImageSource = img;
+      }
+
+      const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+      const targetWidth = Math.max(1, Math.round(width * ratio));
+      const targetHeight = Math.max(1, Math.round(height * ratio));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      const ctx = canvas.getContext('2d', { alpha: false });
+      ctx.drawImage(drawImageSource, 0, 0, targetWidth, targetHeight);
+
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob((result) => resolve(result), outputType, quality);
+      });
+
+      if (!blob) throw new Error('Gagal mengompres foto.');
+
+      const dataUrl = await blobToDataUrl(blob);
+      return {
+        blob,
+        dataUrl,
+        width: targetWidth,
+        height: targetHeight,
+        size: blob.size,
+        type: blob.type
+      };
+    }
+
+    function blobToDataUrl(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    function guardDeliveredOrder(order, message = 'Order selesai sudah dikunci dan tidak bisa diubah.') {
+      if (!isDeliveredOrderLocked(order)) return false;
+      showToast(message);
+      return true;
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes && bytes !== 0) return '-';
+      const units = ['B', 'KB', 'MB'];
+      let size = bytes;
+      let unitIndex = 0;
+      while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex++;
+      }
+      return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+    }
+
+    async function getGpsPosition() {
+      if (!navigator.geolocation) return null;
+      return new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }), () => resolve(null), { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+      });
+    }
+
+    async function claimPickup(orderId) {
+      if (!requireCourierAction()) return;
+      const order = getScopedOrders().find(item => item.id === orderId && item.status === 'ready_in_warehouse');
+      if (!order) return showToast('Tidak ada order gudang untuk pickup.');
+      const typedCode = els.pickupCodeInput.value.trim();
+      const bagLabel = els.bagLabelInput.value.trim() || 'Tas A';
+      if (!typedCode) return showToast('Masukkan pickup code dulu.');
+      if (order.pickupCode && typedCode !== order.pickupCode) return showToast('Pickup code tidak cocok.');
+      const now = Date.now();
+      const gps = state.gpsOn ? await getGpsPosition() : null;
+      const eventId = push(ref(db, `order_timeline/${order.id}`)).key;
+      const updates = {};
+      updates[`orders/${order.id}/status`] = 'picked_by_courier';
+      updates[`orders/${order.id}/statusLabel`] = 'Diambil kurir';
+      updates[`orders/${order.id}/courierId`] = state.currentCourierId;
+      updates[`orders/${order.id}/courierName`] = state.currentCourierName;
+      updates[`orders/${order.id}/bagLabel`] = bagLabel;
+      updates[`orders/${order.id}/pickedByCourierAt`] = now;
+      updates[`orders/${order.id}/updatedAt`] = now;
+      updates[`shipments_internal/${order.id}/status`] = 'picked_by_courier';
+      updates[`shipments_internal/${order.id}/statusLabel`] = 'Diambil kurir';
+      updates[`shipments_internal/${order.id}/warehouseStatus`] = 'picked';
+      updates[`shipments_internal/${order.id}/pickupScanStatus`] = 'scanned';
+      updates[`shipments_internal/${order.id}/courierId`] = state.currentCourierId;
+      updates[`shipments_internal/${order.id}/courierName`] = state.currentCourierName;
+      updates[`shipments_internal/${order.id}/bagLabel`] = bagLabel;
+      updates[`shipments_internal/${order.id}/pickedByCourierAt`] = now;
+      updates[`shipments_internal/${order.id}/trackingEnabled`] = !!state.trackingOn;
+      updates[`shipments_internal/${order.id}/customerCanTrack`] = !!state.trackingOn;
+      updates[`shipments_internal/${order.id}/trackingStartedAt`] = now;
+      if (gps) updates[`shipments_internal/${order.id}/lastCourierLocation`] = { lat: gps.lat, lng: gps.lng, updatedAt: now };
+      updates[`courier_assignments/${state.currentCourierId}/${order.id}`] = { orderId: order.id, orderNo: order.code, customerName: order.customer, customerPhone: order.phone, status: 'picked_by_courier', bagLabel, pickedByCourierAt: now };
+      updates[`order_timeline/${order.id}/${eventId}`] = { title: 'Kurir ambil paket', description: `${state.currentCourierName} mengambil order ke ${bagLabel}.`, status: 'picked_by_courier', actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
+      try {
+        await update(ref(db), updates);
+        await safeWriteAudit(`Pickup ${order.code}`, `${state.currentCourierName} ambil order ke ${bagLabel}.`, { orderId: order.id });
+        state.currentTab = 'Aktif';
+        renderAll();
+        refreshLocationWatcher();
+        closeSheets(); els.pickupCodeInput.value = ''; els.bagLabelInput.value = ''; showToast('Pickup berhasil. Order masuk ke tugas saya.');
+      } catch (err) { console.error(err); showToast('Gagal scan pickup.'); }
+    }
+
+    async function updateStatus(orderId, newStatus, note) {
+      if (!requireCourierAction()) return;
+      const order = getScopedOrders().find(item => item.id === orderId && item.courierId === state.currentCourierId);
+      if (!order) return showToast('Order tidak ditemukan dalam scope kurir aktif.');
+      if (guardDeliveredOrder(order)) return;
+      if (newStatus === 'Selesai') {
+        state.activeOrderId = order.id;
+        els.recipientInput.value = order.customer || '';
+        els.receivedInput.value = order.payment === 'COD' ? (order.cod || 0) : 0;
+        els.proofNote.value = note || state.selectedReason || 'Pesanan diterima customer.';
+        els.proofPhotoInput.value = '';
+        proofPhotoCompressedDataUrl = '';
+        proofPhotoCompressedBlob = null;
+        proofPhotoCompressedFileName = '';
+        if (els.proofPhotoPreview) els.proofPhotoPreview.src = '';
+        if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none';
+        if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = '';
+        closeSheets();
+        openSheet('proofSheet');
+        showToast('Lengkapi bukti kirim dulu sebelum order diselesaikan.');
+        return;
+      }
+      const map = STATUS_TO_DB[newStatus]; if (!map) return;
+      const finalNote = [state.selectedReason, note].filter(Boolean).join(' • ') || 'Status diperbarui dari panel kurir.';
+      const now = Date.now();
+      const eventId = push(ref(db, `order_timeline/${order.id}`)).key;
+      const gps = (state.gpsOn && ['Proses'].includes(newStatus)) ? await getGpsPosition() : null;
+      const updates = {};
+      updates[`orders/${order.id}/status`] = map.status;
+      updates[`orders/${order.id}/statusLabel`] = map.label;
+      updates[`orders/${order.id}/updatedAt`] = now;
+      updates[`shipments_internal/${order.id}/status`] = map.status;
+      updates[`shipments_internal/${order.id}/statusLabel`] = map.label;
+      updates[`shipments_internal/${order.id}/lastUpdateAt`] = now;
+      if (newStatus === 'Proses') {
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = !!state.trackingOn;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = !!state.trackingOn;
+        updates[`shipments_internal/${order.id}/trackingStartedAt`] = now;
+        if (gps) updates[`shipments_internal/${order.id}/lastCourierLocation`] = { lat: gps.lat, lng: gps.lng, updatedAt: now };
+      } else {
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = false;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = false;
+      }
+      if (newStatus === 'Gudang') {
+        updates[`orders/${order.id}/courierId`] = '';
+        updates[`orders/${order.id}/courierName`] = '';
+        updates[`orders/${order.id}/bagLabel`] = '';
+        updates[`shipments_internal/${order.id}/courierId`] = '';
+        updates[`shipments_internal/${order.id}/courierName`] = '';
+        updates[`shipments_internal/${order.id}/bagLabel`] = '';
+        updates[`courier_assignments/${state.currentCourierId}/${order.id}`] = null;
+      } else {
+        updates[`courier_assignments/${state.currentCourierId}/${order.id}/status`] = map.status;
+      }
+      updates[`order_timeline/${order.id}/${eventId}`] = { title: `Status ${map.label}`, description: finalNote, status: map.status, actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
+      try {
+        await update(ref(db), updates);
+        await safeWriteAudit(`Status ${order.code}`, `${map.label} • ${finalNote}`, { orderId: order.id });
+        if (state.waAuto) await safeWriteAudit(`WA ${order.code}`, `Template status ${map.label} disiapkan untuk ${order.customer}.`, { orderId: order.id });
+        state.currentTab = resolveTabForOrder({ status: map.status });
+        renderAll();
+        refreshLocationWatcher();
+        closeSheets();
+        showToast(newStatus === 'Proses' ? `Kurir mulai antar ke ${order.customer}.` : `Status ${order.customer} berhasil diubah.`);
+      } catch (err) { console.error(err); showToast('Gagal memperbarui status order.'); }
+    }
+
+    async function saveProof() {
+      if (!requireCourierAction()) return;
+      const order = getScopedOrders().find(item => item.id === state.activeOrderId && item.courierId === state.currentCourierId);
+      if (!order) return showToast('Order tidak ditemukan untuk bukti kirim.');
+      if (guardDeliveredOrder(order)) return;
+      if (!proofPhotoCompressedDataUrl) return showToast('Foto bukti kirim wajib diunggah sebelum order diselesaikan.');
+      const recipient = els.recipientInput.value.trim() || 'Penerima';
+      const received = Number(els.receivedInput.value || 0);
+      const note = els.proofNote.value.trim() || 'Bukti kirim berhasil disimpan.';
+      const gps = state.proofGpsOn ? await getGpsPosition() : null;
+      const photoDataUrl = proofPhotoCompressedDataUrl;
+      const now = Date.now();
+      const eventId = push(ref(db, `order_timeline/${order.id}`)).key;
+      const updates = {};
+      updates[`orders/${order.id}/status`] = 'delivered';
+      updates[`orders/${order.id}/statusLabel`] = 'Terkirim';
+      updates[`orders/${order.id}/updatedAt`] = now;
+      updates[`shipments_internal/${order.id}/status`] = 'delivered';
+      updates[`shipments_internal/${order.id}/statusLabel`] = 'Terkirim';
+      updates[`shipments_internal/${order.id}/deliveredAt`] = now;
+      updates[`shipments_internal/${order.id}/trackingEnabled`] = false;
+      updates[`shipments_internal/${order.id}/customerCanTrack`] = false;
+      updates[`shipments_internal/${order.id}/proofDelivery`] = { recipientName: recipient, note, deliveredAt: now, deliveredAtLabel: new Date(now).toLocaleString('id-ID'), gps, photoName: proofPhotoCompressedFileName || 'proof.jpg', photoType: (proofPhotoCompressedBlob && proofPhotoCompressedBlob.type) || 'image/jpeg', photoSize: (proofPhotoCompressedBlob && proofPhotoCompressedBlob.size) || 0, photoDataUrl };
+      updates[`courier_assignments/${state.currentCourierId}/${order.id}/status`] = 'delivered';
+      if (order.payment === 'COD') {
+        updates[`payments/${order.id}/paymentStatus`] = 'paid';
+        updates[`payments/${order.id}/amountPaid`] = received || order.cod;
+        updates[`payments/${order.id}/paidAt`] = now;
+        updates[`orders/${order.id}/paymentStatus`] = 'paid';
+      }
+      updates[`order_timeline/${order.id}/${eventId}`] = { title: 'Pesanan selesai', description: `${recipient} menerima paket. ${note}`, status: 'delivered', actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
+      try {
+        await update(ref(db), updates);
+        await safeWriteAudit(`Bukti kirim ${order.code}`, `${recipient} • ${note}`, { orderId: order.id });
+        state.currentTab = 'Selesai';
+        renderAll();
+        refreshLocationWatcher();
+        closeSheets(); els.recipientInput.value = ''; els.receivedInput.value = ''; els.proofNote.value = ''; els.proofPhotoInput.value = ''; proofPhotoCompressedDataUrl = ''; proofPhotoCompressedBlob = null; proofPhotoCompressedFileName = ''; if (els.proofPhotoPreview) els.proofPhotoPreview.src = ''; if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none'; if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = ''; showToast(`Bukti kirim ${order.customer} berhasil disimpan.`);
+      } catch (err) { console.error(err); showToast('Gagal menyimpan bukti kirim.'); }
+    }
+
+    async function saveExpense() {
+      if (!requireCourierAction()) return;
+      const type = els.expenseType.value;
+      const amount = Number(els.expenseAmount.value || 0);
+      const note = els.expenseNote.value.trim() || 'Tanpa catatan';
+      if (!amount) return showToast('Masukkan nominal pengeluaran dulu.');
+      const expenseId = push(ref(db, `pengeluaran_kurir/${state.currentCourierId}`)).key;
+      try {
+        await set(ref(db, `pengeluaran_kurir/${state.currentCourierId}/${expenseId}`), { type, amount, note, courierId: state.currentCourierId, createdAt: Date.now() });
+        await safeWriteAudit(`Pengeluaran ${type}`, `${formatCurrency(amount)} • ${note}`);
+        closeSheets(); els.expenseAmount.value = ''; els.expenseNote.value = ''; showToast('Pengeluaran berhasil dicatat.');
+      } catch (err) { console.error(err); showToast('Gagal menyimpan pengeluaran.'); }
+    }
+
+    async function lockClosing() {
+      if (!requireCourierAction()) return;
+      const existing = getTodayClosingRecord();
+      const existingState = resolveClosingState(existing);
+      if (existingState !== 'open') {
+        showToast(existingState === 'verified' ? 'Closing hari ini sudah diverifikasi admin.' : 'Closing hari ini sudah ditutup dan tidak bisa dikirim ulang.');
+        fillClosingForm();
+        return;
+      }
+      const summary = getFinancialSummary();
+      const amountSetor = Math.max(Number(els.closingAmountSetor?.value || 0), 0);
+      const amountOutstanding = Math.max(summary.sisaSebelumSetor - amountSetor, 0);
+      const payload = {
+        amountCod: summary.cod,
+        amountExpense: summary.expense,
+        amountSisa: summary.sisaSebelumSetor,
+        amountSetor,
+        amountOutstanding,
+        deliveredCount: summary.deliveredItems.length,
+        expenseCount: summary.expenseItems.length,
+        note: els.closingNote.value.trim() || 'Closing kas harian.',
+        courierId: state.currentCourierId,
+        closed: true,
+        status: 'locked',
+        verified: false,
+        verifiedBy: '',
+        verifiedAt: 0,
+        verificationNote: '',
+        createdAt: existing.createdAt || Date.now(),
+        updatedAt: Date.now()
+      };
+      try {
+        await set(ref(db, `setoran_kurir/${state.currentCourierId}/${todayKey()}`), payload);
+        state.closingState = 'locked';
+        state.closingLocked = true;
+        await safeWriteAudit('Closing kas dikunci', `${formatCurrency(amountSetor)} disetor • ${payload.note}`);
+        renderAll(); closeSheets(); showToast('Closing kas hari ini berhasil disimpan.');
+      } catch (err) { console.error(err); showToast('Gagal menyimpan closing.'); }
+    }
+
+    async function archiveOrder(orderId) {
+      if (!requireCourierAction()) return;
+      const order = allOrders().find(item => item.id === orderId);
+      if (!order) return showToast('Order tidak ditemukan.');
+      if (guardDeliveredOrder(order)) return;
+      const now = Date.now();
+      const eventId = push(ref(db, `order_timeline/${order.id}`)).key;
+      const updates = {};
+      if (order.archived) {
+        const restoreStatus = order.raw.archivedFromStatus || 'returned_to_warehouse';
+        updates[`orders/${order.id}/status`] = restoreStatus;
+        updates[`orders/${order.id}/statusLabel`] = mapStatusText(restoreStatus);
+        updates[`orders/${order.id}/updatedAt`] = now;
+        updates[`orders/${order.id}/archivedFromStatus`] = null;
+        updates[`shipments_internal/${order.id}/status`] = restoreStatus;
+        updates[`shipments_internal/${order.id}/statusLabel`] = mapStatusText(restoreStatus);
+        updates[`shipments_internal/${order.id}/lastUpdateAt`] = now;
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = false;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = false;
+        updates[`order_timeline/${order.id}/${eventId}`] = { title: 'Order dipulihkan', description: `Pesanan dikembalikan ke status ${mapStatusText(restoreStatus)}.`, status: restoreStatus, actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
+      } else {
+        const previousStatus = order.status || 'returned_to_warehouse';
+        updates[`orders/${order.id}/archivedFromStatus`] = previousStatus;
+        updates[`orders/${order.id}/status`] = 'archived';
+        updates[`orders/${order.id}/statusLabel`] = 'Diarsipkan';
+        updates[`orders/${order.id}/updatedAt`] = now;
+        updates[`shipments_internal/${order.id}/status`] = 'archived';
+        updates[`shipments_internal/${order.id}/statusLabel`] = 'Diarsipkan';
+        updates[`shipments_internal/${order.id}/trackingEnabled`] = false;
+        updates[`shipments_internal/${order.id}/customerCanTrack`] = false;
+        updates[`shipments_internal/${order.id}/lastUpdateAt`] = now;
+        updates[`order_timeline/${order.id}/${eventId}`] = { title: 'Order diarsipkan', description: `Pesanan diarsipkan dari status ${mapStatusText(previousStatus)}.`, status: 'archived', actorType: 'courier', actorId: state.currentCourierId, createdAt: now };
+      }
+      try {
+        await update(ref(db), updates);
+        await safeWriteAudit(order.archived ? `Pulihkan ${order.code}` : `Arsip ${order.code}`, order.customer);
+        renderAll();
+        refreshLocationWatcher();
+        showToast(order.archived ? 'Pesanan dipulihkan.' : 'Pesanan diarsipkan.');
+      } catch (err) { console.error(err); showToast('Gagal memperbarui arsip pesanan.'); }
+    }
+
+    function bindRealtime() {
+      onValue(ref(db, 'courier_profiles'), snap => { state.couriers = snap.val() || {}; ensureCourierSelection(); renderAll(); refreshLocationWatcher(); });
+      onValue(ref(db, 'orders'), snap => { state.ordersRaw = snap.val() || {}; renderAreaOptions(); renderAll(); refreshLocationWatcher(); });
+      onValue(ref(db, 'payments'), snap => { state.paymentsRaw = snap.val() || {}; renderAll(); });
+      onValue(ref(db, 'shipments_internal'), snap => { state.shipmentsRaw = snap.val() || {}; renderAll(); refreshLocationWatcher(); });
+      onValue(ref(db, 'order_timeline'), snap => { state.timelineRaw = snap.val() || {}; renderAll(); });
+      onValue(ref(db, 'pengeluaran_kurir'), snap => { state.expensesRaw = snap.val() || {}; renderWalletPage(); renderSummary(); });
+      onValue(ref(db, 'setoran_kurir'), snap => { state.setoranRaw = snap.val() || {}; const currentClosing = getTodayClosingRecord(); state.closingState = resolveClosingState(currentClosing); state.closingLocked = state.closingState !== 'open'; renderWalletPage(); renderSummary(); });
+      onValue(ref(db, 'audit_logs'), snap => { state.logsRaw = snap.val() || {}; renderAuditLog(); });
+    }
+
+    function renderWalletScope() {
+      const currentClosing = getTodayClosingRecord();
+      state.closingState = resolveClosingState(currentClosing);
+      state.closingLocked = state.closingState !== 'open';
+    }
+
+    function fillClosingForm() {
+      const summary = getFinancialSummary();
+      const closing = summary.todayClosing || {};
+      const closingState = resolveClosingState(closing);
+      const suggested = closing.amountSetor != null && closing.amountSetor !== '' ? Number(closing.amountSetor || 0) : summary.sisaSebelumSetor;
+      if (els.closingAmountSetor) { els.closingAmountSetor.value = suggested ? String(suggested) : ''; els.closingAmountSetor.disabled = closingState !== 'open'; }
+      if (els.closingNote) { els.closingNote.value = closing.note || ''; els.closingNote.disabled = closingState !== 'open'; }
+      if (els.closingStatus) els.closingStatus.textContent = closingState === 'verified' ? 'Verified' : (closingState === 'locked' ? 'Locked' : 'Open');
+      if (els.closingHelperText) {
+        const diff = Math.max(summary.sisaSebelumSetor - Number(closing.amountSetor || 0), 0);
+        els.closingHelperText.textContent = closingState === 'verified'
+          ? `Closing sudah diverifikasi admin. Outstanding: ${formatCurrency(diff)}.`
+          : (closingState === 'locked' ? `Closing tersimpan. Selisih yang belum disetor: ${formatCurrency(diff)}.` : `Sisa kas sebelum setor: ${formatCurrency(summary.sisaSebelumSetor)}. Isi sesuai nominal setor yang benar-benar diserahkan.`);
+      }
+      if (els.lockClosingBtn) {
+        els.lockClosingBtn.disabled = closingState !== 'open';
+        els.lockClosingBtn.style.opacity = closingState !== 'open' ? '.55' : '1';
+        els.lockClosingBtn.style.cursor = closingState !== 'open' ? 'not-allowed' : 'pointer';
+        els.lockClosingBtn.innerHTML = closingState === 'verified'
+          ? '<i class="fa-solid fa-circle-check"></i> Closing Terverifikasi'
+          : (closingState === 'locked' ? '<i class="fa-solid fa-lock"></i> Closing Sudah Ditutup' : '<i class="fa-solid fa-lock"></i> Simpan Closing');
+      }
+    }
+
+    function renderAreaOptions() {
+      const areas = [...new Set(getScopedOrders().map(order => order.area).filter(Boolean))].sort();
+      const current = els.filterArea.value || 'all';
+      els.filterArea.innerHTML = '<option value="all">Semua area</option>' + areas.map(area => `<option value="${area}">${area}</option>`).join('');
+      els.filterArea.value = areas.includes(current) ? current : 'all';
+    }
+
+    function setupEvents() {
+      els.logoutBtn.addEventListener('click', logout);
+      els.searchInput.addEventListener('input', renderOrders);
+      els.filterArea.addEventListener('change', renderOrders);
+      els.statusSelect.addEventListener('change', renderReasonButtons);
+      els.overlay.addEventListener('click', closeSheets);
+      document.querySelectorAll('[data-close-sheet]').forEach(btn => btn.addEventListener('click', closeSheets));
+
+      document.getElementById('bottomNav').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-page-target]');
+        if (!btn) return;
+        switchPage(btn.dataset.pageTarget);
+      });
+
+      els.courierSelect.addEventListener('change', () => {
+        state.currentCourierId = els.courierSelect.value;
+        state.currentCourierProfile = state.currentCourierId !== '__all__' ? state.couriers[state.currentCourierId] || null : null;
+        state.currentCourierName = state.currentCourierProfile?.name || 'Admin Pusat';
+        localStorage.setItem('ej_active_courier_id', state.currentCourierId || '');
+        localStorage.setItem('ej_active_courier_name', state.currentCourierName || '');
+        applyCourierSettings();
+        renderWalletScope(); renderAll(); refreshLocationWatcher(); showToast('Alur operasional kurir berhasil diganti.');
+      });
+
+      document.body.addEventListener('click', (e) => {
+        const tab = e.target.closest('[data-tab]');
+        if (tab) { state.currentTab = tab.dataset.tab; renderTabs(); renderOrders(); return; }
+
+        const timelineBtn = e.target.closest('[data-open-timeline]');
+        if (timelineBtn) {
+          const order = allOrders().find(item => item.id === timelineBtn.dataset.openTimeline);
+          if (guardDeliveredOrder(order)) return;
+          renderTimeline(timelineBtn.dataset.openTimeline);
+          return;
+        }
+
+        const openScannerBtn = e.target.closest('[data-open-scanner]');
+        if (openScannerBtn) {
+          const order = allOrders().find(item => item.id === openScannerBtn.dataset.openScanner);
+          if (guardDeliveredOrder(order)) return;
+          startScanPickup();
+          return;
+        }
+
+        const statusBtn = e.target.closest('[data-status]');
+        if (statusBtn) {
+          state.activeOrderId = statusBtn.dataset.status;
+          const order = getScopedOrders().find(item => item.id === state.activeOrderId);
+          if (!order) return;
+          if (guardDeliveredOrder(order)) return;
+          document.getElementById('statusSheetText').textContent = `${order.customer} • ${order.code}`;
+          if (order.status === 'delivery_delayed') els.statusSelect.value = 'Tunda';
+          else if (order.status === 'failed_delivery') els.statusSelect.value = 'Gagal';
+          else els.statusSelect.value = 'Proses';
+          els.statusNote.value = ''; renderReasonButtons(); openSheet('statusSheet'); return;
+        }
+
+        const proofBtn = e.target.closest('[data-proof]');
+        if (proofBtn) {
+          state.activeOrderId = proofBtn.dataset.proof;
+          const order = getScopedOrders().find(item => item.id === state.activeOrderId);
+          if (!order) return;
+          if (guardDeliveredOrder(order)) return;
+          els.recipientInput.value = ''; els.receivedInput.value = order.cod || 0; els.proofNote.value = ''; els.proofPhotoInput.value = ''; proofPhotoCompressedDataUrl = ''; proofPhotoCompressedBlob = null; proofPhotoCompressedFileName = ''; if (els.proofPhotoPreview) els.proofPhotoPreview.src = ''; if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none'; if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = ''; openSheet('proofSheet'); return;
+        }
+
+        const claimBtn = e.target.closest('[data-claim]');
+        if (claimBtn) {
+          state.activeOrderId = claimBtn.dataset.claim;
+          const order = getScopedOrders().find(item => item.id === state.activeOrderId);
+          if (!order) return;
+          if (guardDeliveredOrder(order)) return;
+          els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${order.pickupCode || '-'}`;
+          els.pickupSheetText.textContent = `${order.customer} • ${order.code}`;
+          els.pickupCodeInput.value = ''; els.bagLabelInput.value = order.bagLabel || ''; openSheet('pickupSheet'); return;
+        }
+
+        const startBtn = e.target.closest('[data-start]');
+        if (startBtn) {
+          const order = allOrders().find(item => item.id === startBtn.dataset.start);
+          if (guardDeliveredOrder(order)) return;
+          updateStatus(startBtn.dataset.start, 'Proses', 'Kurir mulai antar ke lokasi customer.');
+          return;
+        }
+
+        const mapBtn = e.target.closest('[data-map]');
+        if (mapBtn) {
+          const order = allOrders().find(item => item.id === mapBtn.dataset.map);
+          if (!order) return;
+          if (guardDeliveredOrder(order)) return;
+          const url = buildCustomerMapUrl(order);
+          window.open(url, '_blank');
+          safeWriteAudit(`Buka Map ${order.code}`, `Navigasi dibuka untuk ${order.customer}.`, { orderId: order.id }); return;
+        }
+
+        const waBtn = e.target.closest('[data-wa]');
+        if (waBtn) {
+          const order = allOrders().find(item => item.id === waBtn.dataset.wa);
+          if (!order) return;
+          if (guardDeliveredOrder(order)) return;
+          const digits = String(order.phone || '').replace(/\D/g, '');
+          const waNumber = digits.startsWith('0') ? '62' + digits.slice(1) : digits;
+          const statusText = order.status === 'on_the_way' ? 'kurir sedang menuju lokasi Anda' : (order.status === 'picked_by_courier' ? 'pesanan sudah dibawa kurir kami' : `status pesanan ${order.code} sedang diproses oleh kurir EJ Store`);
+          const msg = encodeURIComponent(`Halo ${order.customer}, ${statusText}.`);
+          if (waNumber) window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank');
+          safeWriteAudit(`WA ${order.code}`, `Template WA dibuka untuk ${order.customer}.`, { orderId: order.id }); return;
+        }
+
+        const archiveBtn = e.target.closest('[data-archive]');
+        if (archiveBtn) {
+          const order = allOrders().find(item => item.id === archiveBtn.dataset.archive);
+          if (guardDeliveredOrder(order)) return;
+          archiveOrder(archiveBtn.dataset.archive);
+          return;
+        }
+        const restoreBtn = e.target.closest('[data-restore]');
+        if (restoreBtn) { archiveOrder(restoreBtn.dataset.restore); return; }
+
+        const reasonBtn = e.target.closest('[data-reason]');
+        if (reasonBtn) {
+          state.selectedReason = reasonBtn.dataset.reason;
+          document.querySelectorAll('.reason-btn').forEach(btn => btn.classList.remove('active'));
+          reasonBtn.classList.add('active');
+        }
+      });
+
+      document.getElementById('saveStatusBtn').addEventListener('click', () => { if (!state.activeOrderId) return; updateStatus(state.activeOrderId, els.statusSelect.value, els.statusNote.value.trim()); });
+      document.getElementById('claimPickupBtn').addEventListener('click', () => { if (!state.activeOrderId) return; claimPickup(state.activeOrderId); });
+      if (els.tabQuickActionBtn) els.tabQuickActionBtn.addEventListener('click', () => handleTabQuickAction());
+      document.getElementById('saveProofBtn').addEventListener('click', saveProof);
+      document.getElementById('saveExpenseBtn').addEventListener('click', saveExpense);
+      document.getElementById('lockClosingBtn').addEventListener('click', lockClosing);
+
+      [
+        ['openTimelineBtn', async () => { const first = getVisibleOrders()[0] || getScopedOrders()[0]; if (!first) return showToast('Belum ada order untuk ditampilkan.'); await renderTimeline(first.id); }],
+        ['openAuditBtn', () => openSheet('auditSheet')],
+        ['openAuditBtn2', () => openSheet('auditSheet')],
+        ['sortRouteBtn', () => { renderRoutePage(); showToast('Mode atur rute aktif.'); }],
+        ['routeEtaBtn', () => { state.routeSortMode = 'eta'; localStorage.setItem(ROUTE_SORT_KEY, state.routeSortMode); renderRoutePage(); showToast('Rute diurutkan berdasarkan ETA.'); }],
+        ['routeCodBtn', () => { state.routeSortMode = 'cod'; localStorage.setItem(ROUTE_SORT_KEY, state.routeSortMode); renderRoutePage(); showToast('Rute diurutkan berdasarkan COD.'); }],
+        ['expenseBtn', () => { if (!requireCourierAction()) return; openSheet('expenseSheet'); }],
+        ['walletExpenseBtn', () => { if (!requireCourierAction()) return; openSheet('expenseSheet'); }],
+        ['scanPickupBtn', startScanPickup],
+        ['closingKasBtn', () => { if (!requireCourierAction()) return; fillClosingForm(); openSheet('closingSheet'); }],
+        ['walletClosingBtn', () => { if (!requireCourierAction()) return; fillClosingForm(); openSheet('closingSheet'); }],
+        ['openClosingBtn', () => { if (!requireCourierAction()) return; fillClosingForm(); openSheet('closingSheet'); }],
+        ['openArchiveBtn', () => openSheet('archiveSheet')],
+        ['sortEtaBtn', () => { state.orderSortMode = 'eta'; state.routeSortMode = 'eta'; localStorage.setItem(ORDER_SORT_KEY, state.orderSortMode); localStorage.setItem(ROUTE_SORT_KEY, state.routeSortMode); renderOrders(); renderRoutePage(); showToast('Urutan ETA diterapkan pada daftar.'); }],
+        ['sortCodBtn', () => { state.orderSortMode = 'cod'; state.routeSortMode = 'cod'; localStorage.setItem(ORDER_SORT_KEY, state.orderSortMode); localStorage.setItem(ROUTE_SORT_KEY, state.routeSortMode); renderOrders(); renderRoutePage(); showToast('Urutan COD diterapkan pada daftar.'); }],
+        ['sortAreaBtn', () => { state.orderSortMode = 'area'; state.routeSortMode = 'area'; localStorage.setItem(ORDER_SORT_KEY, state.orderSortMode); localStorage.setItem(ROUTE_SORT_KEY, state.routeSortMode); renderOrders(); renderRoutePage(); showToast('Rute diurutkan berdasarkan area.'); }],
+        ['reloadBtn', reloadCourierPage]
+      ].forEach(([id, handler]) => { const node = document.getElementById(id); if (node) node.addEventListener('click', handler); });
+
+      if (els.closeScannerBtn) els.closeScannerBtn.addEventListener('click', stopScannerModal);
+      if (els.scannerTorchBtn) {
+        els.scannerTorchBtn.addEventListener('click', async () => {
+          if (!scannerTorchAvailable) return;
+          await setScannerTorch(!scannerTorchOn);
+        });
+      }
+      if (els.scannerModal) {
+        els.scannerModal.addEventListener('click', (e) => { if (e.target === els.scannerModal) stopScannerModal(); });
+      }
+      window.addEventListener('beforeunload', stopScannerModal);
+
+      [['onlineSwitch','online'],['trackingSwitch','trackingOn'],['waSwitch','waAuto'],['gpsSwitch','gpsOn'],['proofGpsSwitch','proofGpsOn']].forEach(([id,key]) => {
+        document.getElementById(id).addEventListener('click', async () => {
+          state[key] = !state[key];
+          updateNetworkUI();
+          refreshLocationWatcher();
+          await persistCourierSettings();
+          showToast('Pengaturan berhasil diperbarui.');
+        });
+      });
+
+      
+      if (els.proofPhotoInput) {
+        els.proofPhotoInput.addEventListener('change', async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          try {
+            const compressed = await compressImageFile(file, {
+              maxWidth: 1280,
+              maxHeight: 1280,
+              quality: 0.72,
+              outputType: 'image/jpeg'
+            });
+            proofPhotoCompressedDataUrl = compressed.dataUrl;
+            proofPhotoCompressedBlob = compressed.blob;
+            proofPhotoCompressedFileName = `proof-${Date.now()}.jpg`;
+            if (els.proofPhotoPreview) els.proofPhotoPreview.src = compressed.dataUrl;
+            if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'block';
+            if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = `${compressed.width}x${compressed.height} • ${formatBytes(compressed.size)} • JPEG kompres`;
+          } catch (err) {
+            console.error(err);
+            showToast('Foto gagal diproses. Coba ambil ulang.');
+            proofPhotoCompressedDataUrl = '';
+            proofPhotoCompressedBlob = null;
+            proofPhotoCompressedFileName = '';
+            if (els.proofPhotoPreviewWrap) els.proofPhotoPreviewWrap.style.display = 'none';
+            if (els.proofPhotoPreview) els.proofPhotoPreview.src = '';
+            if (els.proofPhotoMeta) els.proofPhotoMeta.textContent = '';
+            els.proofPhotoInput.value = '';
+          }
+        });
+      }
+    }
+
+    function focusOrderCard(orderId) {
+      switchPage('home');
+      const order = allOrders().find(item => item.id === orderId);
+      if (!order) return;
+      state.currentTab = resolveTabForOrder(order);
+      renderAll();
+      setTimeout(() => {
+        const card = document.querySelector(`[data-order-card="${orderId}"]`);
+        if (!card) return;
+        card.classList.add('scan-highlight');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => card.classList.remove('scan-highlight'), 2200);
+      }, 60);
+    }
+
+    async function processScanFile(file) {
+      if (!file) return false;
+      if (!('BarcodeDetector' in window)) return false;
+      try {
+        const detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','upc_a','upc_e'] });
+        const bitmap = await createImageBitmap(file);
+        const codes = await detector.detect(bitmap);
+        const rawCode = String(codes?.[0]?.rawValue || '').trim();
+        if (!rawCode) return false;
+        await handleScannedPickupCode(rawCode);
+        return true;
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
+    }
+
+    function vibratePulse(pattern) {
+      try { if (navigator.vibrate) navigator.vibrate(pattern); } catch {}
+    }
+
+    function getScannerAudioContext() {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!scannerAudioContext) scannerAudioContext = new Ctx();
+      if (scannerAudioContext.state === 'suspended') scannerAudioContext.resume().catch(() => {});
+      return scannerAudioContext;
+    }
+
+    function playScannerTone(type = 'success') {
+      const ctx = getScannerAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type === 'success' ? 'sine' : 'sawtooth';
+      if (type === 'success') {
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.08);
+      } else {
+        osc.frequency.setValueAtTime(280, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+      }
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(type === 'success' ? 0.16 : 0.2, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + (type === 'success' ? 0.16 : 0.22));
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + (type === 'success' ? 0.18 : 0.24));
+    }
+
+    function setScannerLoading(loading, message = 'Menyiapkan kamera belakang…') {
+      if (els.scannerLoaderText) els.scannerLoaderText.textContent = message;
+      if (els.scannerLoader) els.scannerLoader.classList.toggle('hidden', !loading);
+    }
+
+    function updateScannerTorchUi() {
+      if (!els.scannerTorchBtn) return;
+      els.scannerTorchBtn.disabled = !scannerTorchAvailable;
+      els.scannerTorchBtn.style.opacity = scannerTorchAvailable ? '1' : '.38';
+      els.scannerTorchBtn.title = scannerTorchAvailable ? (scannerTorchOn ? 'Matikan lampu' : 'Nyalakan lampu') : 'Lampu tidak didukung';
+      els.scannerTorchBtn.innerHTML = scannerTorchOn
+        ? '<i class="fa-solid fa-bolt" style="color:#f6dd82"></i>'
+        : '<i class="fa-solid fa-bolt"></i>';
+    }
+
+    async function setScannerTorch(nextState) {
+      if (!scannerStream) return;
+      const track = scannerStream.getVideoTracks?.()[0];
+      if (!track) return;
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+      if (!capabilities.torch) {
+        scannerTorchAvailable = false;
+        scannerTorchOn = false;
+        updateScannerTorchUi();
+        return;
+      }
+      try {
+        await track.applyConstraints({ advanced: [{ torch: !!nextState }] });
+        scannerTorchAvailable = true;
+        scannerTorchOn = !!nextState;
+      } catch (err) {
+        console.warn('SCANNER_TORCH_FAILED', err);
+        scannerTorchOn = false;
+      }
+      updateScannerTorchUi();
+    }
+
+    function setScannerStatus(message, tone = 'neutral') {
+      if (!els.scannerStatusText) return;
+      els.scannerStatusText.textContent = message;
+      els.scannerStatusText.classList.remove('success', 'warning');
+      if (els.scannerModal) {
+        const shell = els.scannerModal.querySelector('.scanner-shell');
+        if (shell) shell.classList.remove('scan-success', 'scan-warning');
+        if (tone === 'success') {
+          els.scannerStatusText.classList.add('success');
+          if (shell) shell.classList.add('scan-success');
+        } else if (tone === 'warning') {
+          els.scannerStatusText.classList.add('warning');
+          if (shell) shell.classList.add('scan-warning');
+        }
+      }
+    }
+
+    function pulseScannerFeedback(tone, message) {
+      setScannerStatus(message, tone);
+      if (tone === 'success') {
+        playScannerTone('success');
+        vibratePulse([40, 20, 40]);
+      } else if (tone === 'warning') {
+        playScannerTone('warning');
+        vibratePulse([90]);
+      }
+    }
+
+    function stopScannerModal() {
+      if (scannerLoopHandle) { clearTimeout(scannerLoopHandle); scannerLoopHandle = null; }
+      scannerBusy = false;
+      scannerLastCode = '';
+      scannerTorchAvailable = false;
+      scannerTorchOn = false;
+      updateScannerTorchUi();
+      setScannerLoading(true, 'Menyiapkan kamera belakang…');
+      setScannerStatus('Menyiapkan kamera belakang…');
+      if (scannerStream) {
+        scannerStream.getTracks().forEach(track => track.stop());
+        scannerStream = null;
+      }
+      if (els.scannerVideo) {
+        try { els.scannerVideo.pause(); } catch {}
+        els.scannerVideo.srcObject = null;
+      }
+      if (els.scannerModal) {
+        els.scannerModal.classList.remove('show');
+        els.scannerModal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    async function scannerDetectTick(detector) {
+      if (!els.scannerVideo || !scannerStream || scannerBusy) return;
+      const video = els.scannerVideo;
+      if (video.readyState < 2) {
+        scannerLoopHandle = setTimeout(() => scannerDetectTick(detector), 220);
+        return;
+      }
+      scannerBusy = true;
+      try {
+        const codes = await detector.detect(video);
+        const rawCode = String(codes?.[0]?.rawValue || '').trim();
+        if (rawCode && rawCode !== scannerLastCode) {
+          scannerLastCode = rawCode;
+          setScannerStatus(`Pickup code terbaca: ${rawCode}`);
+          const result = await handleScannedPickupCode(rawCode);
+          if (result === 'success') {
+            setTimeout(() => stopScannerModal(), 360);
+            return;
+          }
+          setTimeout(() => {
+            scannerLastCode = '';
+            setScannerStatus('Arahkan pickup code ke dalam frame. Scan berjalan otomatis.');
+          }, 1200);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        scannerBusy = false;
+      }
+      scannerLoopHandle = setTimeout(() => scannerDetectTick(detector), 260);
+    }
+
+    async function openScannerModal() {
+      if (!els.scannerModal || !els.scannerVideo) return startScanPickupLegacy();
+      els.scannerModal.classList.add('show');
+      els.scannerModal.setAttribute('aria-hidden', 'false');
+      scannerLastCode = '';
+      setScannerLoading(true, 'Menyiapkan kamera belakang…');
+      setScannerStatus('Menyiapkan kamera belakang…');
+      updateScannerTorchUi();
+      if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+        setScannerLoading(false);
+        setScannerStatus('Browser ini belum mendukung scanner live otomatis. Gunakan perangkat lain yang mendukung BarcodeDetector.', 'warning');
+        return;
+      }
+      try {
+        scannerStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        const track = scannerStream.getVideoTracks?.()[0];
+        const capabilities = track?.getCapabilities ? track.getCapabilities() : {};
+        scannerTorchAvailable = !!capabilities.torch;
+        scannerTorchOn = false;
+        updateScannerTorchUi();
+        els.scannerVideo.srcObject = scannerStream;
+        await els.scannerVideo.play();
+        setScannerLoading(false);
+        setScannerStatus('Arahkan pickup code ke dalam frame. Scan berjalan otomatis.');
+        const detector = new BarcodeDetector({ formats: ['code_128','code_39','ean_13','ean_8','qr_code','upc_a','upc_e'] });
+        scannerDetectTick(detector);
+      } catch (err) {
+        console.error(err);
+        setScannerLoading(false);
+        setScannerStatus('Kamera tidak bisa dibuka. Pastikan izin kamera diberikan lalu coba lagi.', 'warning');
+      }
+    }
+
+    async function handleScannedPickupCode(rawCode) {
+      const code = String(rawCode || '').trim();
+      if (!code) return;
+      const order = allOrders().find(item => String(item.pickupCode || '').trim().toLowerCase() === code.toLowerCase());
+      if (!order) {
+        state.activeOrderId = '';
+        pulseScannerFeedback('warning', `Pickup code ${code} tidak ditemukan. Coba arahkan ulang barcode ke tengah frame.`);
+        showToast('Pickup code tidak ditemukan.');
+        return 'warning';
+      }
+
+      if (order.status === 'ready_in_warehouse') {
+        state.activeOrderId = order.id;
+        if (els.pickupCodePreview) els.pickupCodePreview.innerHTML = `<i class="fa-solid fa-barcode"></i> ${order.pickupCode || code}`;
+        if (els.pickupSheetText) els.pickupSheetText.textContent = `${order.customer} • ${order.code}`;
+        if (els.pickupCodeInput) els.pickupCodeInput.value = order.pickupCode || code;
+        if (els.bagLabelInput) els.bagLabelInput.value = order.bagLabel || defaultBagLabel();
+        pulseScannerFeedback('success', `Pickup code ${order.pickupCode || code} valid. Paket sedang diproses ke tas kurir...`);
+        await claimPickup(order.id);
+        return 'success';
+      }
+
+      if (order.courierId && state.currentCourierId && order.courierId === state.currentCourierId) {
+        focusOrderCard(order.id);
+        pulseScannerFeedback('success', `Paket ${order.code} sudah ada di ${order.bagLabel || 'tas kurir'}.`);
+        showToast(`Paket ${order.code} ada di ${order.bagLabel || 'tas kurir'}.`);
+        return 'success';
+      }
+
+      focusOrderCard(order.id);
+      pulseScannerFeedback('warning', `Paket ${order.code} ditemukan, tetapi bukan milik kurir aktif.`);
+      showToast(`Paket ${order.code} ditemukan dengan status ${order.statusText}.`);
+      return 'warning';
+    }
+
+    function startScanPickupLegacy() {
+      showToast('Scanner live wajib dipakai di versi ini.');
+    }
+
+    function startScanPickup() {
+      if (!requireCourierAction()) return;
+      openScannerModal();
+    }
+
+
+
+    function setHeroMessage(message, type = 'info') {
+      if (!els.heroSub) return;
+      const iconClass = type === 'lock'
+        ? 'fa-solid fa-lock'
+        : (type === 'warning' ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-info');
+      els.heroSub.innerHTML = `
+        <span class="hero-note">
+          <i class="${iconClass}"></i>
+          <span>${message}</span>
+        </span>
+      `;
+    }
+
+    function defaultBagLabel() {
+      if (state.currentCourierProfile?.defaultBagLabel) return state.currentCourierProfile.defaultBagLabel;
+      if (state.currentCourierName) {
+        const shortName = String(state.currentCourierName).trim().split(' ')[0] || 'A';
+        return `Tas ${shortName}`;
+      }
+      return 'Tas A';
+    }
+
+    function reloadCourierPage() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_r', Date.now().toString());
+      window.location.href = url.toString();
+    }
+
+    function updateNetworkUI() {
+      const online = state.online && navigator.onLine;
+      const displayName = getDisplayCourierName();
+      els.networkDot.classList.toggle('offline', !online);
+      els.networkLabel.textContent = online ? 'Sistem online' : 'Mode offline';
+      els.brandSub.textContent = isAdminPusatMode() ? `Mode pantau • ${online ? 'Sistem online' : 'Mode offline'}` : `${online ? 'Sistem online' : 'Mode offline'} • ${state.trackingOn ? 'Operasional aktif' : 'Tracking mati'}`;
+      els.onlineSwitch.classList.toggle('active', state.online);
+      els.trackingSwitch.classList.toggle('active', state.trackingOn);
+      els.waSwitch.classList.toggle('active', state.waAuto);
+      els.gpsSwitch.classList.toggle('active', state.gpsOn);
+      els.proofGpsSwitch.classList.toggle('active', state.proofGpsOn);
+    }
+
+    function renderAll() {
+      renderWalletScope();
+      renderSessionInfo();
+      renderTabs();
+      renderOrders();
+      renderRoutePage();
+      renderWalletPage();
+      renderAuditLog();
+      renderArchive();
+      renderSummary();
+      renderAreaOptions();
+      updateNetworkUI();
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+    renderReasonButtons();
+    setupEvents();
+    bindRealtime();
+    renderAll();
+    refreshLocationWatcher();
+    closeSheets();
+  </script>
+</body>
+</html>
