@@ -28,7 +28,7 @@
   <title>EJ Kurir Pickup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root { --bg:#07090d; --stroke:rgba(255,255,255,.08); --text:#f5f7fb; --muted:#98a2b3; --gold:#d4af37; --gold-2:#f6dd82; --green:#22c55e; --red:#ef4444; --shadow:0 20px 60px rgba(0,0,0,.38); --gradient-gold:linear-gradient(135deg,#f7e08c 0%,#d4af37 55%,#b8860b 100%); --gradient-hero:radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 38%), linear-gradient(180deg, #111827 0%, #090b10 100%);}
@@ -38,7 +38,7 @@
     .app-shell{width:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:110px}
     .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0 10px;backdrop-filter:blur(18px);background:linear-gradient(180deg, rgba(7,9,13,.90), rgba(7,9,13,.55), transparent)}
     .brand-wrap{display:flex;align-items:center;gap:12px;min-width:0}.brand-icon{width:56px;height:56px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);display:grid;place-items:center;overflow:hidden;box-shadow:var(--shadow);font-size:18px;flex:0 0 auto}.brand-icon img{width:100%;height:100%;object-fit:contain;display:block}
-    .brand-text h1{font-size:16px;line-height:1.15;font-weight:800;letter-spacing:.2px}.brand-text p{margin-top:3px;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand-text h1{font-size:16px;line-height:1.05;font-weight:900;letter-spacing:.7px;text-transform:none;background:linear-gradient(135deg,#fff7d1 0%,#f6dd82 26%,#d4af37 58%,#fff0b8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 10px 26px rgba(212,175,55,.16);display:flex;align-items:center;gap:8px;flex-wrap:wrap}.brand-text h1 .brand-wordmark{font-family:'Playfair Display', Georgia, 'Times New Roman', serif;font-weight:700;letter-spacing:.55px}.brand-text h1 .brand-divider{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:radial-gradient(circle, rgba(246,221,130,.22), rgba(246,221,130,0) 72%);color:#f6dd82;font-size:8px;box-shadow:0 0 18px rgba(212,175,55,.18)}.brand-text p{margin-top:4px;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.15px}
     .top-actions{display:flex;align-items:center;gap:8px}.icon-btn{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--text);display:grid;place-items:center;box-shadow:var(--shadow)}
     .hero-note{display:flex;align-items:flex-start;gap:10px;margin-top:10px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:12px;line-height:1.5;color:var(--text-soft)}
     .hero-note i{margin-top:2px;color:var(--gold-2)}
@@ -148,9 +148,9 @@
     button,input,select,textarea{outline:none;-webkit-appearance:none;appearance:none}
     input:focus,select:focus,textarea:focus{border-color:rgba(212,175,55,.26);box-shadow:0 0 0 1px rgba(212,175,55,.22),0 0 0 4px rgba(212,175,55,.08)}
     .topbar{padding:14px 2px 12px;background:linear-gradient(180deg, rgba(6,8,12,.94) 0%, rgba(6,8,12,.78) 62%, rgba(6,8,12,0) 100%)}
-    .brand-wrap{position:relative;padding:4px 10px 4px 4px;border-radius:22px;cursor:pointer;transition:transform .22s ease,background .26s ease,box-shadow .26s ease}
+    .brand-wrap{position:relative;padding:4px 10px 4px 4px;border-radius:22px;cursor:pointer;transition:background .26s ease,box-shadow .26s ease}
     .brand-wrap::after{content:"";position:absolute;inset:0;border-radius:inherit;border:1px solid rgba(255,255,255,.05);background:linear-gradient(135deg, rgba(255,255,255,.04), transparent 45%);opacity:.0;transition:opacity .24s ease;pointer-events:none}
-    .brand-wrap:active{transform:scale(.988)}
+    .brand-wrap:active{box-shadow:0 0 0 1px rgba(212,175,55,.10)}
     .brand-wrap:hover::after,.brand-wrap:focus-visible::after{opacity:1}
     .brand-wrap.logo-bounce .brand-icon{transform:translateY(-1px) scale(1.02);box-shadow:0 14px 30px rgba(212,175,55,.22),0 0 0 1px rgba(255,255,255,.05)}
     .brand-icon,.icon-btn,.role-pill,.tool-btn,.primary-btn,.secondary-btn,.search-box,.select-box,.field,.field-area,.route-sort-btn,.route-chip-btn,.route-icon-btn,.action-btn,.ghost-btn,.sheet-btn,.action-icon-btn,.pill-btn,.mini-btn,.tab-item,.nav-item{backdrop-filter:blur(16px)}
@@ -158,14 +158,13 @@
     .hero-card{box-shadow:0 26px 56px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.03) inset,0 0 32px rgba(212,175,55,.05)}
     .search-card,.panel-card,.list-card,.tabs-card,.role-chip{background:linear-gradient(180deg, rgba(16,20,30,.92), rgba(10,13,20,.88))}
     .bottom-nav{background:linear-gradient(180deg, rgba(12,15,22,.86), rgba(8,10,14,.95));border-color:rgba(255,255,255,.09);box-shadow:0 22px 52px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.06)}
-    button:not(.switch),.nav-item,.tab-item{position:relative;overflow:hidden;isolation:isolate;touch-action:manipulation;transition:transform .18s ease,box-shadow .24s ease,filter .24s ease,border-color .24s ease,background .24s ease}
-    button:not(.switch)::before,.nav-item::before,.tab-item::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg, transparent 25%, rgba(255,255,255,.18) 48%, transparent 72%);opacity:0;transform:translateX(-130%);transition:transform .55s ease,opacity .22s ease;pointer-events:none;z-index:0}
-    button:not(.switch):not([disabled]):active,.nav-item:active,.tab-item:active{transform:translateY(1px) scale(.985);filter:saturate(1.05)}
-    button:not(.switch):not([disabled]):active::before,.nav-item:active::before,.tab-item:active::before{opacity:1;transform:translateX(130%)}
+    button:not(.switch),.nav-item,.tab-item{position:relative;overflow:hidden;isolation:isolate;touch-action:manipulation;transition:box-shadow .24s ease,filter .24s ease,border-color .24s ease,background .24s ease,color .24s ease}
+    button:not(.switch)::before,.nav-item::before,.tab-item::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg, rgba(255,255,255,.05), transparent 46%);opacity:0;transition:opacity .2s ease;pointer-events:none;z-index:0}
+    button:not(.switch):not([disabled]):active::before,.nav-item:active::before,.tab-item:active::before{opacity:1}
     button:not(.switch):focus-visible,.nav-item:focus-visible,.tab-item:focus-visible{box-shadow:0 0 0 1px rgba(212,175,55,.28),0 0 0 4px rgba(212,175,55,.10),0 12px 28px rgba(212,175,55,.14)}
     button:not(.switch) > *, .nav-item > *, .tab-item > *{position:relative;z-index:1}
-    .tap-ripple{position:absolute;border-radius:999px;pointer-events:none;z-index:0;background:radial-gradient(circle, rgba(246,221,130,.42) 0%, rgba(246,221,130,.2) 40%, rgba(246,221,130,0) 74%);transform:translate(-50%,-50%) scale(0);animation:luxRipple .68s cubic-bezier(.2,.75,.25,1) forwards}
-    @keyframes luxRipple{to{transform:translate(-50%,-50%) scale(18);opacity:0}}
+    .press-vibe{animation:pressVibe .22s linear 1;box-shadow:0 0 0 1px rgba(212,175,55,.14),0 10px 22px rgba(212,175,55,.12),inset 0 1px 0 rgba(255,255,255,.04)}
+    @keyframes pressVibe{0%{transform:translate3d(0,0,0)}20%{transform:translate3d(.7px,0,0)}40%{transform:translate3d(-.7px,0,0)}60%{transform:translate3d(.5px,0,0)}80%{transform:translate3d(-.45px,0,0)}100%{transform:translate3d(0,0,0)}}
     .nav-item.active,.tab-item.active,.route-sort-btn.active{box-shadow:0 10px 28px rgba(212,175,55,.12), inset 0 1px 0 rgba(255,255,255,.05)}
     .primary-btn{box-shadow:0 18px 36px rgba(212,175,55,.24), inset 0 1px 0 rgba(255,255,255,.18)}
     .secondary-btn,.icon-btn,.tool-btn,.route-sort-btn,.route-chip-btn,.route-icon-btn,.ghost-btn,.sheet-btn,.pill-btn,.mini-btn,.action-icon-btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
@@ -180,7 +179,7 @@
       <div class="brand-wrap" id="headerLogoBtn" title="Kembali ke atas">
         <div class="brand-icon"><img src="../assets/logo-ej-tobacco.png" alt="EJ Tobacco" /></div>
         <div class="brand-text">
-          <h1>EJ TOBACCO DELIVERY</h1>
+          <h1><span class="brand-wordmark">EJ Tobacco</span><span class="brand-divider"><i class="fa-solid fa-diamond"></i></span><span>Delivery</span></h1>
           <p id="brandSub">Sistem online • Operasional aktif</p>
         </div>
       </div>
@@ -2696,18 +2695,15 @@
     }
 
 
-    function attachTapRipple(target, clientX, clientY) {
+    function triggerPressVibe(target) {
       if (!target || target.disabled) return;
-      const rect = target.getBoundingClientRect();
-      const ripple = document.createElement('span');
-      ripple.className = 'tap-ripple';
-      const size = Math.max(rect.width, rect.height) * 0.95;
-      ripple.style.width = `${size}px`;
-      ripple.style.height = `${size}px`;
-      ripple.style.left = `${clientX - rect.left}px`;
-      ripple.style.top = `${clientY - rect.top}px`;
-      target.appendChild(ripple);
-      ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+      target.classList.remove('press-vibe');
+      void target.offsetWidth;
+      target.classList.add('press-vibe');
+      setTimeout(() => target.classList.remove('press-vibe'), 240);
+      if (navigator.vibrate) {
+        try { navigator.vibrate(10); } catch (_) {}
+      }
     }
 
     function isEditableTarget(target) {
@@ -2734,7 +2730,7 @@
       document.addEventListener('pointerdown', (e) => {
         const target = e.target.closest('button:not(.switch), .nav-item, .tab-item');
         if (!target || target.disabled) return;
-        attachTapRipple(target, e.clientX, e.clientY);
+        triggerPressVibe(target);
       }, true);
 
       document.addEventListener('contextmenu', (e) => {
