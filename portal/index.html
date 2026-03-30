@@ -110,11 +110,11 @@
         <div class="brand-icon">🔐</div>
         <div>
           <h1>EJ Portal Role</h1>
-          <p id="brandSub">Admin pusat, admin cabang, kurir, dan customer masuk dari satu gerbang.</p>
+          <p id="brandSub">Admin pusat dan kurir masuk dari satu gerbang Firebase Authentication.</p>
         </div>
       </div>
       <div class="hero-title">Akses berdasarkan role</div>
-      <div class="hero-sub">Portal ini membaca user dari <code>app_users</code> di Firebase Realtime Database, lalu otomatis mengarahkan user ke halaman yang sesuai dengan rolenya.</div>
+      <div class="hero-sub">Portal ini login lewat Firebase Authentication Email/Password, lalu membaca custom claims role dari ID token user.</div>
       <div class="grid4" style="margin-top:16px">
         <div class="mini"><label>User aktif</label><strong id="userCountText">0</strong></div>
         <div class="mini"><label>Admin pusat</label><strong id="pusatCountText">0</strong></div>
@@ -145,12 +145,12 @@
       <div class="section-head">
         <div>
           <h2>Masuk ke sistem</h2>
-          <p>Masukkan username dan PIN sesuai user yang ada di Firebase.</p>
+          <p>Masukkan email dan password Firebase Authentication.</p>
         </div>
       </div>
       <div class="stack">
-        <input class="field" id="usernameInput" placeholder="Username" autocomplete="username" />
-        <input class="field" id="pinInput" type="password" placeholder="PIN / password" autocomplete="current-password" />
+        <input class="field" id="usernameInput" placeholder="Email login" autocomplete="email" />
+        <input class="field" id="pinInput" type="password" placeholder="Password" autocomplete="current-password" />
         <button class="btn" id="loginBtn">Login Sekarang</button>
         <div id="noticeBox" class="notice hidden"></div>
       </div>
@@ -160,7 +160,7 @@
       <div class="section-head">
         <div>
           <h2>Role yang tersedia</h2>
-          <p>Target halaman otomatis ditentukan dari field <code>role</code>.</p>
+          <p>Target halaman otomatis ditentukan dari custom claims <code>role</code>.</p>
         </div>
       </div>
       <div class="roles">
@@ -193,303 +193,248 @@
   </div>
 
   <script type="module">
-  import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
-  import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
-  import {
-    getAuth,
-    setPersistence,
-    browserLocalPersistence,
-    signInWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut
-  } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
+    import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
+    import {
+      getAuth,
+      setPersistence,
+      browserLocalPersistence,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
-    authDomain: "ej-tobacco-store.firebaseapp.com",
-    databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "ej-tobacco-store",
-    storageBucket: "ej-tobacco-store.firebasestorage.app",
-    messagingSenderId: "70458372662",
-    appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
-    measurementId: "G-VCRFQSRB9H"
-  };
-
-  const SESSION_KEY = 'ej_role_session_v1';
-  const LOGIN_TIME_KEY = 'ej_role_login_time_label';
-
-  // sementara admin diarahkan ke kurir mode pantau dulu
-  const ROLE_TARGETS = {
-    admin_pusat: '../kurir/index.html',
-    kurir: '../kurir/index.html'
-  };
-
-  const ALLOWED_AUTH_ROLES = ['admin_pusat', 'kurir'];
-
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
-
-  const state = {
-    users: {}
-  };
-
-  const els = {
-    usernameInput: document.getElementById('usernameInput'),
-    pinInput: document.getElementById('pinInput'),
-    loginBtn: document.getElementById('loginBtn'),
-    noticeBox: document.getElementById('noticeBox'),
-    userCountText: document.getElementById('userCountText'),
-    pusatCountText: document.getElementById('pusatCountText'),
-    cabangCountText: document.getElementById('cabangCountText'),
-    kurirCountText: document.getElementById('kurirCountText'),
-    sessionBox: document.getElementById('sessionBox'),
-    sessionEmpty: document.getElementById('sessionEmpty'),
-    sessionName: document.getElementById('sessionName'),
-    sessionMeta: document.getElementById('sessionMeta'),
-    continueSessionBtn: document.getElementById('continueSessionBtn'),
-    logoutSessionBtn: document.getElementById('logoutSessionBtn'),
-    brandSub: document.getElementById('brandSub')
-  };
-
-  if (els.brandSub) {
-    els.brandSub.textContent = 'Admin pusat dan kurir masuk dari satu gerbang Firebase Authentication.';
-  }
-  if (els.usernameInput) {
-    els.usernameInput.placeholder = 'Email login';
-    els.usernameInput.setAttribute('autocomplete', 'email');
-  }
-  if (els.pinInput) {
-    els.pinInput.placeholder = 'Password';
-  }
-
-  function showNotice(message, isError = false) {
-    els.noticeBox.textContent = message;
-    els.noticeBox.classList.remove('hidden', 'error');
-    if (isError) els.noticeBox.classList.add('error');
-  }
-
-  function hideNotice() {
-    els.noticeBox.classList.add('hidden');
-    els.noticeBox.classList.remove('error');
-    els.noticeBox.textContent = '';
-  }
-
-  function countRoles() {
-    const users = Object.values(state.users || {}).filter(u => u && u.isActive !== false);
-    const pusat = users.filter(u => u.role === 'admin_pusat').length;
-    const cabang = users.filter(u => u.role === 'admin_cabang').length;
-    const kurir = users.filter(u => u.role === 'kurir').length;
-    els.userCountText.textContent = String(users.length);
-    els.pusatCountText.textContent = String(pusat);
-    els.cabangCountText.textContent = String(cabang);
-    els.kurirCountText.textContent = String(kurir);
-  }
-
-  function makeLoginTimeLabel() {
-    return new Date().toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }) + ' WIB';
-  }
-
-  function normalizeTarget(target, role) {
-    const fallback = ROLE_TARGETS[role] || '../portal/index.html';
-    const raw = String(target || '').trim();
-    if (!raw) return fallback;
-    if (raw === '../') return '../index.html';
-    if (raw === './') return './index.html';
-    if (raw.endsWith('/')) return raw + 'index.html';
-    return raw;
-  }
-
-  function clearSessionMirror() {
-    localStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(LOGIN_TIME_KEY);
-    localStorage.removeItem('ej_active_courier_id');
-    localStorage.removeItem('ej_active_courier_name');
-  }
-
-  function loadSession() {
-    try {
-      return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
-    } catch {
-      return null;
-    }
-  }
-
-  function renderSession() {
-    const session = loadSession();
-    if (!session || !ALLOWED_AUTH_ROLES.includes(session.role)) {
-      els.sessionBox.classList.add('hidden');
-      els.sessionEmpty.classList.remove('hidden');
-      return;
-    }
-
-    els.sessionBox.classList.remove('hidden');
-    els.sessionEmpty.classList.add('hidden');
-    els.sessionName.textContent = session.name || session.username || session.email || '-';
-    els.sessionMeta.textContent = `${session.role}${session.email ? ' • ' + session.email : ''}`;
-  }
-
-  function buildSessionFromAuth(user, tokenResult) {
-    const claims = tokenResult?.claims || {};
-    const role = String(claims.role || '').trim();
-    const courierId = String(claims.courier_id || '').trim();
-    const email = String(user.email || '').trim().toLowerCase();
-    const username = email.includes('@') ? email.split('@')[0] : email;
-
-    return {
-      uid: user.uid,
-      id: courierId || user.uid,
-      courier_id: courierId || '',
-      email,
-      username,
-      role,
-      name: String(claims.name || user.displayName || username || email || 'User'),
-      branchCode: '',
-      target: normalizeTarget(ROLE_TARGETS[role], role),
-      source: 'firebase_auth_stage1',
-      savedAt: Date.now()
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8",
+      authDomain: "ej-tobacco-store.firebaseapp.com",
+      databaseURL: "https://ej-tobacco-store-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ej-tobacco-store",
+      storageBucket: "ej-tobacco-store.firebasestorage.app",
+      messagingSenderId: "70458372662",
+      appId: "1:70458372662:web:c37950efaf04b33c7f9e97",
+      measurementId: "G-VCRFQSRB9H"
     };
-  }
 
-  function saveSessionMirror(session) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    localStorage.setItem(LOGIN_TIME_KEY, makeLoginTimeLabel());
-    localStorage.removeItem('ej_active_courier_id');
-    localStorage.removeItem('ej_active_courier_name');
-    renderSession();
-  }
+    const SESSION_KEY = 'ej_role_session_v1';
+    const LOGIN_TIME_KEY = 'ej_role_login_time_label';
+    const ROLE_TARGETS = {
+      admin_pusat: '../admin/index.html',
+      kurir: '../kurir/index.html'
+    };
+    const ALLOWED_AUTH_ROLES = ['admin_pusat', 'kurir'];
 
-  async function syncSessionFromUser(user) {
-    const tokenResult = await user.getIdTokenResult(true);
-    const role = String(tokenResult?.claims?.role || '').trim();
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-    if (!ALLOWED_AUTH_ROLES.includes(role)) {
-      clearSessionMirror();
-      await signOut(auth).catch(() => {});
-      throw new Error('ROLE_NOT_ALLOWED');
+    const state = { users: {} };
+
+    const els = {
+      usernameInput: document.getElementById('usernameInput'),
+      pinInput: document.getElementById('pinInput'),
+      loginBtn: document.getElementById('loginBtn'),
+      noticeBox: document.getElementById('noticeBox'),
+      userCountText: document.getElementById('userCountText'),
+      pusatCountText: document.getElementById('pusatCountText'),
+      cabangCountText: document.getElementById('cabangCountText'),
+      kurirCountText: document.getElementById('kurirCountText'),
+      sessionBox: document.getElementById('sessionBox'),
+      sessionEmpty: document.getElementById('sessionEmpty'),
+      sessionName: document.getElementById('sessionName'),
+      sessionMeta: document.getElementById('sessionMeta'),
+      continueSessionBtn: document.getElementById('continueSessionBtn'),
+      logoutSessionBtn: document.getElementById('logoutSessionBtn')
+    };
+
+    function showNotice(message, isError = false) {
+      els.noticeBox.textContent = message;
+      els.noticeBox.classList.remove('hidden', 'error');
+      if (isError) els.noticeBox.classList.add('error');
     }
 
-    const session = buildSessionFromAuth(user, tokenResult);
-    saveSessionMirror(session);
-    return session;
-  }
-
-  async function loginNow() {
-    hideNotice();
-
-    const email = els.usernameInput.value.trim().toLowerCase();
-    const password = els.pinInput.value;
-
-    if (!email || !password) {
-      showNotice('Email dan password wajib diisi.', true);
-      return;
+    function hideNotice() {
+      els.noticeBox.classList.add('hidden');
+      els.noticeBox.classList.remove('error');
+      els.noticeBox.textContent = '';
     }
 
-    if (!email.includes('@')) {
-      showNotice('Masukkan email login Firebase yang valid.', true);
-      return;
+    function countRoles() {
+      const users = Object.values(state.users || {}).filter(u => u && u.isActive !== false);
+      const pusat = users.filter(u => u.role === 'admin_pusat').length;
+      const cabang = users.filter(u => u.role === 'admin_cabang').length;
+      const kurir = users.filter(u => u.role === 'kurir').length;
+      els.userCountText.textContent = String(users.length);
+      els.pusatCountText.textContent = String(pusat);
+      els.cabangCountText.textContent = String(cabang);
+      els.kurirCountText.textContent = String(kurir);
     }
 
-    try {
-      els.loginBtn.disabled = true;
-      clearSessionMirror();
-
-      await setPersistence(auth, browserLocalPersistence);
-
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const session = await syncSessionFromUser(cred.user);
-
-      showNotice(`Login berhasil sebagai ${session.role}. Mengalihkan ke halaman tujuan...`);
-
-      setTimeout(() => {
-        window.location.assign(session.target);
-      }, 350);
-    } catch (err) {
-      console.error('PORTAL_LOGIN_FAILED', err);
-      clearSessionMirror();
-
-      if (err?.message === 'ROLE_NOT_ALLOWED') {
-        showNotice('Akun berhasil login, tapi role belum diizinkan masuk portal internal.', true);
-      } else {
-        showNotice('Login gagal. Cek email/password atau pastikan custom claims sudah terpasang.', true);
-      }
-    } finally {
-      els.loginBtn.disabled = false;
+    function makeLoginTimeLabel() {
+      return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
     }
-  }
 
-  async function continueSession() {
-    hideNotice();
+    function normalizeTarget(target, role) {
+      const fallback = ROLE_TARGETS[role] || '../portal/index.html';
+      const raw = String(target || '').trim();
+      if (!raw) return fallback;
+      if (raw === '../') return '../index.html';
+      if (raw === './') return './index.html';
+      if (raw.endsWith('/')) return raw + 'index.html';
+      return raw;
+    }
 
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        showNotice('Sesi Firebase sudah habis. Silakan login lagi.', true);
-        clearSessionMirror();
+    function clearSessionMirror() {
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(LOGIN_TIME_KEY);
+      localStorage.removeItem('ej_active_courier_id');
+      localStorage.removeItem('ej_active_courier_name');
+    }
+
+    function loadSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+      catch { return null; }
+    }
+
+    function renderSession() {
+      const session = loadSession();
+      if (!session || !ALLOWED_AUTH_ROLES.includes(session.role)) {
+        els.sessionBox.classList.add('hidden');
+        els.sessionEmpty.classList.remove('hidden');
         return;
       }
+      els.sessionBox.classList.remove('hidden');
+      els.sessionEmpty.classList.add('hidden');
+      els.sessionName.textContent = session.name || session.username || session.email || '-';
+      els.sessionMeta.textContent = `${session.role}${session.email ? ' • ' + session.email : ''}`;
+    }
 
-      const session = await syncSessionFromUser(user);
-      window.location.assign(session.target);
-    } catch (err) {
-      console.error('CONTINUE_SESSION_FAILED', err);
+    function buildSessionFromAuth(user, tokenResult) {
+      const claims = tokenResult?.claims || {};
+      const role = String(claims.role || '').trim();
+      const courierId = String(claims.courier_id || '').trim();
+      const email = String(user.email || '').trim().toLowerCase();
+      const username = email.includes('@') ? email.split('@')[0] : email;
+      return {
+        uid: user.uid,
+        id: courierId || user.uid,
+        courier_id: courierId || '',
+        email,
+        username,
+        role,
+        name: String(claims.name || user.displayName || username || email || 'User'),
+        branchCode: '',
+        target: normalizeTarget(ROLE_TARGETS[role], role),
+        source: 'firebase_auth_stage1',
+        savedAt: Date.now()
+      };
+    }
+
+    function saveSessionMirror(session) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      localStorage.setItem(LOGIN_TIME_KEY, makeLoginTimeLabel());
+      localStorage.removeItem('ej_active_courier_id');
+      localStorage.removeItem('ej_active_courier_name');
+      renderSession();
+    }
+
+    async function syncSessionFromUser(user) {
+      const tokenResult = await user.getIdTokenResult(true);
+      const role = String(tokenResult?.claims?.role || '').trim();
+      if (!ALLOWED_AUTH_ROLES.includes(role)) {
+        clearSessionMirror();
+        await signOut(auth).catch(() => {});
+        throw new Error('ROLE_NOT_ALLOWED');
+      }
+      const session = buildSessionFromAuth(user, tokenResult);
+      saveSessionMirror(session);
+      return session;
+    }
+
+    async function loginNow() {
+      hideNotice();
+      const email = els.usernameInput.value.trim().toLowerCase();
+      const password = els.pinInput.value;
+      if (!email || !password) {
+        showNotice('Email dan password wajib diisi.', true);
+        return;
+      }
+      if (!email.includes('@')) {
+        showNotice('Masukkan email login Firebase yang valid.', true);
+        return;
+      }
+      try {
+        els.loginBtn.disabled = true;
+        clearSessionMirror();
+        await setPersistence(auth, browserLocalPersistence);
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const session = await syncSessionFromUser(cred.user);
+        showNotice(`Login berhasil sebagai ${session.role}. Mengalihkan ke halaman tujuan...`);
+        setTimeout(() => { window.location.assign(session.target); }, 350);
+      } catch (err) {
+        console.error('PORTAL_LOGIN_FAILED', err);
+        clearSessionMirror();
+        if (err?.message === 'ROLE_NOT_ALLOWED') {
+          showNotice('Akun berhasil login, tapi role belum diizinkan masuk portal internal.', true);
+        } else {
+          showNotice('Login gagal. Cek email/password atau pastikan custom claims sudah terpasang.', true);
+        }
+      } finally {
+        els.loginBtn.disabled = false;
+      }
+    }
+
+    async function continueSession() {
+      hideNotice();
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          showNotice('Sesi Firebase sudah habis. Silakan login lagi.', true);
+          clearSessionMirror();
+          return;
+        }
+        const session = await syncSessionFromUser(user);
+        window.location.assign(session.target);
+      } catch (err) {
+        console.error('CONTINUE_SESSION_FAILED', err);
+        clearSessionMirror();
+        showNotice('Sesi tidak valid. Silakan login ulang.', true);
+      }
+    }
+
+    async function logoutSession() {
+      try { await signOut(auth); } catch (err) { console.warn('SIGNOUT_FAILED', err); }
       clearSessionMirror();
-      showNotice('Sesi tidak valid. Silakan login ulang.', true);
+      renderSession();
+      showNotice('Sesi login di perangkat ini sudah dihapus.');
     }
-  }
 
-  async function logoutSession() {
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.warn('SIGNOUT_FAILED', err);
-    }
-    clearSessionMirror();
-    renderSession();
-    showNotice('Sesi login di perangkat ini sudah dihapus.');
-  }
-
-  onValue(
-    ref(db, 'app_users'),
-    snap => {
+    onValue(ref(db, 'app_users'), snap => {
       state.users = snap.val() || {};
       countRoles();
-    },
-    err => {
+    }, err => {
       console.error('APP_USERS_READ_FAILED', err);
       showNotice('Gagal membaca app_users dari Firebase. Cek Rules.', true);
-    }
-  );
+    });
 
-  onAuthStateChanged(auth, async user => {
-    if (!user) {
-      renderSession();
-      return;
-    }
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        renderSession();
+        return;
+      }
+      try {
+        await syncSessionFromUser(user);
+      } catch (err) {
+        console.warn('AUTH_STATE_SYNC_FAILED', err);
+      }
+    });
 
-    try {
-      await syncSessionFromUser(user);
-    } catch (err) {
-      console.warn('AUTH_STATE_SYNC_FAILED', err);
-    }
-  });
+    els.loginBtn.addEventListener('click', loginNow);
+    els.continueSessionBtn.addEventListener('click', continueSession);
+    els.logoutSessionBtn.addEventListener('click', logoutSession);
+    els.pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') loginNow(); });
+    els.usernameInput.addEventListener('keydown', e => { if (e.key === 'Enter') els.pinInput.focus(); });
 
-  els.loginBtn.addEventListener('click', loginNow);
-  els.continueSessionBtn.addEventListener('click', continueSession);
-  els.logoutSessionBtn.addEventListener('click', logoutSession);
-
-  els.pinInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') loginNow();
-  });
-
-  els.usernameInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') els.pinInput.focus();
-  });
-
-  renderSession();
-</script>
+    renderSession();
+  </script>
 </body>
 </html>
