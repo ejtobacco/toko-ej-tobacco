@@ -598,14 +598,38 @@
       if (stateVal === 'locked') return 's-picked';
       return 's-other';
     }
-    function getVerifierIdentity() {
+    function getAuthSession() {
       try {
+        if (window.__EJ_AUTH_CONTEXT?.session) return window.__EJ_AUTH_CONTEXT.session;
         const raw = localStorage.getItem('ej_role_session_v1');
-        const session = raw ? JSON.parse(raw) : null;
-        return session?.id || session?.username || session?.name || 'admin_pusat_1';
+        return raw ? JSON.parse(raw) : null;
       } catch {
-        return 'admin_pusat_1';
+        return null;
       }
+    }
+    function getVerifierMeta() {
+      const session = getAuthSession() || {};
+      const user = window.__EJ_AUTH_CONTEXT?.user || auth.currentUser || null;
+      const claims = window.__EJ_AUTH_CONTEXT?.tokenResult?.claims || {};
+      const email = String(session.email || user?.email || '').trim().toLowerCase();
+      const username = String(session.username || (email.includes('@') ? email.split('@')[0] : '') || '').trim();
+      const displayName = String(session.name || claims.name || user?.displayName || username || email || 'Admin Pusat').trim();
+      const role = String(session.role || claims.role || '').trim() || 'admin_pusat';
+      const id = String(session.id || session.uid || user?.uid || username || email || 'admin_pusat').trim();
+      return {
+        id,
+        displayName,
+        email,
+        username,
+        role
+      };
+    }
+    function getVerifierIdentity() {
+      return getVerifierMeta().id;
+    }
+    function getVerifierLabel() {
+      const meta = getVerifierMeta();
+      return meta.displayName || meta.email || meta.id || 'Admin Pusat';
     }
 
     function todayParts() {
@@ -707,6 +731,7 @@
           closingState: closingState({ setoranRow }),
           verified: !!setoranRow?.verified || setoranRow?.status === 'verified',
           verifiedBy: setoranRow?.verifiedBy || '',
+          verifiedByName: setoranRow?.verifiedByName || '',
           verifiedAt: Number(setoranRow?.verifiedAt || 0),
           verificationNote: setoranRow?.verificationNote || '',
           closed: !!setoranRow?.closed,
@@ -715,7 +740,7 @@
             ...(byCourierCod[courierId]?.items || []).map(item => ({ type: 'cod', ts: Number(item.ship.deliveredAt || item.order.updatedAt || 0), label: `COD ${item.order.orderNo}`, note: `${item.order.customerName || '-'} • +${fmtRupiah(item.order.grandTotal || 0)}` })),
             ...(byCourierExpense[courierId]?.items || []).map(item => ({ type: 'expense', ts: Number(item.createdAt || 0), label: `Biaya ${item.type || 'lainnya'}`, note: `${item.note || 'Tanpa catatan'} • -${fmtRupiah(item.amount || 0)}` })),
             ...(setoranRow ? [{ type: 'setor', ts: Number(setoranRow.updatedAt || 0), label: 'Closing / Setoran', note: `${fmtRupiah(setor)} • ${setoranRow.note || 'Tanpa catatan'}` }] : []),
-            ...((setoranRow?.verified || setoranRow?.status === 'verified') ? [{ type: 'verify', ts: Number(setoranRow.verifiedAt || setoranRow.updatedAt || 0), label: 'Verifikasi admin', note: `${setoranRow.verifiedBy || '-'} • ${setoranRow.verificationNote || 'Tanpa catatan verifikasi'}` }] : [])
+            ...((setoranRow?.verified || setoranRow?.status === 'verified') ? [{ type: 'verify', ts: Number(setoranRow.verifiedAt || setoranRow.updatedAt || 0), label: 'Verifikasi admin', note: `${setoranRow.verifiedByName || setoranRow.verifiedBy || '-'} • ${setoranRow.verificationNote || 'Tanpa catatan verifikasi'}` }] : [])
           ].sort((a,b)=>b.ts-a.ts)
         };
       }).filter(r => r.courierId && (r.cod > 0 || r.expense > 0 || r.setor > 0 || r.outstanding > 0 || r.closed || r.verified || state.couriers[r.courierId]));
@@ -782,7 +807,7 @@
       el.walletDetailCourierMeta.textContent = `${row.courierId} • ${row.courier.phone || '-'}`;
       el.walletDetailClosing.textContent = closingLabel(row.closingState);
       el.walletDetailClosingMeta.textContent = row.setoranRow
-        ? `${fmtDate(row.updatedAt)} • ${row.setoranRow.note || 'Tanpa catatan'}${row.verified ? ` • Diverifikasi ${row.verifiedBy || '-'} ${fmtDate(row.verifiedAt)}` : ''}`
+        ? `${fmtDate(row.updatedAt)} • ${row.setoranRow.note || 'Tanpa catatan'}${row.verified ? ` • Diverifikasi ${row.verifiedByName || row.verifiedBy || '-'} ${fmtDate(row.verifiedAt)}` : ''}`
         : 'Belum ada closing';
       el.walletDetailCod.textContent = fmtRupiah(row.cod);
       el.walletDetailCodMeta.textContent = `${row.deliveredCount} order COD delivered`;
@@ -853,11 +878,12 @@
         return;
       }
       const note = String(el.verifyNoteInput.value || '').trim();
-      const verifier = getVerifierIdentity();
+      const verifier = getVerifierMeta();
       const payload = {
         status: 'verified',
         verified: true,
-        verifiedBy: verifier,
+        verifiedBy: verifier.id,
+        verifiedByName: getVerifierLabel(),
         verifiedAt: Date.now(),
         verificationNote: note || 'Setoran sesuai.'
       };
@@ -893,7 +919,7 @@
           <td>${fmtRupiah(r.setor)}</td>
           <td>${fmtRupiah(r.outstanding)}</td>
           <td><span class="badge ${closingBadgeClass(r.closingState)}"><span class="dot"></span>${closingLabel(r.closingState)}</span></td>
-          <td>${r.verifiedBy ? `<div style="font-weight:700;">${r.verifiedBy}</div><div class="mini">${fmtDate(r.verifiedAt)}</div>` : '<span class="mini">-</span>'}</td>
+          <td>${r.verifiedBy ? `<div style="font-weight:700;">${r.verifiedByName || r.verifiedBy}</div><div class="mini">${fmtDate(r.verifiedAt)}</div>` : '<span class="mini">-</span>'}</td>
         </tr>
       `).join('');
     }
