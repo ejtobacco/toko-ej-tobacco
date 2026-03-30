@@ -3,10 +3,10 @@
 <head>
   <script>
     document.documentElement.style.visibility = 'hidden';
-    window.EJ_AUTH_BOOTSTRAP_CONFIG = {
+    window.EJ_ROLE_GUARD = {
+      allowedRoles: ['kurir', 'admin_pusat'],
       loginUrl: '../portal/',
-      fallbackHome: '../',
-      allowedRoles: ['kurir', 'admin_pusat']
+      fallbackHome: '../'
     };
 
     let proofPhotoCompressedDataUrl = '';
@@ -19,6 +19,16 @@
     let scannerAudioContext = null;
     let scannerTorchAvailable = false;
     let scannerTorchOn = false;
+    window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };
+  </script>
+  <script type="module" src="../assets/ej_role_guard.js"></script>
+  <script src="../assets/ej_session_badge.js"></script>
+  <script>
+    window.EJ_AUTH_BOOTSTRAP_CONFIG = {
+      loginUrl: '../portal/',
+      fallbackHome: '../',
+      allowedRoles: ['kurir', 'admin_pusat']
+    };
   </script>
   <script type="module" src="../assets/ej_auth_bootstrap_stage1.js"></script>
   <meta charset="UTF-8" />
@@ -762,9 +772,9 @@
     };
 
     const app = window.__EJ_AUTH_CONTEXT?.app || (getApps().length ? getApp() : initializeApp(firebaseConfig));
-    const auth = window.__EJ_AUTH_CONTEXT?.auth || getAuth(app);
     const db = getDatabase(app);
     const storage = getStorage(app);
+    const auth = window.__EJ_AUTH_CONTEXT?.auth || getAuth(app);
     const BACKEND_FLAGS = {
       proofStorageMode: 'storage',
       maxProofBytes: 5 * 1024 * 1024,
@@ -775,7 +785,9 @@
     const SETTINGS_PREFIX = 'ej_kurir_v3_settings';
     const ORDER_SORT_KEY = 'ej_kurir_v3_order_sort';
     const ROUTE_SORT_KEY = 'ej_kurir_v3_route_sort';
-    let roleSession = null;
+    let roleSession = (() => {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
+    })();
 
     if (!localStorage.getItem(LOGIN_TIME_KEY)) {
       const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
@@ -822,15 +834,15 @@
         Gudang: ['Retur ke gudang', 'Jadwal ulang', 'Belum bisa dikirim', 'Perlu verifikasi admin']
       }
     };
-    function hydrateAuthContext(authCtx = window.__EJ_AUTH_CONTEXT || null) {
-      state.firebaseUser = authCtx?.user || auth.currentUser || null;
-      state.firebaseAuthReady = true;
+
+
+    function syncRoleSessionFromBootstrap() {
+      roleSession = window.__EJ_AUTH_CONTEXT?.session || (() => {
+        try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
+      })();
+      state.firebaseUser = window.__EJ_AUTH_CONTEXT?.user || auth.currentUser || null;
+      state.firebaseAuthReady = !!state.firebaseUser;
       state.firebaseAuthError = '';
-      return state.firebaseUser;
-    } catch (err) {
-        state.firebaseAuthError = err?.code || 'auth_failed';
-        reportRuntimeIssue('FIREBASE_AUTH_FAILED', err);
-      }
     }
 
     const els = {
@@ -1182,11 +1194,12 @@
       els.courierSelectWrap.classList.toggle('hidden', !isAdminPusatMode());
     }
 
-    function logout() {
+    async function logout() {
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem('ej_active_courier_id');
       localStorage.removeItem('ej_active_courier_name');
       localStorage.removeItem(LOGIN_TIME_KEY);
+      try { await signOut(auth); } catch (err) { console.warn('SIGNOUT_FAILED', err); }
       window.location.href = '../portal/';
     }
 
@@ -3323,25 +3336,23 @@
       updateNetworkUI();
     }
 
-    renderReasonButtons();
-    setupLuxuryInteractions();
-
     async function startApp() {
-      const authCtx = await window.EJ_AUTH_READY;
-      hydrateAuthContext(authCtx);
-      roleSession = authCtx?.session || (() => {
-        try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
-        catch { return null; }
-      })();
-
+      try {
+        if (window.EJ_AUTH_READY) await window.EJ_AUTH_READY;
+      } catch (err) {
+        reportRuntimeIssue('FIREBASE_AUTH_BOOT_FAILED', err);
+        return;
+      }
+      syncRoleSessionFromBootstrap();
       if (!roleSession?.role || !['kurir', 'admin_pusat'].includes(roleSession.role)) {
         try { await signOut(auth); } catch {}
         window.location.href = '../portal/';
         return;
       }
-
       updateClock();
       setInterval(updateClock, 1000);
+      renderReasonButtons();
+      setupLuxuryInteractions();
       setupEvents();
       bindRealtime();
       renderAll();
@@ -3349,10 +3360,7 @@
       closeSheets();
     }
 
-    startApp().catch(err => {
-      reportRuntimeIssue('FIREBASE_AUTH_BOOT_FAILED', err);
-      window.location.href = '../portal/';
-    });
+    startApp();
   </script>
 </body>
 </html>
