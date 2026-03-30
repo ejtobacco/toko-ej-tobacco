@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-  <title>EJ Portal Login Role</title>
+  <title>EJ Portal Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -105,16 +105,16 @@
 <body>
   <div class="app">
     <section class="card hero">
-      <div class="badge">LOGIN ROLE • FIREBASE LIVE</div>
+      <div class="badge">FIREBASE AUTH • TAHAP 1</div>
       <div class="brand">
         <div class="brand-icon">🔐</div>
         <div>
-          <h1>EJ Portal Role</h1>
+          <h1>EJ Portal Login</h1>
           <p id="brandSub">Admin pusat dan kurir masuk dari satu gerbang Firebase Authentication.</p>
         </div>
       </div>
-      <div class="hero-title">Akses berdasarkan role</div>
-      <div class="hero-sub">Portal ini login lewat Firebase Authentication Email/Password, lalu membaca custom claims role dari ID token user.</div>
+      <div class="hero-title">Akses internal</div>
+      <div class="hero-sub">Portal ini dipakai untuk login <code>Email/Password</code>, membaca custom claims Firebase Auth, lalu mengarahkan user ke halaman sesuai role yang diizinkan pada tahap 1.</div>
       <div class="grid4" style="margin-top:16px">
         <div class="mini"><label>User aktif</label><strong id="userCountText">0</strong></div>
         <div class="mini"><label>Admin pusat</label><strong id="pusatCountText">0</strong></div>
@@ -126,8 +126,8 @@
     <section class="card" id="sessionCard">
       <div class="section-head">
         <div>
-          <h2>Sesi login tersimpan</h2>
-          <p>Kalau sebelumnya sudah login, bisa langsung masuk tanpa ketik ulang.</p>
+          <h2>Sesi tab ini</h2>
+          <p>Sesi login dibuat per tab/browser session supaya admin dan kurir tidak saling bentrok di browser yang sama.</p>
         </div>
       </div>
       <div id="sessionBox" class="session-box hidden">
@@ -138,14 +138,14 @@
           <button class="ghost" id="logoutSessionBtn">Logout</button>
         </div>
       </div>
-      <div id="sessionEmpty" class="helper">Belum ada sesi tersimpan di perangkat ini.</div>
+      <div id="sessionEmpty" class="helper">Belum ada sesi aktif untuk tab ini.</div>
     </section>
 
     <section class="card">
       <div class="section-head">
         <div>
           <h2>Masuk ke sistem</h2>
-          <p>Masukkan email dan password Firebase Authentication.</p>
+          <p>Masukkan email dan password Firebase untuk role yang sudah diaktifkan.</p>
         </div>
       </div>
       <div class="stack">
@@ -159,36 +159,26 @@
     <section class="card">
       <div class="section-head">
         <div>
-          <h2>Role yang tersedia</h2>
-          <p>Target halaman otomatis ditentukan dari custom claims <code>role</code>.</p>
+          <h2>Role tahap 1</h2>
+          <p>Sementara yang aktif baru role internal utama.</p>
         </div>
       </div>
       <div class="roles">
         <div class="role-card">
           <strong>admin_pusat</strong>
-          <p>Masuk ke root master admin pusat realtime.</p>
-          <div class="chips"><span class="chip"><code>../index.html</code></span><span class="chip">Master admin</span></div>
-        </div>
-        <div class="role-card">
-          <strong>admin_cabang</strong>
-          <p>Masuk ke POS cabang live sesuai branch code.</p>
-          <div class="chips"><span class="chip"><code>../pos-cabang/index.html</code></span><span class="chip">Kasir live</span></div>
+          <p>Masuk ke halaman monitor admin pusat untuk pantau operasional kurir dan closing.</p>
+          <div class="chips"><span class="chip"><code>../admin/index.html</code></span><span class="chip">Monitoring pusat</span></div>
         </div>
         <div class="role-card">
           <strong>kurir</strong>
-          <p>Masuk ke panel kurir yang sudah dipakai operasional delivery.</p>
+          <p>Masuk ke panel delivery operasional dengan auth berdasarkan <code>courier_id</code>.</p>
           <div class="chips"><span class="chip"><code>../kurir/index.html</code></span><span class="chip">Delivery</span></div>
-        </div>
-        <div class="role-card">
-          <strong>customer</strong>
-          <p>Masuk ke halaman order customer/checkout.</p>
-          <div class="chips"><span class="chip"><code>../customer/index.html</code></span><span class="chip">Order</span></div>
         </div>
       </div>
     </section>
 
     <div class="footer-note">
-      Simpan portal ini sebagai <code>portal/index.html</code>.
+      Tahap 1 aktif untuk <code>admin_pusat</code> dan <code>kurir</code>. Role lain dirapikan setelah baseline stabil.
     </div>
   </div>
 
@@ -198,7 +188,7 @@
     import {
       getAuth,
       setPersistence,
-      browserLocalPersistence,
+      browserSessionPersistence,
       signInWithEmailAndPassword,
       onAuthStateChanged,
       signOut
@@ -217,10 +207,12 @@
 
     const SESSION_KEY = 'ej_role_session_v1';
     const LOGIN_TIME_KEY = 'ej_role_login_time_label';
+
     const ROLE_TARGETS = {
       admin_pusat: '../admin/index.html',
       kurir: '../kurir/index.html'
     };
+
     const ALLOWED_AUTH_ROLES = ['admin_pusat', 'kurir'];
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -270,7 +262,10 @@
     }
 
     function makeLoginTimeLabel() {
-      return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+      return new Date().toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }) + ' WIB';
     }
 
     function normalizeTarget(target, role) {
@@ -291,8 +286,11 @@
     }
 
     function loadSession() {
-      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
-      catch { return null; }
+      try {
+        return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      } catch {
+        return null;
+      }
     }
 
     function renderSession() {
@@ -314,6 +312,7 @@
       const courierId = String(claims.courier_id || '').trim();
       const email = String(user.email || '').trim().toLowerCase();
       const username = email.includes('@') ? email.split('@')[0] : email;
+
       return {
         uid: user.uid,
         id: courierId || user.uid,
@@ -340,11 +339,13 @@
     async function syncSessionFromUser(user) {
       const tokenResult = await user.getIdTokenResult(true);
       const role = String(tokenResult?.claims?.role || '').trim();
+
       if (!ALLOWED_AUTH_ROLES.includes(role)) {
         clearSessionMirror();
         await signOut(auth).catch(() => {});
         throw new Error('ROLE_NOT_ALLOWED');
       }
+
       const session = buildSessionFromAuth(user, tokenResult);
       saveSessionMirror(session);
       return session;
@@ -352,27 +353,38 @@
 
     async function loginNow() {
       hideNotice();
+
       const email = els.usernameInput.value.trim().toLowerCase();
       const password = els.pinInput.value;
+
       if (!email || !password) {
         showNotice('Email dan password wajib diisi.', true);
         return;
       }
+
       if (!email.includes('@')) {
         showNotice('Masukkan email login Firebase yang valid.', true);
         return;
       }
+
       try {
         els.loginBtn.disabled = true;
         clearSessionMirror();
-        await setPersistence(auth, browserLocalPersistence);
+
+        await setPersistence(auth, browserSessionPersistence);
+
         const cred = await signInWithEmailAndPassword(auth, email, password);
         const session = await syncSessionFromUser(cred.user);
+
         showNotice(`Login berhasil sebagai ${session.role}. Mengalihkan ke halaman tujuan...`);
-        setTimeout(() => { window.location.assign(session.target); }, 350);
+
+        setTimeout(() => {
+          window.location.assign(session.target);
+        }, 350);
       } catch (err) {
         console.error('PORTAL_LOGIN_FAILED', err);
         clearSessionMirror();
+
         if (err?.message === 'ROLE_NOT_ALLOWED') {
           showNotice('Akun berhasil login, tapi role belum diizinkan masuk portal internal.', true);
         } else {
@@ -385,13 +397,15 @@
 
     async function continueSession() {
       hideNotice();
+
       try {
         const user = auth.currentUser;
         if (!user) {
-          showNotice('Sesi Firebase sudah habis. Silakan login lagi.', true);
+          showNotice('Sesi browser untuk tab ini sudah habis. Silakan login lagi.', true);
           clearSessionMirror();
           return;
         }
+
         const session = await syncSessionFromUser(user);
         window.location.assign(session.target);
       } catch (err) {
@@ -402,25 +416,34 @@
     }
 
     async function logoutSession() {
-      try { await signOut(auth); } catch (err) { console.warn('SIGNOUT_FAILED', err); }
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.warn('SIGNOUT_FAILED', err);
+      }
       clearSessionMirror();
       renderSession();
-      showNotice('Sesi login di perangkat ini sudah dihapus.');
+      showNotice('Sesi login tab ini sudah dihapus.');
     }
 
-    onValue(ref(db, 'app_users'), snap => {
-      state.users = snap.val() || {};
-      countRoles();
-    }, err => {
-      console.error('APP_USERS_READ_FAILED', err);
-      showNotice('Gagal membaca app_users dari Firebase. Cek Rules.', true);
-    });
+    onValue(
+      ref(db, 'app_users'),
+      snap => {
+        state.users = snap.val() || {};
+        countRoles();
+      },
+      err => {
+        console.error('APP_USERS_READ_FAILED', err);
+        showNotice('Gagal membaca app_users dari Firebase. Cek Rules.', true);
+      }
+    );
 
     onAuthStateChanged(auth, async user => {
       if (!user) {
         renderSession();
         return;
       }
+
       try {
         await syncSessionFromUser(user);
       } catch (err) {
@@ -431,8 +454,14 @@
     els.loginBtn.addEventListener('click', loginNow);
     els.continueSessionBtn.addEventListener('click', continueSession);
     els.logoutSessionBtn.addEventListener('click', logoutSession);
-    els.pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') loginNow(); });
-    els.usernameInput.addEventListener('keydown', e => { if (e.key === 'Enter') els.pinInput.focus(); });
+
+    els.pinInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') loginNow();
+    });
+
+    els.usernameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') els.pinInput.focus();
+    });
 
     renderSession();
   </script>
