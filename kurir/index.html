@@ -3,10 +3,10 @@
 <head>
   <script>
     document.documentElement.style.visibility = 'hidden';
-    window.EJ_ROLE_GUARD = {
-      allowedRoles: ['kurir', 'admin_pusat'],
+    window.EJ_AUTH_BOOTSTRAP_CONFIG = {
       loginUrl: '../portal/',
-      fallbackHome: '../'
+      fallbackHome: '../',
+      allowedRoles: ['kurir', 'admin_pusat']
     };
 
     let proofPhotoCompressedDataUrl = '';
@@ -19,10 +19,8 @@
     let scannerAudioContext = null;
     let scannerTorchAvailable = false;
     let scannerTorchOn = false;
-    window.EJ_SESSION_BADGE = { loginUrl: '../portal/' };
   </script>
-  <script type="module" src="../assets/ej_role_guard.js"></script>
-  <script src="../assets/ej_session_badge.js"></script>
+  <script type="module" src="../assets/ej_auth_bootstrap_stage1.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>EJ Tobacco Delivery</title>
@@ -747,10 +745,10 @@
   <div class="toast" id="toast"></div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
     import { getDatabase, ref, onValue, push, set, update, get } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js';
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js';
-    import { getAuth, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
+    import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: 'AIzaSyDB-fmTDiy6aNF4hxbkv1natMAEHgvvOv8',
@@ -763,10 +761,10 @@
       measurementId: 'G-VCRFQSRB9H'
     };
 
-    const app = initializeApp(firebaseConfig);
+    const app = window.__EJ_AUTH_CONTEXT?.app || (getApps().length ? getApp() : initializeApp(firebaseConfig));
+    const auth = window.__EJ_AUTH_CONTEXT?.auth || getAuth(app);
     const db = getDatabase(app);
     const storage = getStorage(app);
-    const auth = getAuth(app);
     const BACKEND_FLAGS = {
       proofStorageMode: 'storage',
       maxProofBytes: 5 * 1024 * 1024,
@@ -777,9 +775,7 @@
     const SETTINGS_PREFIX = 'ej_kurir_v3_settings';
     const ORDER_SORT_KEY = 'ej_kurir_v3_order_sort';
     const ROUTE_SORT_KEY = 'ej_kurir_v3_route_sort';
-    const roleSession = (() => {
-      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
-    })();
+    let roleSession = null;
 
     if (!localStorage.getItem(LOGIN_TIME_KEY)) {
       const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
@@ -826,29 +822,12 @@
         Gudang: ['Retur ke gudang', 'Jadwal ulang', 'Belum bisa dikirim', 'Perlu verifikasi admin']
       }
     };
-
-
-    function getFirebaseCustomToken() {
-      const candidates = [
-        window.EJ_FIREBASE_CUSTOM_TOKEN,
-        roleSession?.firebaseCustomToken,
-        sessionStorage.getItem('ej_firebase_custom_token'),
-        localStorage.getItem('ej_firebase_custom_token')
-      ];
-      return candidates.find(value => typeof value === 'string' && value.trim()) || '';
-    }
-
-    onAuthStateChanged(auth, (user) => {
-      state.firebaseUser = user || null;
+    function hydrateAuthContext(authCtx = window.__EJ_AUTH_CONTEXT || null) {
+      state.firebaseUser = authCtx?.user || auth.currentUser || null;
       state.firebaseAuthReady = true;
-    });
-
-    async function ensureFirebaseSession() {
-      const token = getFirebaseCustomToken();
-      if (!token || auth.currentUser) return;
-      try {
-        await signInWithCustomToken(auth, token);
-      } catch (err) {
+      state.firebaseAuthError = '';
+      return state.firebaseUser;
+    } catch (err) {
         state.firebaseAuthError = err?.code || 'auth_failed';
         reportRuntimeIssue('FIREBASE_AUTH_FAILED', err);
       }
@@ -3344,16 +3323,36 @@
       updateNetworkUI();
     }
 
-    updateClock();
-    setInterval(updateClock, 1000);
     renderReasonButtons();
     setupLuxuryInteractions();
-    setupEvents();
-    ensureFirebaseSession().catch(err => reportRuntimeIssue('FIREBASE_AUTH_BOOT_FAILED', err));
-    bindRealtime();
-    renderAll();
-    refreshLocationWatcher();
-    closeSheets();
+
+    async function startApp() {
+      const authCtx = await window.EJ_AUTH_READY;
+      hydrateAuthContext(authCtx);
+      roleSession = authCtx?.session || (() => {
+        try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+        catch { return null; }
+      })();
+
+      if (!roleSession?.role || !['kurir', 'admin_pusat'].includes(roleSession.role)) {
+        try { await signOut(auth); } catch {}
+        window.location.href = '../portal/';
+        return;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+      setupEvents();
+      bindRealtime();
+      renderAll();
+      refreshLocationWatcher();
+      closeSheets();
+    }
+
+    startApp().catch(err => {
+      reportRuntimeIssue('FIREBASE_AUTH_BOOT_FAILED', err);
+      window.location.href = '../portal/';
+    });
   </script>
 </body>
 </html>
